@@ -1,0 +1,51 @@
+{
+  "name": "futoin-invoker",
+  "version": "0.1.0",
+  "description": "FutoIn Invoker - Reference Implementation",
+  "main": "lib/invoker.js",
+  "browser": "dist/invoker-amd.js",
+  "scripts": {
+    "lint": "./node_modules/.bin/jshint lib --reporter=./node_modules/jshint-full-path/index.js",
+    "checkStyle": "./node_modules/.bin/jscs .",
+    "pretest": "npm run-script lint && npm run-script checkStyle",
+    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive -R spec -r should",
+    "posttest": "./node_modules/.bin/istanbul check-coverage && ./node_modules/.bin/istanbul report html",
+    "doc": "./node_modules/.bin/jsdoc2md -t misc/README.hbs lib/*.js > README.md"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/futoin/core-js-ri-invoker"
+  },
+  "keywords": [
+    "futoin",
+    "async",
+    "rpc",
+    "communication",
+    "distributed"
+  ],
+  "author": {
+    "name": "Andrey Galkin",
+    "email": "andrey@futoin.eu"
+  },
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/futoin/core-js-ri-invoker/issues",
+    "email": "support@futoin.eu"
+  },
+  "dependencies": {
+    "detect-node": "^2.0.3",
+    "futoin-asyncsteps": "^1.2.0",
+    "lodash": "^2.4.1",
+    "ws": "^0.4.32"
+  },
+  "devDependencies": {
+    "istanbul": "^0.3.2",
+    "jscs": "^1.7.1",
+    "jsdoc": "~3.2",
+    "jsdoc-to-markdown": "^0.5.9",
+    "jshint": "^2.5.6",
+    "jshint-full-path": "^1.1.1",
+    "mocha": "^1.21.5",
+    "should": "^4.0.4"
+  }
+}
