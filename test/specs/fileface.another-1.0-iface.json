@@ -1,0 +1,10 @@
+{
+    "iface" : "fileface.another",
+    "version" : "1.0",
+    "inherit" : "fileface.base:1.1",
+    "funcs" : {
+    },
+    "requires" : [
+        "AllowAnonymous"
+    ]
+}
