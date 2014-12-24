@@ -260,7 +260,7 @@ model_as.add(
     function( as, err )
     {
         as.setTimeout( 1e3 );
-        as.state.executor._http_server.close(function(){
+        as.state.executor.close(function(){
             as.success( err );
         });
     }
@@ -268,7 +268,7 @@ model_as.add(
     function( as, err )
     {
         as.setTimeout( 1e3 );
-        as.state.secexecutor._http_server.close(function(){
+        as.state.secexecutor.close(function(){
             as.state.done( err );
             as.success();
         });
@@ -287,7 +287,7 @@ describe( 'Integration', function()
         as.state.proto = 'http';
         as.execute();
     });
-/*
+
     it('should pass WS suite SimpleCCM', function( done )
     {
         var as = async_steps();
@@ -297,7 +297,7 @@ describe( 'Integration', function()
         as.state.proto = 'ws';
         as.execute();
     });
-*/    
+
     it('should pass HTTP suite AdvancedCCM', function( done )
     {
         var as = async_steps();
@@ -307,7 +307,7 @@ describe( 'Integration', function()
         as.state.proto = 'http';
         as.execute();
     });
-/*    
+
     it('should pass WS suite AdvancedCCM', function( done )
     {
         var as = async_steps();
@@ -317,6 +317,4 @@ describe( 'Integration', function()
         as.state.proto = 'ws';
         as.execute();
     });
-*/
-}
-);
+});
