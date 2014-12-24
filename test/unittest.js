@@ -160,7 +160,7 @@ describe( 'Executor', function(){
                 try
                 {
                     var rsp = as.state.reqinfo.info()[ reqinfo.INFO_RAW_RESPONSE ];
-                    rsp.should.equal( '{"e":"InvalidRequest"}' );
+                    rsp.should.equal( '{"e":"InvalidRequest","edesc":"Missing parameter: n"}' );
                     done();
                 }
                 catch ( e )
