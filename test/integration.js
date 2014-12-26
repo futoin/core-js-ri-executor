@@ -165,6 +165,42 @@ var interface_impl = {
             rm : params.m,
             ra : params.a
         });
+    },
+    
+    noResult : function( as, reqinfo )
+    {
+    },
+    
+    noParams : function( as, reqinfo )
+    {
+        as.success( { a : 'test' } );
+    },
+    
+    rawUpload : function( as, reqinfo )
+    {
+        as.success( { a : 'test' } );
+    },
+    
+    rawResult : function( as, reqinfo )
+    {
+    },
+    
+    rawUploadResult : function( as, reqinfo )
+    {
+    },
+    
+    rawUploadResultParams : function( as, reqinfo )
+    {
+    },
+    
+    clientTimeout : function( as, reqinfo )
+    {
+        as.setTimeout( 1e3 );
+    },
+    
+    serverError : function( as, reqinfo )
+    {
+        as.error( reqinfo.params().a );
     }
 };
 
@@ -205,22 +241,22 @@ model_as.add(
         
         as.add( function( as ){
             var executor = new NodeExecutor( ccm, opts );
+            as.state.executor = executor;
+            executor._http_server.setTimeout( 10 );
             
             as.setTimeout( opts[invoker_module.OPT_CALL_TIMEOUT_MS] );
             executor.on('ready', function(){
                 as.success();
             });
-            
-            as.state.executor = executor;
         }).add( function( as ){
             var secexecutor = new NodeExecutor( ccm, secopts );
+            as.state.secexecutor = secexecutor;
+            secexecutor._http_server.setTimeout( 10 );
             
             as.setTimeout( opts[invoker_module.OPT_CALL_TIMEOUT_MS] );
             secexecutor.on('ready', function(){
                 as.success();
             });
-            
-            as.state.secexecutor = secexecutor;
         }).add( function( as ){
             as.state.executor.register( as, 'test.int.anon:1.0', interface_impl );
             as.state.secexecutor.register( as, 'test.int.anonsec:1.0', interface_impl );
@@ -247,9 +283,50 @@ model_as.add(
             res.rm.should.eql( { field : 'value' } );
             res.ra.should.eql( [ true, 'value', 123.456, 123456, { field : 'value' }, [ 1, 2, 3 ] ] );
         }).add( function( as ){
+        }).add( function( as ){        
         }).add( function( as ){
         }).add( function( as ){
         }).add( function( as ){
+        }).add( function( as ){
+        }).add( function( as ){
+        }).add( function( as ){
+        }).add( function( as ){
+        }).add( function( as ){
+        }).add(
+            function( as ){
+                as.state.step = 'clientTimeout';
+                anon_iface.call( as, 'clientTimeout', null, null, null, 1 );
+            },
+            function( as, err ){
+                err.should.equal( 'Timeout' );
+                assert.equal( undefined, as.state.error_info );
+                as.success();
+            }
+        ).add(
+            function( as ){
+                as.state.step = 'serverError';
+                anon_iface.call( as, 'serverError', {
+                    'a' : 'ValidError'
+                } );
+            },
+            function( as, err ){
+                err.should.equal( 'ValidError' );
+                assert.equal( undefined, as.state.error_info );
+                as.success();
+            }
+        ).add(
+            function( as ){
+                as.state.step = 'serverError - invalid';
+                anon_iface.call( as, 'serverError', {
+                    'a' : 'InvalidError'
+                } );
+            },
+            function( as, err ){
+                err.should.equal( 'InternalError' );
+                as.state.error_info.should.equal( 'Not expected error' );
+                as.success();
+            }
+        ).add( function( as ){
         });
     },
     function( as, err )
@@ -259,19 +336,13 @@ model_as.add(
 ).add(
     function( as, err )
     {
-        as.setTimeout( 1e3 );
-        as.state.executor.close(function(){
-            as.success( err );
-        });
-    }
-).add(
+        as.state.executor.close();
+        as.state.secexecutor.close();
+        as.state.done( err );
+    },
     function( as, err )
     {
-        as.setTimeout( 1e3 );
-        as.state.secexecutor.close(function(){
-            as.state.done( err );
-            as.success();
-        });
+        as.state.done( new Error( "" + err + ": " + as.state.error_info + " @ shutdown" ) );
     }
 );
 
