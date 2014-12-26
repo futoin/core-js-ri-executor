@@ -5,6 +5,7 @@ var executor_module = require( '../lib/main' );
 var invoker_module = require( 'futoin-invoker' );
 var async_steps = require( 'futoin-asyncsteps' );
 var NodeExecutor = executor_module.NodeExecutor;
+var MemoryStream = require( 'memorystream' );
 var _ = require( 'lodash' );
 
 // ---
@@ -89,7 +90,7 @@ var test_int_anon = {
             rawresult : true
         },
         'rawUploadResultParams' : {
-            'result' : {
+            'params' : {
                 'a' : {
                     'type' : 'string'
                 },
@@ -173,18 +174,13 @@ var interface_impl = {
     
     noParams : function( as, reqinfo )
     {
-        as.success( { a : 'test' } );
+        return { a : 'test' };
     },
     
     rawUpload : function( as, reqinfo )
     {
         var raw_inp = reqinfo.rawInput();
         var data = [];
-        
-        if ( raw_inp === null )
-        {
-            return { a : "FAIL" };
-        }
 
         raw_inp.on( 'data', function( chunk ){
             data.push( chunk );
@@ -197,14 +193,42 @@ var interface_impl = {
     
     rawResult : function( as, reqinfo )
     {
+        var raw_out = reqinfo.rawOutput();
+        raw_out.write( reqinfo.params().a, 'utf8' );
     },
     
     rawUploadResult : function( as, reqinfo )
     {
+        var raw_inp = reqinfo.rawInput();
+        var raw_out = reqinfo.rawOutput();
+        var data = [];
+
+        raw_inp.on( 'data', function( chunk ){
+            data.push( chunk );
+        });
+        raw_inp.on( 'end', function( chunk ){
+            raw_out.write( data.join( '' ), 'utf8' );
+            as.success();
+        });
+        as.setCancel( function( as ){} );
+
     },
     
     rawUploadResultParams : function( as, reqinfo )
     {
+        var raw_inp = reqinfo.rawInput();
+        var raw_out = reqinfo.rawOutput();
+        var data = [];
+
+        raw_inp.on( 'data', function( chunk ){
+            data.push( chunk );
+        });
+        raw_inp.on( 'end', function( chunk ){
+            raw_out.write( reqinfo.params().a + data.join( '' ) + reqinfo.params().c, 'utf8' );
+            as.success();
+        });
+        as.setCancel( function( as ){} );
+
     },
     
     clientTimeout : function( as, reqinfo )
@@ -256,7 +280,6 @@ model_as.add(
         as.add( function( as ){
             var executor = new NodeExecutor( ccm, opts );
             as.state.executor = executor;
-            executor._http_server.setTimeout( 10 );
             
             /*executor.on( 'notExpected', function( err, error_info ){
                 console.log( "NotExpected: " + err + " " + error_info );
@@ -269,7 +292,6 @@ model_as.add(
         }).add( function( as ){
             var secexecutor = new NodeExecutor( ccm, secopts );
             as.state.secexecutor = secexecutor;
-            secexecutor._http_server.setTimeout( 10 );
             
             /*secexecutor.on( 'notExpected', function( err, error_info ){
                 console.log( "NotExpected: " + err + " " + error_info );
@@ -328,6 +350,80 @@ model_as.add(
             anon_iface.call( as, 'rawUpload', null, 'TestUpload' );
         }).add( function( as, res ){
             res.a.should.equal( 'TestUpload' );
+    // ---
+        }).add( function( as ){
+            as.state.step = "rawUpload + buffer";
+            var upload_data = new Buffer('TestUploadBuffer');
+            anon_iface.call( as, 'rawUpload', null, upload_data );
+        }).add( function( as, res ){
+            res.a.should.equal( 'TestUploadBuffer' );
+    // ---
+        }).add( function( as ){
+            as.state.step = "rawUpload + stream";
+            
+            var upload_data = new MemoryStream();
+            upload_data.lengthInBytes = Buffer.byteLength( 'TestUploadStreamЯ', 'utf8' );
+            var orig_pipe = upload_data.pipe;
+            upload_data.pipe = function( dst, opts )
+            {
+                orig_pipe.call( this, dst, opts );
+                // a dirty hack
+                this.write( 'TestUploadStreamЯ', 'utf8' );
+                this.end();
+            };
+            
+            anon_iface.call( as, 'rawUpload', null, upload_data );
+            
+        }).add( function( as, res ){
+            res.a.should.equal( 'TestUploadStreamЯ' );
+    // ---
+        }).add( function( as ){
+            as.state.step = "rawResult";
+            as.state.membuf = new MemoryStream( null, { readable : false } );
+            anon_iface.call( as, 'rawResult', { a: 'TestDownloadЯ' }, null, as.state.membuf );
+        }).add( function( as, res ){
+            as.state.membuf.toString().should.equal( 'TestDownloadЯ' );
+    // ---
+        }).add( function( as ){
+            if ( anon_iface._raw_info.funcs['rawResult'] ||
+                 ( as.state.proto === 'http' ) ||
+                 ( as.state.proto === 'https' ) )
+            {
+                as.state.step = "rawResult + stream";
+                anon_iface.call( as, 'rawResult', { a: 'TestDownloadЯ' } );
+            }
+            else
+            {
+                console.log( 'WARNING: known issue with SimpleCCM + raw result' );
+                as.success( 'TestDownloadЯ' );
+            }
+        }).add( function( as, res ){
+            res.should.equal( 'TestDownloadЯ' );
+    // ---
+        }).add( function( as ){
+            as.state.step = "rawUploadResult";
+            var upload_data = new Buffer('TestUploadBuffer');
+            as.state.membuf = new MemoryStream( null, { readable : false } );
+            anon_iface.call( as, 'rawUploadResult', null, upload_data, as.state.membuf );
+        }).add( function( as ){
+            as.state.membuf.toString().should.equal( 'TestUploadBuffer' );
+    // ---
+        }).add( function( as ){
+            as.state.step = "rawUploadResultParams";
+            var upload_data = new Buffer('TestUploadBuffer');
+            as.state.membuf = new MemoryStream( null, { readable : false } );
+            anon_iface.call(
+                as,
+                'rawUploadResultParams',
+                {
+                    a : 'start{',
+                    c : '}end'
+                },
+                upload_data,
+                as.state.membuf
+            );
+        }).add( function( as ){
+            as.state.membuf.toString().should.equal( 'start{TestUploadBuffer}end' );
     // ---
         }).add( function( as ){
         }).add( function( as ){
