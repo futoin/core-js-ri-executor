@@ -178,7 +178,21 @@ var interface_impl = {
     
     rawUpload : function( as, reqinfo )
     {
-        as.success( { a : 'test' } );
+        var raw_inp = reqinfo.rawInput();
+        var data = [];
+        
+        if ( raw_inp === null )
+        {
+            return { a : "FAIL" };
+        }
+
+        raw_inp.on( 'data', function( chunk ){
+            data.push( chunk );
+        });
+        raw_inp.on( 'end', function( chunk ){
+            as.success( { a : data.join( '' ) } );
+        });
+        as.setCancel( function( as ){} );
     },
     
     rawResult : function( as, reqinfo )
@@ -220,7 +234,7 @@ model_as.add(
         opts[NodeExecutor.OPT_HTTP_ADDR] = 'localhost';
         opts[NodeExecutor.OPT_HTTP_PORT] = '1080';
         opts[NodeExecutor.OPT_HTTP_PATH] = '/ftn';
-        
+
         var secopts = _.clone( opts );
 
         var end_point = as.state.proto +
@@ -244,6 +258,10 @@ model_as.add(
             as.state.executor = executor;
             executor._http_server.setTimeout( 10 );
             
+            /*executor.on( 'notExpected', function( err, error_info ){
+                console.log( "NotExpected: " + err + " " + error_info );
+            });*/
+            
             as.setTimeout( opts[invoker_module.OPT_CALL_TIMEOUT_MS] );
             executor.on('ready', function(){
                 as.success();
@@ -253,6 +271,10 @@ model_as.add(
             as.state.secexecutor = secexecutor;
             secexecutor._http_server.setTimeout( 10 );
             
+            /*secexecutor.on( 'notExpected', function( err, error_info ){
+                console.log( "NotExpected: " + err + " " + error_info );
+            });*/
+ 
             as.setTimeout( opts[invoker_module.OPT_CALL_TIMEOUT_MS] );
             secexecutor.on('ready', function(){
                 as.success();
@@ -265,6 +287,7 @@ model_as.add(
         }).add( function( as ){
             anon_iface = ccm.iface( 'test_int_anon' );
             anonsec_iface = ccm.iface( 'test_int_anonsec' );
+    // ---
         }).add( function( as ){
             as.state.step = "regular";
             anon_iface.call( as, 'regular', {
@@ -282,12 +305,30 @@ model_as.add(
             res.ri.should.equal( 123456 );
             res.rm.should.eql( { field : 'value' } );
             res.ra.should.eql( [ true, 'value', 123.456, 123456, { field : 'value' }, [ 1, 2, 3 ] ] );
+    // ---
         }).add( function( as ){
-        }).add( function( as ){        
+            as.state.step = "noResult";
+            anon_iface.call( as, 'noResult', {
+                a : "param"
+            } );
+        }).add( function( as, res ){
+            if ( res !== undefined )
+            {
+                res.should.be.empty;
+            }
+    // ---
         }).add( function( as ){
+            as.state.step = "noParams";
+            anon_iface.call( as, 'noParams' );
+        }).add( function( as, res ){
+            res.a.should.equal( 'test' );
+    // ---
         }).add( function( as ){
-        }).add( function( as ){
-        }).add( function( as ){
+            as.state.step = "rawUpload";
+            anon_iface.call( as, 'rawUpload', null, 'TestUpload' );
+        }).add( function( as, res ){
+            res.a.should.equal( 'TestUpload' );
+    // ---
         }).add( function( as ){
         }).add( function( as ){
         }).add( function( as ){
