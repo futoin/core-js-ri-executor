@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "detect-node": "^2.0.3",
-    "futoin-asyncsteps": "^1.4.0",
+    "futoin-asyncsteps": "^1",
     "futoin-invoker": "^0.1.0",
     "lodash": "^2.4.1",
     "performance-now": "^0.2.0",

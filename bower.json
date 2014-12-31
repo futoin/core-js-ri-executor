@@ -38,5 +38,10 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/futoin/core-js-ri-executor"
+  },
+  "dependencies": {
+    "futoin-asyncsteps": "*",
+    "futoin-invoker": "*",
+    "lodash": "*"
   }
 }
