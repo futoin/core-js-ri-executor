@@ -1,13 +1,37 @@
 
-var assert = require('assert');
 var invoker = require( 'futoin-invoker' );
-var executor_module = require( '../lib/main' );
 var async_steps = require( 'futoin-asyncsteps' );
+var executor_module;
+var assert;
 
 var ccm;
 var executor;
 var as;
 var reqinfo;
+var thisDir;
+
+if ( typeof chai !== 'undefined' )
+{
+    // Browser test
+    chai.should();
+    assert = chai.assert;
+    executor_module = FutoInExecutor;
+    
+    thisDir = '.';
+}
+else
+{
+    // Node test
+    var chai_module = require( 'chai' );
+    chai_module.should();
+    assert = chai_module.assert;
+    
+    var hidereq = require;
+    executor_module = hidereq( '../lib/main' );
+    
+    thisDir = __dirname;
+}
+
 
 var impl = {
     normal_call : function( as, reqinfo )
@@ -24,8 +48,8 @@ var impl = {
 describe( 'Executor', function(){
     var opts = {};
     opts[ invoker.AdvancedCCM.OPT_SPEC_DIRS ] = [
-        __dirname + '/missing',
-        __dirname + '/specs'
+        thisDir + '/missing',
+        thisDir + '/specs'
     ];
 
     before(function(){
@@ -50,7 +74,7 @@ describe( 'Executor', function(){
 
         it('should register base interface', function( done ){
             var opts = {};
-            opts[ invoker.AdvancedCCM.OPT_SPEC_DIRS ] = __dirname + '/specs';
+            opts[ invoker.AdvancedCCM.OPT_SPEC_DIRS ] = thisDir + '/specs';
             executor = new executor_module.Executor( ccm, opts );
 
             as.add(
@@ -58,6 +82,7 @@ describe( 'Executor', function(){
                     executor.register( as, 'fileface.derived:2.3', impl );
                 },
                 function( as, err ){
+                    console.dir( as.state._orig_error.stack );
                     done( new Error( err + ": " + as.state.error_info ) );
                 }
             ).add( function( as ){
@@ -73,12 +98,19 @@ describe( 'Executor', function(){
                     executor.register( as, 'fileface.another:1.0', impl );
                 },
                 function( as, err ){
-                    err.should.equal( 'InternalError' );
-                    as.state.error_info.should.equal( "Conflict with inherited interfaces" );
-                    done();
+                    try
+                    {
+                        err.should.equal( 'InternalError' );
+                        as.state.error_info.should.equal( "Conflict with inherited interfaces" );
+                        done();
+                    }
+                    catch ( e )
+                    {
+                        done( e );
+                    }
                 }
             ).add( function( as ){
-                done( "Failed" );
+                done( new Error( "Failed" ) );
             });
             as.execute();
         });
@@ -87,12 +119,21 @@ describe( 'Executor', function(){
             as.add(
                 function( as ){
                     executor.register( as, 'fileface.derived:2.3', impl );
-                    executor.register( as, 'fileface.derived:2.4', impl );
+                    as.add( function( as ){
+                        executor.register( as, 'fileface.derived:2.4', impl );
+                    });
                 },
                 function( as, err ){
-                    err.should.equal( 'InternalError' );
-                    as.state.error_info.should.equal( "Already registered" );
-                    done();
+                    try
+                    {
+                        err.should.equal( 'InternalError' );
+                        as.state.error_info.should.equal( "Already registered" );
+                        done();
+                    }
+                    catch( e )
+                    {
+                        done( e );
+                    }
                 }
             ).add( function( as ){
                 done( "Failed" );

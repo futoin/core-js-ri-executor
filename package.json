@@ -8,7 +8,7 @@
     "lint": "./node_modules/.bin/jshint lib --reporter=./node_modules/jshint-full-path/index.js",
     "checkStyle": "./node_modules/.bin/jscs .",
     "pretest": "npm run-script lint && npm run-script checkStyle",
-    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive -R spec -r should",
+    "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive -R spec",
     "posttest": "./node_modules/.bin/istanbul check-coverage && ./node_modules/.bin/istanbul report html",
     "doc": "./node_modules/.bin/jsdoc2md -t misc/README.hbs lib/*.js > README.md"
   },
@@ -21,7 +21,9 @@
     "async",
     "rpc",
     "communication",
-    "distributed"
+    "distributed",
+    "browser",
+    "amd"
   ],
   "author": {
     "name": "Andrey Galkin",
@@ -34,21 +36,31 @@
   },
   "dependencies": {
     "detect-node": "^2.0.3",
-    "futoin-asyncsteps": "^1.2.0",
+    "futoin-asyncsteps": "^1.4.0",
     "futoin-invoker": "^0.1.0",
     "lodash": "^2.4.1",
     "performance-now": "^0.2.0",
     "ws": "^0.4.32"
   },
   "devDependencies": {
-    "istanbul": "^0.3.2",
-    "jscs": "^1.7.1",
+    "chai": "*",
+    "grunt": "*",
+    "grunt-contrib-connect": "*",
+    "grunt-contrib-uglify": "*",
+    "grunt-external-daemon": "^1.1.0",
+    "grunt-mocha-phantomjs": "^*",
+    "grunt-npm-helper": "0.0.2",
+    "grunt-npm2bower-sync": "^0.4.0",
+    "grunt-pure-cjs": "^1.4.0",
+    "grunt-release": "^0.9.0",
+    "istanbul": "*",
+    "jscs": "*",
     "jsdoc": "~3.2",
     "jsdoc-to-markdown": "^0.5.9",
-    "jshint": "^2.5.6",
-    "jshint-full-path": "^1.1.1",
-    "memorystream": "^0.2.0",
-    "mocha": "^1.21.5",
-    "should": "^4.0.4"
+    "jshint": "*",
+    "jshint-full-path": "*",
+    "mocha": "*",
+    "mocha-phantomjs": "*",
+    "memorystream": "^0.2.0"
   }
 }

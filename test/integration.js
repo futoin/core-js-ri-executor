@@ -1,6 +1,9 @@
 "use strict";
 
-var assert = require('assert');
+var chai_module = require( 'chai' );
+chai_module.should();
+var assert = chai_module.assert;
+
 var executor_module = require( '../lib/main' );
 var invoker_module = require( 'futoin-invoker' );
 var async_steps = require( 'futoin-asyncsteps' );
