@@ -9,8 +9,7 @@
     "checkStyle": "./node_modules/.bin/jscs .",
     "pretest": "npm run-script lint && npm run-script checkStyle",
     "test": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --recursive -R spec",
-    "posttest": "./node_modules/.bin/istanbul check-coverage && ./node_modules/.bin/istanbul report html",
-    "doc": "./node_modules/.bin/jsdoc2md -t misc/README.hbs lib/*.js > README.md"
+    "posttest": "./node_modules/.bin/istanbul check-coverage && ./node_modules/.bin/istanbul report html"
   },
   "repository": {
     "type": "git",
@@ -20,6 +19,7 @@
     "futoin",
     "async",
     "rpc",
+    "orb",
     "communication",
     "distributed",
     "browser",
@@ -37,9 +37,9 @@
   "dependencies": {
     "detect-node": "^2.0.3",
     "futoin-asyncsteps": "^1",
-    "futoin-invoker": "^0.1.0",
-    "lodash": "^2.4.1",
-    "performance-now": "^0.2.0",
+    "futoin-invoker": "*",
+    "lodash": "*",
+    "performance-now": "*",
     "ws": "^0.4.32"
   },
   "devDependencies": {
@@ -48,11 +48,13 @@
     "grunt-contrib-connect": "*",
     "grunt-contrib-uglify": "*",
     "grunt-external-daemon": "^1.1.0",
-    "grunt-mocha-phantomjs": "^*",
-    "grunt-npm-helper": "0.0.2",
-    "grunt-npm2bower-sync": "^0.4.0",
-    "grunt-pure-cjs": "^1.4.0",
-    "grunt-release": "^0.9.0",
+    "grunt-mocha-phantomjs": "*",
+    "grunt-npm-helper": "*",
+    "grunt-npm2bower-sync": "*",
+    "grunt-pure-cjs": "*",
+    "grunt-release": "*",
+    "grunt-text-replace": "*",
+    "grunt-jsdoc-to-markdown": "*",
     "istanbul": "*",
     "jscs": "*",
     "jsdoc": "~3.2",
