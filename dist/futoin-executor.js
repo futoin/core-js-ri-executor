@@ -91,7 +91,7 @@
                             mjrver: mjr,
                             mnrver: mnr
                         };
-                    invoker.SpecTools.loadSpec(as, info, this._specdirs);
+                    invoker.SpecTools.loadIface(as, info, this._specdirs);
                     var _this = this;
                     as.add(function (as) {
                         if (!(iface in ifaces)) {
@@ -249,7 +249,7 @@
                             if (!(k in finfo.params)) {
                                 as.error(FutoInError.InvalidRequest, 'Unknown parameter');
                             }
-                            invoker.SpecTools.checkFutoInType(as, finfo.params[k].type, k, reqparams[k]);
+                            invoker.SpecTools.checkParameterType(as, as.state._futoin_iface_info, as.state._futoin_func, k, reqparams[k]);
                         }
                         for (k in finfo.params) {
                             if (!(k in reqparams)) {
@@ -304,7 +304,7 @@
                             if (!(k in resvars)) {
                                 as.error(FutoInError.InternalError, 'Unknown result variable \'' + k + '\'');
                             }
-                            invoker.SpecTools.checkFutoInType(as, resvars[k].type, k, rsp.r[k]);
+                            invoker.SpecTools.checkResultType(as, as.state._futoin_iface_info, as.state._futoin_func, k, rsp.r[k]);
                             ++c;
                         }
                         if (Object.keys(resvars).length !== c) {
