@@ -152,6 +152,25 @@ var test_int_anon_secure = {
     ]
 };
 
+// --
+var test_int_anon_bidirect = {
+    iface : 'test.int.bidirect',
+    version : '1.0',
+    ftn3rev : '1.1',
+    funcs : {
+        'testBiDirect' : {
+            'result' : {
+                'a' : {
+                    'type' : 'string'
+                }
+            }
+        }
+    },
+    requires : [
+        'AllowAnonymous',
+        'BiDirectChannel'
+    ]
+};
 
 // ---
 var interface_impl = {
@@ -242,6 +261,11 @@ var interface_impl = {
     serverError : function( as, reqinfo )
     {
         as.error( reqinfo.params().a );
+    },
+    
+    testBiDirect : function( as, reqinfo )
+    {
+        return { a : 'OK' };
     }
 };
 
@@ -256,6 +280,7 @@ model_as.add(
         opts[NodeExecutor.OPT_SPEC_DIRS] = [
             __dirname + '/specs',
             test_int_anon,
+            test_int_anon_bidirect,
             test_int_anon_secure
         ];
         opts[NodeExecutor.OPT_HTTP_ADDR] = 'localhost';
@@ -278,6 +303,7 @@ model_as.add(
 
         var ccm = new as.state.CCMImpl( opts );
         var anon_iface;
+        var bidirect_iface;
         var anonsec_iface;
         
         as.add( function( as ){
@@ -306,12 +332,15 @@ model_as.add(
             });
         }).add( function( as ){
             as.state.executor.register( as, 'test.int.anon:1.0', interface_impl );
+            as.state.executor.register( as, 'test.int.bidirect:1.0', interface_impl );
             as.state.secexecutor.register( as, 'test.int.anonsec:1.0', interface_impl );
             ccm.register( as, 'test_int_anon', 'test.int.anon:1.0', end_point );
+            ccm.register( as, 'test_int_bidirect', 'test.int.bidirect:1.0', end_point );
             ccm.register( as, 'test_int_anonsec', 'test.int.anonsec:1.0', secend_point );
         }).add( function( as ){
             anon_iface = ccm.iface( 'test_int_anon' );
             anonsec_iface = ccm.iface( 'test_int_anonsec' );
+            bidirect_iface = ccm.iface( 'test_int_bidirect' );
     // ---
         }).add( function( as ){
             as.state.step = "regular";
@@ -428,10 +457,26 @@ model_as.add(
         }).add( function( as ){
             as.state.membuf.toString().should.equal( 'start{TestUploadBuffer}end' );
     // ---
+        }).add(
+            function( as ){
+                as.state.step = "testBiDirect";
+                bidirect_iface.call( as, 'testBiDirect' );
+            },
+            function( as, err )
+            {
+                if ( as.state.proto === 'http' )
+                {
+                    err.should.equal( 'InvalidRequest' );
+                    as.state.error_info.should.equal( "Bi-Direct Channel is required" );
+                    as.success( { a: 'OK' } );
+                }
+            }
+        ).add( function( as, res ){
+            res.a.should.equal( 'OK' );
+        // --
         }).add( function( as ){
         }).add( function( as ){
-        }).add( function( as ){
-        }).add( function( as ){
+        // --
         }).add(
             function( as ){
                 as.state.step = 'clientTimeout';

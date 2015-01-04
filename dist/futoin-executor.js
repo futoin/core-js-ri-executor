@@ -235,6 +235,9 @@
                     if (!('AllowAnonymous' in constraints) && !reqinfo_info[reqinfo.INFO_USER_INFO]) {
                         as.error(FutoInError.SecurityError, 'Anonymous not allowed');
                     }
+                    if ('BiDirectChannel' in constraints && (!reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT] || !reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT].isStateful())) {
+                        as.error(FutoInError.InvalidRequest, 'Bi-Direct Channel is required');
+                    }
                 },
                 _checkParams: function (as, reqinfo) {
                     var rawreq = reqinfo.info[reqinfo.INFO_RAW_REQUEST];
@@ -454,6 +457,7 @@
                 type: function () {
                 },
                 isStateful: function () {
+                    return false;
                 },
                 onInvokerAbort: function (callable, user_data) {
                     void callable;
