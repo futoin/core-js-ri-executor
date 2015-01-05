@@ -85,16 +85,22 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
 
 * [FutoInExecutor](#FutoInExecutor)
 * [Executor](#Executor)
+* [BrowserExecutor](#BrowserExecutor)
  
 <a name="module_futoin-executor"></a>
 #futoin-executor
 <a name="FutoInExecutor"></a>
 #FutoInExecutor
-Browser-only reference to futoin-executor
+**window.FutoInExecutor** - Browser-only reference to futoin-executor
 
 <a name="Executor"></a>
 #Executor
-Browser-only reference to futoin-executor
+**window.futoin.Executor** - Browser-only reference to futoin-executor
+
+<a name="BrowserExecutor"></a>
+#BrowserExecutor
+**window.BrowserExecutor** - Browser-only reference to
+futoin-executor.BrowserExecutor
 
 
 

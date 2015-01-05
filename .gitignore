@@ -1,5 +1,5 @@
 node_modules
 coverage
 out
-dist/unittest*
+dist/*test*
 bower_components

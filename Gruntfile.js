@@ -30,7 +30,8 @@ module.exports = function (grunt) {
             },
             unittest: {
                 files: {
-                    'dist/unittest.js' : 'test/unittest.js'
+                    'dist/unittest.js' : 'test/unittest.js',
+                    'dist/integration_test.js' : 'test/integration.js'
                 },
                 options: {
                     map : true,

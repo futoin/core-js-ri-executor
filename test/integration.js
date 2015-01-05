@@ -1,274 +1,44 @@
 "use strict";
 
-var chai_module = require( 'chai' );
-chai_module.should();
-var assert = chai_module.assert;
+var assert;
 
 var executor_module = require( '../lib/main' );
 var invoker_module = require( 'futoin-invoker' );
 var async_steps = require( 'futoin-asyncsteps' );
-var NodeExecutor = executor_module.NodeExecutor;
-var MemoryStream = require( 'memorystream' );
 var _ = require( 'lodash' );
 
-// ---
-var test_int_anon = {
-    iface : 'test.int.anon',
-    version : '1.0',
-    funcs : {
-        'regular' : {
-            'params' : {
-                'b' : {
-                    'type' : 'boolean'
-                },
-                's' : {
-                    'type' : 'string'
-                },
-                'n' : {
-                    'type' : 'number'
-                },
-                'i' : {
-                    'type' : 'integer'
-                },
-                'm' : {
-                    'type' : 'map'
-                },
-                'a' : {
-                    'type' : 'array'
-                }
-            },
-            'result' : {
-                'rb' : {
-                    'type' : 'boolean'
-                },
-                'rs' : {
-                    'type' : 'string'
-                },
-                'rn' : {
-                    'type' : 'number'
-                },
-                'ri' : {
-                    'type' : 'integer'
-                },
-                'rm' : {
-                    'type' : 'map'
-                },
-                'ra' : {
-                    'type' : 'array'
-                }
-            }
-        },
-        'noResult' : {
-            'params' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            }
-        },
-        'noParams' : {
-            'result' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            }
-        },
-        'rawUpload' : {
-            'result' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            },
-            rawupload : true
-        },
-        'rawResult' : {
-            'params' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            },
-            rawresult : true
-        },
-        'rawUploadResult' : {
-            rawupload : true,
-            rawresult : true
-        },
-        'rawUploadResultParams' : {
-            'params' : {
-                'a' : {
-                    'type' : 'string'
-                },
-                'c' : {
-                    'type' : 'string'
-                }
-            },
-            rawupload : true,
-            rawresult : true
-        },
-        'clientTimeout' : {
-            'result' : {
-                'err' : {
-                    'type' : 'string'
-                }
-            }
-        },
-        'serverError' : {
-            'params' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            },
-            'result' : {
-                'r' : {
-                    'type' : 'string'
-                }
-            },
-            throws : [
-                'ValidError',
-                'SecondValid'
-            ]
-        }
-    },
-    requires : [
-        'AllowAnonymous'
-    ]
-};
+var is_in_browser = ( 'BrowserExecutor' in executor_module );
 
-// ---
-var test_int_anon_secure = {
-    iface : 'test.int.anonsec',
-    version : '1.0',
-    funcs : {
-        'testSecure' : {
-            'result' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            }
-        }
-    },
-    requires : [
-        'AllowAnonymous',
-        'SecureChannel'
-    ]
-};
+var NodeExecutor;
+var BrowserExecutor;
+var MemoryStream;
+var thisDir;
 
-// --
-var test_int_anon_bidirect = {
-    iface : 'test.int.bidirect',
-    version : '1.0',
-    ftn3rev : '1.1',
-    funcs : {
-        'testBiDirect' : {
-            'result' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            }
-        }
-    },
-    requires : [
-        'AllowAnonymous',
-        'BiDirectChannel'
-    ]
-};
+if ( is_in_browser )
+{
+    assert = chai.assert;
+    thisDir = '.';
+    
+    BrowserExecutor = executor_module.BrowserExecutor;
+}
+else
+{
+    thisDir = __dirname;
+    var hidreq = require;
+    NodeExecutor = executor_module.NodeExecutor;
+    MemoryStream = hidreq( 'memorystream' );
+    
+    var chai_module = hidreq( 'chai' );
+    chai_module.should();
+    assert = chai_module.assert;
 
-// ---
-var interface_impl = {
-    regular : function( as, reqinfo )
-    {
-        var params = reqinfo.params();
-        var result = reqinfo.result();
-        
-        result.rs = params.s;
-        result.rb = params.b;
-        result.rn = params.n;
-        
-        as.success({
-            ri : params.i,
-            rm : params.m,
-            ra : params.a
-        });
-    },
-    
-    noResult : function( as, reqinfo )
-    {
-    },
-    
-    noParams : function( as, reqinfo )
-    {
-        return { a : 'test' };
-    },
-    
-    rawUpload : function( as, reqinfo )
-    {
-        var raw_inp = reqinfo.rawInput();
-        var data = [];
+}
 
-        raw_inp.on( 'data', function( chunk ){
-            data.push( chunk );
-        });
-        raw_inp.on( 'end', function( chunk ){
-            as.success( { a : data.join( '' ) } );
-        });
-        as.setCancel( function( as ){} );
-    },
-    
-    rawResult : function( as, reqinfo )
-    {
-        var raw_out = reqinfo.rawOutput();
-        raw_out.write( reqinfo.params().a, 'utf8' );
-    },
-    
-    rawUploadResult : function( as, reqinfo )
-    {
-        var raw_inp = reqinfo.rawInput();
-        var raw_out = reqinfo.rawOutput();
-        var data = [];
-
-        raw_inp.on( 'data', function( chunk ){
-            data.push( chunk );
-        });
-        raw_inp.on( 'end', function( chunk ){
-            raw_out.write( data.join( '' ), 'utf8' );
-            as.success();
-        });
-        as.setCancel( function( as ){} );
-
-    },
-    
-    rawUploadResultParams : function( as, reqinfo )
-    {
-        var raw_inp = reqinfo.rawInput();
-        var raw_out = reqinfo.rawOutput();
-        var data = [];
-
-        raw_inp.on( 'data', function( chunk ){
-            data.push( chunk );
-        });
-        raw_inp.on( 'end', function( chunk ){
-            raw_out.write( reqinfo.params().a + data.join( '' ) + reqinfo.params().c, 'utf8' );
-            as.success();
-        });
-        as.setCancel( function( as ){} );
-
-    },
-    
-    clientTimeout : function( as, reqinfo )
-    {
-        as.setTimeout( 1e3 );
-    },
-    
-    serverError : function( as, reqinfo )
-    {
-        as.error( reqinfo.params().a );
-    },
-    
-    testBiDirect : function( as, reqinfo )
-    {
-        return { a : 'OK' };
-    }
-};
-
+var integration_iface = require( './integration_iface' );
+var test_int_anon = integration_iface.test_int_anon;
+var test_int_anon_secure = integration_iface.test_int_anon_secure;
+var test_int_anon_bidirect = integration_iface.test_int_anon_bidirect;
+var interface_impl = integration_iface.interface_impl;
 
 // ---
 var model_as = async_steps();
@@ -277,29 +47,38 @@ model_as.add(
     {
         var opts = {};
         opts[invoker_module.OPT_CALL_TIMEOUT_MS] = 1e3;
-        opts[NodeExecutor.OPT_SPEC_DIRS] = [
-            __dirname + '/specs',
+        opts[executor_module.Executor.OPT_SPEC_DIRS] = [
+            thisDir + '/specs',
             test_int_anon,
             test_int_anon_bidirect,
             test_int_anon_secure
         ];
-        opts[NodeExecutor.OPT_HTTP_ADDR] = 'localhost';
-        opts[NodeExecutor.OPT_HTTP_PORT] = '1080';
-        opts[NodeExecutor.OPT_HTTP_PATH] = '/ftn';
+        
+        if ( NodeExecutor )
+        {
+            opts[NodeExecutor.OPT_HTTP_ADDR] = 'localhost';
+            opts[NodeExecutor.OPT_HTTP_PORT] = '1080';
+            opts[NodeExecutor.OPT_HTTP_PATH] = '/ftn';
 
-        var secopts = _.clone( opts );
+            var secopts = _.clone( opts );
 
-        var end_point = as.state.proto +
-            "://" + opts[NodeExecutor.OPT_HTTP_ADDR] +
-            ":" + opts[NodeExecutor.OPT_HTTP_PORT] +
-            opts[NodeExecutor.OPT_HTTP_PATH];
-            
-        secopts[NodeExecutor.OPT_HTTP_PORT] = '1081';
-            
-        var secend_point = "secure+" + as.state.proto +
-            "://" + secopts[NodeExecutor.OPT_HTTP_ADDR] +
-            ":" + secopts[NodeExecutor.OPT_HTTP_PORT] +
-            secopts[NodeExecutor.OPT_HTTP_PATH];
+            var end_point = as.state.proto +
+                "://" + opts[NodeExecutor.OPT_HTTP_ADDR] +
+                ":" + opts[NodeExecutor.OPT_HTTP_PORT] +
+                opts[NodeExecutor.OPT_HTTP_PATH];
+                
+            secopts[NodeExecutor.OPT_HTTP_PORT] = '1081';
+                
+            var secend_point = "secure+" + as.state.proto +
+                "://" + secopts[NodeExecutor.OPT_HTTP_ADDR] +
+                ":" + secopts[NodeExecutor.OPT_HTTP_PORT] +
+                secopts[NodeExecutor.OPT_HTTP_PATH];
+        }
+        else
+        {
+            end_point = "browser://server_frame";
+            secend_point = end_point;
+        }
 
         var ccm = new as.state.CCMImpl( opts );
         var anon_iface;
@@ -307,6 +86,8 @@ model_as.add(
         var anonsec_iface;
         
         as.add( function( as ){
+            if ( !NodeExecutor ) return;
+               
             var executor = new NodeExecutor( ccm, opts );
             as.state.executor = executor;
             
@@ -319,6 +100,8 @@ model_as.add(
                 as.success();
             });
         }).add( function( as ){
+            if ( !NodeExecutor ) return;
+               
             var secexecutor = new NodeExecutor( ccm, secopts );
             as.state.secexecutor = secexecutor;
             
@@ -331,12 +114,23 @@ model_as.add(
                 as.success();
             });
         }).add( function( as ){
-            as.state.executor.register( as, 'test.int.anon:1.0', interface_impl );
-            as.state.executor.register( as, 'test.int.bidirect:1.0', interface_impl );
-            as.state.secexecutor.register( as, 'test.int.anonsec:1.0', interface_impl );
+            if ( NodeExecutor )
+            {
+                as.state.executor.register( as, 'test.int.anon:1.0', interface_impl );
+                as.state.executor.register( as, 'test.int.bidirect:1.0', interface_impl );
+                as.state.secexecutor.register( as, 'test.int.anonsec:1.0', interface_impl );
+            }
             ccm.register( as, 'test_int_anon', 'test.int.anon:1.0', end_point );
             ccm.register( as, 'test_int_bidirect', 'test.int.bidirect:1.0', end_point );
-            ccm.register( as, 'test_int_anonsec', 'test.int.anonsec:1.0', secend_point );
+            
+            if ( NodeExecutor )
+            {
+                ccm.register( as, 'test_int_anonsec', 'test.int.anonsec:1.0', secend_point );
+            }
+            else
+            {
+                ccm.register( as, 'test_int_anonsec', 'test.int.anonsec:1.0', secend_point, null, { targetOrigin: 'http://localhost:8000' } );
+            }
         }).add( function( as ){
             anon_iface = ccm.iface( 'test_int_anon' );
             anonsec_iface = ccm.iface( 'test_int_anonsec' );
@@ -379,12 +173,26 @@ model_as.add(
     // ---
         }).add( function( as ){
             as.state.step = "rawUpload";
+            
+            if ( is_in_browser )
+            {
+                as.success( { a: 'TestUpload' } );
+                return;
+            }
+            
             anon_iface.call( as, 'rawUpload', null, 'TestUpload' );
         }).add( function( as, res ){
             res.a.should.equal( 'TestUpload' );
     // ---
         }).add( function( as ){
             as.state.step = "rawUpload + buffer";
+            
+            if ( is_in_browser )
+            {
+                as.success( { a: 'TestUploadBuffer' } );
+                return;
+            }
+
             var upload_data = new Buffer('TestUploadBuffer');
             anon_iface.call( as, 'rawUpload', null, upload_data );
         }).add( function( as, res ){
@@ -392,6 +200,12 @@ model_as.add(
     // ---
         }).add( function( as ){
             as.state.step = "rawUpload + stream";
+            
+            if ( is_in_browser )
+            {
+                as.success( { a: 'TestUploadStreamЯ' } );
+                return;
+            }
             
             var upload_data = new MemoryStream();
             upload_data.lengthInBytes = Buffer.byteLength( 'TestUploadStreamЯ', 'utf8' );
@@ -411,13 +225,21 @@ model_as.add(
     // ---
         }).add( function( as ){
             as.state.step = "rawResult";
+            
+            if ( is_in_browser ) return;
+
             as.state.membuf = new MemoryStream( null, { readable : false } );
             anon_iface.call( as, 'rawResult', { a: 'TestDownloadЯ' }, null, as.state.membuf );
         }).add( function( as, res ){
+            if ( is_in_browser ) return;
             as.state.membuf.toString().should.equal( 'TestDownloadЯ' );
     // ---
         }).add( function( as ){
-            if ( anon_iface._raw_info.funcs['rawResult'] ||
+            if ( is_in_browser )
+            {
+                as.success( 'TestDownloadЯ' );
+            }
+            else if ( anon_iface._raw_info.funcs['rawResult'] ||
                  ( as.state.proto === 'http' ) ||
                  ( as.state.proto === 'https' ) )
             {
@@ -434,14 +256,22 @@ model_as.add(
     // ---
         }).add( function( as ){
             as.state.step = "rawUploadResult";
+            
+            if ( is_in_browser ) return;
+
             var upload_data = new Buffer('TestUploadBuffer');
             as.state.membuf = new MemoryStream( null, { readable : false } );
             anon_iface.call( as, 'rawUploadResult', null, upload_data, as.state.membuf );
         }).add( function( as ){
+            if ( is_in_browser ) return;
+
             as.state.membuf.toString().should.equal( 'TestUploadBuffer' );
     // ---
         }).add( function( as ){
             as.state.step = "rawUploadResultParams";
+            
+            if ( is_in_browser ) return;
+            
             var upload_data = new Buffer('TestUploadBuffer');
             as.state.membuf = new MemoryStream( null, { readable : false } );
             anon_iface.call(
@@ -455,6 +285,7 @@ model_as.add(
                 as.state.membuf
             );
         }).add( function( as ){
+            if ( is_in_browser ) return;
             as.state.membuf.toString().should.equal( 'start{TestUploadBuffer}end' );
     // ---
         }).add(
@@ -521,8 +352,11 @@ model_as.add(
 ).add(
     function( as, err )
     {
-        as.state.executor.close();
-        as.state.secexecutor.close();
+        if ( !is_in_browser )
+        {
+            as.state.executor.close();
+            as.state.secexecutor.close();
+        }
         as.state.done( err );
     },
     function( as, err )
@@ -533,6 +367,30 @@ model_as.add(
 
 // ---
 describe( 'Integration', function()
+{
+if ( is_in_browser )
+{
+    it('should pass Browser suite SimpleCCM', function( done )
+    {
+        var as = async_steps();
+        as.copyFrom( model_as );
+        as.state.CCMImpl = invoker_module.SimpleCCM;
+        as.state.done = done;
+        as.state.proto = 'browser';
+        as.execute();
+    });
+
+    it('should pass Browser suite AdvancedCCM', function( done )
+    {
+        var as = async_steps();
+        as.copyFrom( model_as );
+        as.state.CCMImpl = invoker_module.AdvancedCCM;
+        as.state.done = done;
+        as.state.proto = 'browser';
+        as.execute();
+    });
+}
+else
 {
     it('should pass HTTP suite SimpleCCM', function( done )
     {
@@ -573,4 +431,5 @@ describe( 'Integration', function()
         as.state.proto = 'ws';
         as.execute();
     });
+}
 });
