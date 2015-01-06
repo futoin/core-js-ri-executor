@@ -127,13 +127,11 @@
                 var _this = this;
                 var as = async_steps();
                 as.state.reqinfo = reqinfo;
-                reqinfo.cancelAfter = function (time_ms) {
-                    _this._cancelAfter(as, function () {
-                        as.cancel();
-                    }, time_ms);
-                };
+                reqinfo._as = as;
                 var cancel_req = function (as) {
                     void as;
+                    reqinfo.cancelAfter(0);
+                    reqinfo._as = null;
                     context._event_source.postMessage({
                         e: 'InternalError',
                         rid: ftnreq.rid
@@ -142,14 +140,11 @@
                 as.add(function (as) {
                     _this.process(as);
                     as.setCancel(cancel_req);
-                }, function (as, err) {
-                    void err;
-                    reqinfo.cancelAfter(0);
-                    cancel_req(as);
                 }).add(function (as) {
                     void as;
                     var ftnrsp = reqinfo_info[reqinfo.INFO_RAW_RESPONSE];
                     reqinfo.cancelAfter(0);
+                    reqinfo._as = null;
                     if (ftnrsp !== null) {
                         context._event_source.postMessage(ftnrsp, context._event_origin);
                     }
@@ -172,11 +167,14 @@
             var _ = _require(8);
             var invoker = _require(7);
             var FutoInError = invoker.FutoInError;
-            var async_steps = _require(6);
             var executor_const = {
                     OPT_VAULT: 'vault',
                     OPT_SPEC_DIRS: invoker.AdvancedCCM.OPT_SPEC_DIRS,
-                    OPT_PROD_MODE: invoker.AdvancedCCM.OPT_PROD_MODE
+                    OPT_PROD_MODE: invoker.AdvancedCCM.OPT_PROD_MODE,
+                    OPT_REQUEST_TIMEOT: 'reqTimeout',
+                    OPT_HEAVY_REQUEST_TIMEOT: 'heavyTimeout',
+                    DEFAULT_REQUEST_TIMEOUT: 5000,
+                    DEFAULT_HEAVY_TIMEOUT: 60000
                 };
             var executor = function (ccm, opts) {
                 this._ccm = ccm;
@@ -189,6 +187,8 @@
                 }
                 this._specdirs = spec_dirs;
                 this._dev_checks = !opts[this.OPT_PROD_MODE];
+                this._request_timeout = opts[this.OPT_REQUEST_TIMEOT] || this.DEFAULT_REQUEST_TIMEOUT;
+                this._heavy_timeout = opts[this.OPT_HEAVY_REQUEST_TIMEOT] || this.DEFAULT_HEAVY_TIMEOUT;
             };
             executor.prototype = {
                 _ccm: null,
@@ -259,6 +259,11 @@
                     as.add(function (as) {
                         var reqinfo = as.state.reqinfo;
                         _this._getInfo(as, reqinfo);
+                        if (as.state._futoin_func_info.heavy) {
+                            reqinfo.cancelAfter(_this._heavy_timeout);
+                        } else {
+                            reqinfo.cancelAfter(_this._request_timeout);
+                        }
                         as.add(function (as) {
                             _this._checkConstraints(as, reqinfo);
                             _this._checkParams(as, reqinfo);
@@ -474,16 +479,6 @@
                     void as;
                     void err;
                     void error_info;
-                },
-                _cancelAfter: function (as, close_req, time_ms) {
-                    var state = as.state;
-                    if (state._cancelAfter) {
-                        async_steps.AsyncTool.cancelCall(state._cancelAfter);
-                        state._cancelAfter = null;
-                    }
-                    if (time_ms > 0) {
-                        state._cancelAfter = async_steps.AsyncTool.callLater(close_req, time_ms);
-                    }
                 }
             };
             _.extend(executor, executor_const);
@@ -509,6 +504,7 @@
             'use strict';
             var _ = _require(8);
             var performance_now = _require(9);
+            var async_steps = _require(6);
             var userinfo_const = {
                     INFO_FirstName: 'FirstName',
                     INFO_FullName: 'FullName',
@@ -699,8 +695,16 @@
                     return this._executor;
                 },
                 cancelAfter: function (time_ms) {
-                    void time_ms;
-                    throw new Error('CancelAfterError');
+                    if (this._cancelAfter) {
+                        async_steps.AsyncTool.cancelCall(this._cancelAfter);
+                        this._cancelAfter = null;
+                    }
+                    if (time_ms > 0 && this._as) {
+                        var _this = this;
+                        this._cancelAfter = async_steps.AsyncTool.callLater(function () {
+                            _this._as.cancel();
+                        }, time_ms);
+                    }
                 }
             };
             _.extend(exports.RequestInfo, reqinfo_const);

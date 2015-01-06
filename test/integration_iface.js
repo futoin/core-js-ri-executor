@@ -115,6 +115,7 @@ exports.test_int_anon = {
                     'type' : 'string'
                 }
             },
+            heavy : true,
             throws : [
                 'ValidError',
                 'SecondValid'
