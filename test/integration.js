@@ -99,6 +99,8 @@ model_as.add(
             executor.on('ready', function(){
                 as.success();
             });
+            executor.on('error', function(){
+            });
         }).add( function( as ){
             if ( !NodeExecutor ) return;
                
@@ -112,6 +114,8 @@ model_as.add(
             as.setTimeout( opts[invoker_module.OPT_CALL_TIMEOUT_MS] );
             secexecutor.on('ready', function(){
                 as.success();
+            });
+            secexecutor.on('error', function(){
             });
         }).add( function( as ){
             if ( NodeExecutor )
@@ -305,11 +309,21 @@ model_as.add(
         ).add( function( as, res ){
             res.a.should.equal( 'OK' );
         // --
-        }).add( function( as ){
-        }).add( function( as ){
-        // --
         }).add(
             function( as ){
+                as.state.step = "cancelAfterTimeout";
+                anon_iface.call( as, 'cancelAfterTimeout' );
+            },
+            function( as, err )
+            {
+                err.should.equal( 'InternalError' );
+                as.success( 'OK' );
+            }
+        ).add( function( as ){
+            as.success( 'OK' );
+        // --
+        }).add(
+            function( as, ok ){
                 as.state.step = 'clientTimeout';
                 anon_iface.call( as, 'clientTimeout', null, null, null, 1 );
             },

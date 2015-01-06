@@ -119,6 +119,13 @@ exports.test_int_anon = {
                 'ValidError',
                 'SecondValid'
             ]
+        },
+        cancelAfterTimeout : {
+            'result' : {
+                'r' : {
+                    'type' : 'string'
+                }
+            }
         }
     },
     requires : [
@@ -259,5 +266,14 @@ exports.interface_impl = {
     testBiDirect : function( as, reqinfo )
     {
         return { a : 'OK' };
+    },
+    
+    cancelAfterTimeout : function( as, reqinfo )
+    {
+        reqinfo.cancelAfter( 1 );
+        as.setTimeout( 1e4 );
+
+        var fail = setTimeout( function(){ assert( false ); }, 100 );
+        as.setCancel( function(){ clearTimeout( fail ); } );
     }
 };
