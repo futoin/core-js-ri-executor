@@ -174,7 +174,8 @@
                     OPT_REQUEST_TIMEOT: 'reqTimeout',
                     OPT_HEAVY_REQUEST_TIMEOT: 'heavyTimeout',
                     DEFAULT_REQUEST_TIMEOUT: 5000,
-                    DEFAULT_HEAVY_TIMEOUT: 60000
+                    DEFAULT_HEAVY_TIMEOUT: 60000,
+                    SAFE_PAYLOAD_LIMIT: 65536
                 };
             var executor = function (ccm, opts) {
                 this._ccm = ccm;
@@ -189,6 +190,13 @@
                 this._dev_checks = !opts[this.OPT_PROD_MODE];
                 this._request_timeout = opts[this.OPT_REQUEST_TIMEOT] || this.DEFAULT_REQUEST_TIMEOUT;
                 this._heavy_timeout = opts[this.OPT_HEAVY_REQUEST_TIMEOT] || this.DEFAULT_HEAVY_TIMEOUT;
+                if (typeof Buffer !== 'undefined' && Buffer.byteLength) {
+                    this._byteLength = Buffer.byteLength;
+                } else {
+                    this._byteLength = function (data) {
+                        return data.length;
+                    };
+                }
             };
             executor.prototype = {
                 _ccm: null,
@@ -472,7 +480,11 @@
                     var reqinfo_info = reqinfo.info;
                     var context = reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT];
                     if (!context || context.type() !== 'BROWSER') {
-                        reqinfo_info[reqinfo.INFO_RAW_RESPONSE] = JSON.stringify(reqinfo_info[reqinfo.INFO_RAW_RESPONSE]);
+                        var rawrsp = JSON.stringify(reqinfo_info[reqinfo.INFO_RAW_RESPONSE]);
+                        if (this._byteLength(rawrsp, 'utf8') > this.SAFE_PAYLOAD_LIMIT) {
+                            as.error(FutoInError.InternalError, 'Response size has exceeded safety limit');
+                        }
+                        reqinfo_info[reqinfo.INFO_RAW_RESPONSE] = rawrsp;
                     }
                 },
                 _onNotExpected: function (as, err, error_info) {
