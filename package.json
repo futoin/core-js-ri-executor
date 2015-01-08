@@ -1,6 +1,6 @@
 {
   "name": "futoin-executor",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "FutoIn Executor - Reference Implementation",
   "main": "lib/executor.js",
   "browser": "dist/executor-amd.js",
