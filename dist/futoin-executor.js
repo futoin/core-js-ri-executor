@@ -56,6 +56,12 @@
                 this._event_source = event.source;
                 this._last_used = performance_now();
                 this._is_secure_channel = true;
+                this._reverse_requests = {
+                    evt_origin: event.origin,
+                    evt_source: event.source,
+                    rid: 1,
+                    reqas: {}
+                };
             };
             var BrowserChannelContextProto = new request.ChannelContext();
             BrowserChannelContextProto.type = function () {
@@ -63,6 +69,21 @@
             };
             BrowserChannelContextProto.isStateful = function () {
                 return true;
+            };
+            BrowserChannelContextProto._getPerformRequest = function () {
+                var revreq = this._reverse_requests;
+                return function (as, ctx, ftnreq) {
+                    var rid = 'S' + revreq.rid++;
+                    ftnreq.rid = rid;
+                    if (ctx.expect_response) {
+                        var reqas = revreq.reqas;
+                        reqas[rid] = as;
+                        as.setCancel(function () {
+                            delete reqas[rid];
+                        });
+                    }
+                    revreq.evt_source.postMessage(ftnreq, revreq.evt_origin);
+                };
             };
             BrowserChannelContext.prototype = BrowserChannelContextProto;
             void executor;
@@ -82,6 +103,7 @@
                     for (var i = ctx_list.length - 1; i >= 0; --i) {
                         var ctx = ctx_list[i];
                         if (ctx._last_used < remove_time) {
+                            ctx._cleanup();
                             ctx_list.splice(i, 1);
                         }
                     }
@@ -102,7 +124,20 @@
                 var ftnreq = event.data;
                 var source = event.source;
                 var origin = event.origin;
-                if (typeof ftnreq !== 'object' || !('rid' in ftnreq) || ftnreq.rid.charAt(0) !== 'C' || !(origin in this.allowed_origins)) {
+                if (typeof ftnreq !== 'object' || !('rid' in ftnreq) || !(origin in this.allowed_origins)) {
+                    return;
+                }
+                var rid = ftnreq.rid;
+                if (rid.charAt(0) === 'S') {
+                    var revreq = this._reverse_requests;
+                    var reqas = revreq.reqas[rid];
+                    if (reqas) {
+                        reqas.success(ftnreq, 'application/futoin+json');
+                        delete revreq.reqas[rid];
+                    }
+                    return;
+                }
+                if (rid.charAt(0) !== 'C') {
                     return;
                 }
                 var context = null;
@@ -136,7 +171,7 @@
                     reqinfo._as = null;
                     context._event_source.postMessage({
                         e: 'InternalError',
-                        rid: ftnreq.rid
+                        rid: rid
                     }, context._event_origin);
                 };
                 as.add(function (as) {
@@ -169,6 +204,8 @@
             var _ = _require(8);
             var invoker = _require(7);
             var FutoInError = invoker.FutoInError;
+            var request = _require(4);
+            var async_steps = _require(6);
             var executor_const = {
                     OPT_VAULT: 'vault',
                     OPT_SPEC_DIRS: invoker.AdvancedCCM.OPT_SPEC_DIRS,
@@ -260,6 +297,40 @@
                             ifaces[supiface][supmjr] = supinfo;
                         }
                     });
+                },
+                onEndpointRequest: function (info, ftnreq, send_executor_rsp) {
+                    var _this = this;
+                    var context = info._channel_context;
+                    var reqinfo = new request.RequestInfo(this, ftnreq);
+                    var reqinfo_info = reqinfo.info;
+                    reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT] = context;
+                    reqinfo_info[reqinfo.INFO_CLIENT_ADDR] = new request.SourceAddress('CHANNEL', null, info.regname);
+                    reqinfo_info[reqinfo.INFO_SECURE_CHANNEL] = info.secure_channel;
+                    async_steps().add(function (as) {
+                        _this.process(as);
+                        as.setCancel(function (as) {
+                            void as;
+                            var ftnrsp = {
+                                    rid: reqinfo._rawreq.rid,
+                                    e: 'InternalError'
+                                };
+                            if (context.type() !== 'BROWSER') {
+                                ftnrsp = JSON.stringify(ftnrsp);
+                            }
+                            reqinfo.cancelAfter(0);
+                            send_executor_rsp(ftnrsp);
+                        });
+                    }, function (as, err) {
+                        void err;
+                        _this.emit('error', reqinfo, 'Internal Server Error');
+                    }).add(function (as) {
+                        void as;
+                        var ftnrsp = reqinfo_info[reqinfo.INFO_RAW_RESPONSE];
+                        reqinfo.cancelAfter(0);
+                        if (ftnrsp !== null) {
+                            send_executor_rsp(ftnrsp);
+                        }
+                    }).execute();
                 },
                 process: function (as) {
                     if (!('reqinfo' in as.state) || '_futoin_func_info' in as.state) {
@@ -634,7 +705,6 @@
                     var _this = this;
                     as.add(function (as, info, impl) {
                         info.secure_channel = _this._executor._is_secure_channel;
-                        info._user_info = _this._user_info;
                         _this._ifaces[ifacever] = impl;
                     });
                 },
@@ -643,6 +713,11 @@
                 },
                 _getPerformRequest: function () {
                     throw Error('NotImplemented');
+                },
+                _cleanup: function () {
+                    delete this._executor;
+                    delete this._ifaces;
+                    delete this.state;
                 }
             };
             var reqinfo_const = {
