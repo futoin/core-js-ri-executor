@@ -50,10 +50,12 @@
             var async_steps = _require(6);
             var performance_now = _require(9);
             var browser_window = window;
-            var BrowserChannelContext = function (event) {
+            var BrowserChannelContext = function (executor, event) {
+                request.ChannelContext.call(this, executor);
                 this._event_origin = event.origin;
                 this._event_source = event.source;
                 this._last_used = performance_now();
+                this._is_secure_channel = true;
             };
             var BrowserChannelContextProto = new request.ChannelContext();
             BrowserChannelContextProto.type = function () {
@@ -115,7 +117,7 @@
                 if (context) {
                     context._last_used = performance_now();
                 } else {
-                    context = new BrowserChannelContext(event);
+                    context = new BrowserChannelContext(this, event);
                     ctx_list.push(context);
                 }
                 var source_addr = new request.SourceAddress('LOCAL', source, origin);
@@ -123,7 +125,7 @@
                 var reqinfo_info = reqinfo.info;
                 reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT] = context;
                 reqinfo_info[reqinfo.INFO_CLIENT_ADDR] = source_addr;
-                reqinfo_info[reqinfo.INFO_SECURE_CHANNEL] = true;
+                reqinfo_info[reqinfo.INFO_SECURE_CHANNEL] = this._is_secure_channel;
                 var _this = this;
                 var as = async_steps();
                 as.state.reqinfo = reqinfo;
@@ -598,12 +600,16 @@
                     void data;
                 }
             };
-            exports.ChannelContext = function () {
+            exports.ChannelContext = function (executor) {
+                this._executor = executor;
+                this._ifaces = {};
                 this.state = function () {
                     return this.state;
                 };
             };
             exports.ChannelContext.prototype = {
+                _user_info: null,
+                _ifaces: null,
                 state: null,
                 type: function () {
                 },
@@ -614,11 +620,29 @@
                     void callable;
                     void user_data;
                 },
-                openRawInput: function () {
+                _openRawInput: function () {
                     return null;
                 },
-                openRawOutput: function () {
+                _openRawOutput: function () {
                     return null;
+                },
+                register: function (as, ifacever) {
+                    if (!this.isStateful()) {
+                        as.error('InvokerError', 'Not stateful channel');
+                    }
+                    this._executor.ccm().register(as, null, ifacever, this._getPerformRequest());
+                    var _this = this;
+                    as.add(function (as, info, impl) {
+                        info.secure_channel = _this._executor._is_secure_channel;
+                        info._user_info = _this._user_info;
+                        _this._ifaces[ifacever] = impl;
+                    });
+                },
+                iface: function (ifacever) {
+                    return this._ifaces[ifacever];
+                },
+                _getPerformRequest: function () {
+                    throw Error('NotImplemented');
                 }
             };
             var reqinfo_const = {
@@ -685,7 +709,7 @@
                 },
                 rawInput: function () {
                     if (this.info[this.INFO_HAVE_RAW_UPLOAD] && this._rawinp === null && this.info[this.INFO_CHANNEL_CONTEXT] !== null) {
-                        this._rawinp = this.info[this.INFO_CHANNEL_CONTEXT].openRawInput();
+                        this._rawinp = this.info[this.INFO_CHANNEL_CONTEXT]._openRawInput();
                     }
                     var rawinp = this._rawinp;
                     if (!rawinp) {
@@ -695,7 +719,7 @@
                 },
                 rawOutput: function () {
                     if (this.info[this.INFO_HAVE_RAW_RESULT] && this._rawout === null && this.info[this.INFO_CHANNEL_CONTEXT] !== null) {
-                        this._rawout = this.info[this.INFO_CHANNEL_CONTEXT].openRawOutput();
+                        this._rawout = this.info[this.INFO_CHANNEL_CONTEXT]._openRawOutput();
                     }
                     var rawout = this._rawout;
                     if (!rawout) {
@@ -705,6 +729,9 @@
                 },
                 executor: function () {
                     return this._executor;
+                },
+                channel: function () {
+                    return this.info[this.INFO_CHANNEL_CONTEXT];
                 },
                 cancelAfter: function (time_ms) {
                     if (this._cancelAfter) {
