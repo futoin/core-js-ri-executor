@@ -21,12 +21,14 @@ opts[ BrowserExecutor.OPT_SPEC_DIRS ] = [
     exports.test_int_anon_secure,
     exports.test_int_anon_bidirect
 ];
+opts[ BrowserExecutor.OPT_ALLOWED_ORIGINS ] = [
+    'http://localhost:8000'
+];
 
-var ccm = FutoIn.Invoker.AdvancedCCM( opts );
+var ccm = new FutoIn.Invoker.AdvancedCCM( opts );
 var browser_executor = new BrowserExecutor( ccm, opts );
-browser_executor.allowed_origins[ 'http://localhost:8000' ] = true;
-var as = $as();
-as.add( function( as )
+
+$as().add( function( as )
 {
     browser_executor.register( as, 'test.int.anon:1.0', exports.interface_impl );
     browser_executor.register( as, 'test.int.bidirect:1.0', exports.interface_impl );

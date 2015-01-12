@@ -201,7 +201,7 @@ describe( 'Executor', function(){
                 try
                 {
                     var rsp = as.state.reqinfo.info()[ reqinfo.INFO_RAW_RESPONSE ];
-                    rsp.should.equal( '{"e":"InvalidRequest","edesc":"Missing parameter: n"}' );
+                    rsp.should.eql( {"e":"InvalidRequest","edesc":"Missing parameter: n"} );
                     done();
                 }
                 catch ( e )
@@ -258,7 +258,7 @@ describe( 'Executor', function(){
             ).add( function( as ){
                 try
                 {
-                    as.state.reqinfo.info()[ reqinfo.INFO_RAW_RESPONSE ].should.equal('{"r":{}}');
+                    as.state.reqinfo.info()[ reqinfo.INFO_RAW_RESPONSE ].should.eql({"r":{}});
                     done();
                 }
                 catch ( e )

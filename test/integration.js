@@ -11,6 +11,7 @@ var is_in_browser = ( 'BrowserExecutor' in executor_module );
 
 var NodeExecutor;
 var BrowserExecutor;
+var ClientExecutor = executor_module.ClientExecutor;
 var MemoryStream;
 var thisDir;
 
@@ -81,14 +82,17 @@ model_as.add(
         }
 
         var ccm = new as.state.CCMImpl( opts );
+        var executor_ccm = new invoker_module.AdvancedCCM( opts );
         var anon_iface;
         var bidirect_iface;
         var anonsec_iface;
         
+        var is_bidirect = end_point.match( /^(ws|browser)/ ) !== null;
+        
         as.add( function( as ){
             if ( !NodeExecutor ) return;
                
-            var executor = new NodeExecutor( ccm, opts );
+            var executor = new NodeExecutor( executor_ccm, opts );
             as.state.executor = executor;
             
             /*executor.on( 'notExpected', function( err, error_info ){
@@ -104,7 +108,7 @@ model_as.add(
         }).add( function( as ){
             if ( !NodeExecutor ) return;
                
-            var secexecutor = new NodeExecutor( ccm, secopts );
+            var secexecutor = new NodeExecutor( executor_ccm, secopts );
             as.state.secexecutor = secexecutor;
             
             /*secexecutor.on( 'notExpected', function( err, error_info ){
@@ -118,27 +122,77 @@ model_as.add(
             secexecutor.on('error', function(){
             });
         }).add( function( as ){
-            if ( NodeExecutor )
-            {
-                as.state.executor.register( as, 'test.int.anon:1.0', interface_impl );
-                as.state.executor.register( as, 'test.int.bidirect:1.0', interface_impl );
-                as.state.secexecutor.register( as, 'test.int.anonsec:1.0', interface_impl );
-            }
-            ccm.register( as, 'test_int_anon', 'test.int.anon:1.0', end_point );
-            ccm.register( as, 'test_int_bidirect', 'test.int.bidirect:1.0', end_point );
+            var p = as.parallel();
             
             if ( NodeExecutor )
             {
-                ccm.register( as, 'test_int_anonsec', 'test.int.anonsec:1.0', secend_point );
+                p.add( function( as ){
+                    as.state.executor.register( as, 'test.int.anon:1.0', interface_impl );
+                } ).add( function( as ){
+                    as.state.executor.register( as, 'test.int.bidirect:1.0', interface_impl );
+                } ).add( function( as ){
+                    as.state.secexecutor.register( as, 'test.int.anonsec:1.0', interface_impl );
+                } );
             }
-            else
+            
+            var clientExecutor = new ClientExecutor( executor_ccm, opts ); 
+            as.state.clientExecutor = clientExecutor;
+            clientExecutor._onNotExpected = function( as, err, error_info )
             {
-                ccm.register( as, 'test_int_anonsec', 'test.int.anonsec:1.0', secend_point, null, { targetOrigin: 'http://localhost:8000' } );
-            }
+                console.log( 'Not Expected: ' + err, error_info );
+                console.log( as.state.last_exception.stack );
+            };
+            
+            p.add( function( as ){
+                clientExecutor.register( as, 'test.int.bidirect:1.0', {
+                    clientCallback : function( as, reqinfo ){
+                        return { a: 'ClientResult' };
+                    }
+                } );
+            } ).add( function( as ){
+                ccm.register( as, 'test_int_anon', 'test.int.anon:1.0', end_point );
+            } ).add( function( as ){
+                as.add(
+                    function( as ){
+                        ccm.register( as, 'test_int_bidirect', 'test.int.bidirect:1.0', end_point, null, {
+                            executor : clientExecutor
+                        } );
+                        
+                        as.add( function( as ){
+                            if ( as.state.CCMImpl === invoker_module.AdvancedCCM )
+                            {
+                                is_bidirect.should.be.true;
+                            }
+                        });
+                    },
+                    function( as, err )
+                    {
+                        if ( !is_bidirect )
+                        {
+                            err.should.equal( 'InvokerError' );
+                            as.state.error_info.should.equal( "BiDirectChannel is required" );
+                            as.success();
+                        }
+                    }
+                );
+            } ).add( function( as ){
+                if ( NodeExecutor )
+                {
+                    ccm.register( as, 'test_int_anonsec', 'test.int.anonsec:1.0', secend_point );
+                }
+                else
+                {
+                    ccm.register( as, 'test_int_anonsec', 'test.int.anonsec:1.0', secend_point, null, { targetOrigin: 'http://localhost:8000' } );
+                }
+            } );
         }).add( function( as ){
             anon_iface = ccm.iface( 'test_int_anon' );
             anonsec_iface = ccm.iface( 'test_int_anonsec' );
-            bidirect_iface = ccm.iface( 'test_int_bidirect' );
+            
+            if ( is_bidirect )
+            {
+                bidirect_iface = ccm.iface( 'test_int_bidirect' );
+            }
     // ---
         }).add( function( as ){
             as.state.step = "regular";
@@ -294,6 +348,12 @@ model_as.add(
     // ---
         }).add(
             function( as ){
+                if ( !is_bidirect )
+                {
+                    as.success( { a : 'OK' } );
+                    return;
+                }
+                
                 as.state.step = "testBiDirect";
                 bidirect_iface.call( as, 'testBiDirect' );
             },
@@ -319,8 +379,22 @@ model_as.add(
                 err.should.equal( 'InternalError' );
                 as.success( 'OK' );
             }
-        ).add( function( as ){
-            as.success( 'OK' );
+        ).add( function( as, res ){
+            res.should.equal( 'OK' );
+        // --
+        }).add(
+            function( as ){
+                if ( !is_bidirect )
+                {
+                    as.success( { a : 'ClientResult' } );
+                    return;
+                }
+                
+                as.state.step = "clientCallback";
+                bidirect_iface.call( as, 'clientCallback' );
+            }
+        ).add( function( as, res ){
+            res.a.should.equal( 'ClientResult' );
         // --
         }).add(
             function( as, ok ){
@@ -361,6 +435,7 @@ model_as.add(
     },
     function( as, err )
     {
+        console.log( as.state.last_exception.stack );
         as.success( new Error( "" + err + ": " + as.state.error_info + " @ " + as.state.step ) );
     }
 ).add(

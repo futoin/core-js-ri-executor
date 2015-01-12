@@ -50,7 +50,7 @@
     "grunt-external-daemon": "^1.1.0",
     "grunt-mocha-phantomjs": "*",
     "grunt-npm-helper": "*",
-    "grunt-npm2bower-sync": "*",
+    "grunt-npm2bower-sync": "0.4.0",
     "grunt-pure-cjs": "*",
     "grunt-release": "*",
     "grunt-text-replace": "*",

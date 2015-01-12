@@ -1,7 +1,9 @@
 
 if ( typeof exports === 'undefined' )
 {
-    exports = {};
+    exports = {
+        in_browser : true
+    };
 }
 
 // ---
@@ -165,6 +167,13 @@ exports.test_int_anon_bidirect = {
                     'type' : 'string'
                 }
             }
+        },
+        'clientCallback' : {
+            'result' : {
+                'a' : {
+                    'type' : 'string'
+                }
+            }
         }
     },
     requires : [
@@ -276,5 +285,34 @@ exports.interface_impl = {
 
         var fail = setTimeout( function(){ assert( false ); }, 100 );
         as.setCancel( function(){ clearTimeout( fail ); } );
-    }
+    },
+    
+    clientCallback : function( as, reqinfo )
+    {
+        if ( exports.in_browser )
+        {
+            // TODO:
+            console.log( "TODO KNOWN PROBLEM. Browser callback does not work yet" );
+            return { a: 'ClientResult' };
+        }
+
+        var ifacever = 'test.int.bidirect:1.0';
+        var channel = reqinfo.channel();
+
+        as.add(
+            function( as ){
+                channel.register( as, ifacever );
+
+                as.add(function( as ){
+                    var iface = channel.iface( ifacever );
+                    iface.call( as, 'clientCallback' );
+                });
+            },
+            function( as, err )
+            {
+                console.log( "Error: ", err, as.state.error_info );
+                console.log( as.state.last_exception.stack );
+            }
+        );
+    },
 };
