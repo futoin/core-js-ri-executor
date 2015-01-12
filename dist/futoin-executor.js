@@ -56,12 +56,6 @@
                 this._event_source = event.source;
                 this._last_used = performance_now();
                 this._is_secure_channel = true;
-                this._reverse_requests = {
-                    evt_origin: event.origin,
-                    evt_source: event.source,
-                    rid: 1,
-                    reqas: {}
-                };
             };
             var BrowserChannelContextProto = new request.ChannelContext();
             BrowserChannelContextProto.type = function () {
@@ -71,19 +65,25 @@
                 return true;
             };
             BrowserChannelContextProto._getPerformRequest = function () {
-                var revreq = this._reverse_requests;
+                var evt_origin = this._event_origin;
+                var evt_source = this._event_source;
+                var revreq = this._executor._reverse_requests;
                 return function (as, ctx, ftnreq) {
                     as.add(function (as) {
                         var rid = 'S' + revreq.rid++;
                         ftnreq.rid = rid;
                         if (ctx.expect_response) {
-                            var reqas = revreq.reqas;
-                            reqas[rid] = as;
+                            var sentreqs = revreq.sentreqs;
+                            sentreqs[rid] = {
+                                reqas: as,
+                                evt_origin: evt_origin,
+                                evt_source: evt_source
+                            };
                             as.setCancel(function () {
-                                delete reqas[rid];
+                                delete sentreqs[rid];
                             });
                         }
-                        revreq.evt_source.postMessage(ftnreq, revreq.evt_origin);
+                        evt_source.postMessage(ftnreq, evt_origin);
                     });
                 };
             };
@@ -97,6 +97,10 @@
                 executor.Executor.call(this, ccm, opts);
                 opts = opts || {};
                 this._contexts = [];
+                this._reverse_requests = {
+                    rid: 1,
+                    sentreqs: {}
+                };
                 var _this = this;
                 var allowed_origins = opts[this.OPT_ALLOWED_ORIGINS] || {};
                 if (allowed_origins instanceof Array) {
@@ -131,23 +135,23 @@
                 var ftnreq = event.data;
                 var source = event.source;
                 var origin = event.origin;
-                if (typeof ftnreq !== 'object' || !('rid' in ftnreq) || !(origin in this.allowed_origins)) {
+                if (typeof ftnreq !== 'object' || !('rid' in ftnreq)) {
                     return;
                 }
                 var rid = ftnreq.rid;
                 if (!('f' in ftnreq) && rid.charAt(0) === 'S') {
-                    var revreq = this._reverse_requests;
-                    var reqas = revreq.reqas[rid];
-                    if (reqas) {
-                        reqas.success(ftnreq, 'application/futoin+json');
-                        delete revreq.reqas[rid];
+                    var sentreqs = this._reverse_requests.sentreqs;
+                    var sreq = sentreqs[rid];
+                    if (sreq && source === sreq.evt_source && origin === sreq.evt_origin) {
+                        sreq.reqas.success(ftnreq, 'application/futoin+json');
+                        delete sentreqs[rid];
                     }
                     if (event.stopPropagation) {
                         event.stopPropagation();
                     }
                     return;
                 }
-                if (!('f' in ftnreq) || rid.charAt(0) !== 'C') {
+                if (!('f' in ftnreq) || rid.charAt(0) !== 'C' || !(origin in this.allowed_origins)) {
                     return;
                 }
                 var context = null;

@@ -289,13 +289,6 @@ exports.interface_impl = {
     
     clientCallback : function( as, reqinfo )
     {
-        if ( exports.in_browser )
-        {
-            // TODO:
-            console.log( "TODO KNOWN PROBLEM. Browser callback does not work yet" );
-            return { a: 'ClientResult' };
-        }
-
         var ifacever = 'test.int.bidirect:1.0';
         var channel = reqinfo.channel();
 
