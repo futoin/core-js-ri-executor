@@ -68,6 +68,7 @@
                 var evt_origin = this._event_origin;
                 var evt_source = this._event_source;
                 var revreq = this._executor._reverse_requests;
+                var sniffer = this._executor._msg_sniffer;
                 return function (as, ctx, ftnreq) {
                     as.add(function (as) {
                         var rid = 'S' + revreq.rid++;
@@ -83,6 +84,7 @@
                                 delete sentreqs[rid];
                             });
                         }
+                        sniffer(evt_origin, ftnreq, false);
                         evt_source.postMessage(ftnreq, evt_origin);
                     });
                 };
@@ -96,6 +98,8 @@
             var BrowserExecutor = function (ccm, opts) {
                 executor.Executor.call(this, ccm, opts);
                 opts = opts || {};
+                this._msg_sniffer = opts[this.OPT_MSG_SNIFFER] || function () {
+                };
                 this._contexts = [];
                 this._reverse_requests = {
                     rid: 1,
@@ -132,6 +136,7 @@
             BrowserExecutor.prototype = BrowserExecutorProto;
             BrowserExecutorProto.allowed_origins = null;
             BrowserExecutorProto.handleMessage = function (event) {
+                this._msg_sniffer(event, event.data, true);
                 var ftnreq = event.data;
                 var source = event.source;
                 var origin = event.origin;
@@ -183,10 +188,12 @@
                     void as;
                     reqinfo.cancelAfter(0);
                     reqinfo._as = null;
-                    context._event_source.postMessage({
-                        e: 'InternalError',
-                        rid: rid
-                    }, context._event_origin);
+                    var ftnrsp = {
+                            e: 'InternalError',
+                            rid: rid
+                        };
+                    _this._msg_sniffer(event, ftnrsp, false);
+                    context._event_source.postMessage(ftnrsp, context._event_origin);
                 };
                 as.add(function (as) {
                     as.setCancel(cancel_req);
@@ -197,6 +204,7 @@
                         reqinfo.cancelAfter(0);
                         reqinfo._as = null;
                         if (ftnrsp !== null) {
+                            _this._msg_sniffer(event, ftnrsp, false);
                             context._event_source.postMessage(ftnrsp, context._event_origin);
                         }
                     });
@@ -239,6 +247,7 @@
                     OPT_VAULT: 'vault',
                     OPT_SPEC_DIRS: invoker.AdvancedCCM.OPT_SPEC_DIRS,
                     OPT_PROD_MODE: invoker.AdvancedCCM.OPT_PROD_MODE,
+                    OPT_MSG_SNIFFER: invoker.SimpleCCM.OPT_MSG_SNIFFER,
                     OPT_REQUEST_TIMEOT: 'reqTimeout',
                     OPT_HEAVY_REQUEST_TIMEOT: 'heavyTimeout',
                     DEFAULT_REQUEST_TIMEOUT: 5000,

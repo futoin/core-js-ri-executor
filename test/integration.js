@@ -80,6 +80,14 @@ model_as.add(
             end_point = "browser://server_frame";
             secend_point = end_point;
         }
+        
+        var state = as.state;
+        state.ccm_msgs = [];
+        state.exec_msgs = [];
+        
+        opts[ executor_module.Executor.OPT_MSG_SNIFFER ] = function( info, msg ){
+            state.ccm_msgs.push( msg );
+        };
 
         var ccm = new as.state.CCMImpl( opts );
         var executor_ccm = new invoker_module.AdvancedCCM( opts );
@@ -89,17 +97,28 @@ model_as.add(
         
         var is_bidirect = end_point.match( /^(ws|browser)/ ) !== null;
         
+        var execopts = _.clone( opts );
+        execopts[ executor_module.Executor.OPT_MSG_SNIFFER ] = function( src, msg ){
+            state.exec_msgs.push( msg );
+        };
+        
+        if ( NodeExecutor )
+        {
+            secopts[ executor_module.Executor.OPT_MSG_SNIFFER ] =
+                    execopts[ executor_module.Executor.OPT_MSG_SNIFFER ];
+        }
+        
         as.add( function( as ){
             if ( !NodeExecutor ) return;
                
-            var executor = new NodeExecutor( executor_ccm, opts );
+            var executor = new NodeExecutor( executor_ccm, execopts );
             as.state.executor = executor;
             
             /*executor.on( 'notExpected', function( err, error_info ){
                 console.log( "NotExpected: " + err + " " + error_info );
             });*/
             
-            as.setTimeout( opts[invoker_module.OPT_CALL_TIMEOUT_MS] );
+            as.setTimeout( execopts[invoker_module.OPT_CALL_TIMEOUT_MS] );
             executor.on('ready', function(){
                 as.success();
             });
@@ -115,7 +134,7 @@ model_as.add(
                 console.log( "NotExpected: " + err + " " + error_info );
             });*/
  
-            as.setTimeout( opts[invoker_module.OPT_CALL_TIMEOUT_MS] );
+            as.setTimeout( execopts[invoker_module.OPT_CALL_TIMEOUT_MS] );
             secexecutor.on('ready', function(){
                 as.success();
             });
@@ -431,6 +450,13 @@ model_as.add(
                 as.success();
             }
         ).add( function( as ){
+            if ( NodeExecutor )
+            {
+                // console.dir(  as.state.ccm_msgs );
+                // console.dir(  as.state.exec_msgs );
+                
+                as.state.ccm_msgs.length.should.equal( as.state.exec_msgs.length - ( is_bidirect ? 0 : 1 ) );
+            }
         });
     },
     function( as, err )
