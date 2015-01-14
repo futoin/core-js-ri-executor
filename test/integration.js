@@ -107,6 +107,12 @@ model_as.add(
             secopts[ executor_module.Executor.OPT_MSG_SNIFFER ] =
                     execopts[ executor_module.Executor.OPT_MSG_SNIFFER ];
         }
+
+        function set_step( s )
+        {
+            //console.log( 'Step: ' + s );
+            as.state.step = s;
+        }
         
         as.add( function( as ){
             if ( !NodeExecutor ) return;
@@ -214,7 +220,7 @@ model_as.add(
             }
     // ---
         }).add( function( as ){
-            as.state.step = "regular";
+            set_step( "regular" );
             anon_iface.call( as, 'regular', {
                 b : true,
                 s : 'Value',
@@ -232,7 +238,7 @@ model_as.add(
             res.ra.should.eql( [ true, 'value', 123.456, 123456, { field : 'value' }, [ 1, 2, 3 ] ] );
     // ---
         }).add( function( as ){
-            as.state.step = "noResult";
+            set_step( "noResult" );
             anon_iface.call( as, 'noResult', {
                 a : "param"
             } );
@@ -243,13 +249,13 @@ model_as.add(
             }
     // ---
         }).add( function( as ){
-            as.state.step = "noParams";
+            set_step( "noParams" );
             anon_iface.call( as, 'noParams' );
         }).add( function( as, res ){
             res.a.should.equal( 'test' );
     // ---
         }).add( function( as ){
-            as.state.step = "rawUpload";
+            set_step( "rawUpload" );
             
             if ( is_in_browser )
             {
@@ -262,7 +268,7 @@ model_as.add(
             res.a.should.equal( 'TestUpload' );
     // ---
         }).add( function( as ){
-            as.state.step = "rawUpload + buffer";
+            set_step( "rawUpload + buffer" );
             
             if ( is_in_browser )
             {
@@ -276,7 +282,7 @@ model_as.add(
             res.a.should.equal( 'TestUploadBuffer' );
     // ---
         }).add( function( as ){
-            as.state.step = "rawUpload + stream";
+            set_step( "rawUpload + stream" );
             
             if ( is_in_browser )
             {
@@ -301,7 +307,7 @@ model_as.add(
             res.a.should.equal( 'TestUploadStreamЯ' );
     // ---
         }).add( function( as ){
-            as.state.step = "rawResult";
+            set_step( "rawResult" );
             
             if ( is_in_browser ) return;
 
@@ -320,7 +326,7 @@ model_as.add(
                  ( as.state.proto === 'http' ) ||
                  ( as.state.proto === 'https' ) )
             {
-                as.state.step = "rawResult + stream";
+                set_step( "rawResult + stream" );
                 anon_iface.call( as, 'rawResult', { a: 'TestDownloadЯ' } );
             }
             else
@@ -332,7 +338,7 @@ model_as.add(
             res.should.equal( 'TestDownloadЯ' );
     // ---
         }).add( function( as ){
-            as.state.step = "rawUploadResult";
+            set_step( "rawUploadResult" );
             
             if ( is_in_browser ) return;
 
@@ -345,7 +351,7 @@ model_as.add(
             as.state.membuf.toString().should.equal( 'TestUploadBuffer' );
     // ---
         }).add( function( as ){
-            as.state.step = "rawUploadResultParams";
+            set_step( "rawUploadResultParams" );
             
             if ( is_in_browser ) return;
             
@@ -373,7 +379,7 @@ model_as.add(
                     return;
                 }
                 
-                as.state.step = "testBiDirect";
+                set_step( "testBiDirect" );
                 bidirect_iface.call( as, 'testBiDirect' );
             },
             function( as, err )
@@ -390,7 +396,7 @@ model_as.add(
         // --
         }).add(
             function( as ){
-                as.state.step = "cancelAfterTimeout";
+                set_step( "cancelAfterTimeout" );
                 anon_iface.call( as, 'cancelAfterTimeout' );
             },
             function( as, err )
@@ -409,7 +415,7 @@ model_as.add(
                     return;
                 }
                 
-                as.state.step = "clientCallback";
+                set_step( "clientCallback" );
                 bidirect_iface.call( as, 'clientCallback' );
             }
         ).add( function( as, res ){
@@ -417,7 +423,7 @@ model_as.add(
         // --
         }).add(
             function( as, ok ){
-                as.state.step = 'clientTimeout';
+                set_step( 'clientTimeout' );
                 anon_iface.call( as, 'clientTimeout', null, null, null, 1 );
             },
             function( as, err ){
@@ -427,7 +433,7 @@ model_as.add(
             }
         ).add(
             function( as ){
-                as.state.step = 'serverError';
+                set_step( 'serverError' );
                 anon_iface.call( as, 'serverError', {
                     'a' : 'ValidError'
                 } );
@@ -439,7 +445,7 @@ model_as.add(
             }
         ).add(
             function( as ){
-                as.state.step = 'serverError - invalid';
+                set_step( 'serverError - invalid' );
                 anon_iface.call( as, 'serverError', {
                     'a' : 'InvalidError'
                 } );
