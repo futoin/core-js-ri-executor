@@ -7,7 +7,7 @@ if ( typeof exports === 'undefined' )
 }
 
 // ---
-exports.test_int_anon = {
+exports.test_if_anon = {
     iface : 'test.int.anon',
     version : '1.0',
     funcs : {
@@ -137,7 +137,7 @@ exports.test_int_anon = {
 };
 
 // ---
-exports.test_int_anon_secure = {
+exports.test_if_anon_secure = {
     iface : 'test.int.anonsec',
     version : '1.0',
     funcs : {
@@ -156,7 +156,7 @@ exports.test_int_anon_secure = {
 };
 
 // --
-exports.test_int_anon_bidirect = {
+exports.test_if_anon_bidirect = {
     iface : 'test.int.bidirect',
     version : '1.0',
     ftn3rev : '1.1',

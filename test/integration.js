@@ -36,9 +36,9 @@ else
 }
 
 var integration_iface = require( './integration_iface' );
-var test_int_anon = integration_iface.test_int_anon;
-var test_int_anon_secure = integration_iface.test_int_anon_secure;
-var test_int_anon_bidirect = integration_iface.test_int_anon_bidirect;
+var test_if_anon = integration_iface.test_if_anon;
+var test_if_anon_secure = integration_iface.test_if_anon_secure;
+var test_if_anon_bidirect = integration_iface.test_if_anon_bidirect;
 var interface_impl = integration_iface.interface_impl;
 
 // ---
@@ -50,12 +50,21 @@ model_as.add(
         opts[invoker_module.OPT_CALL_TIMEOUT_MS] = 1e3;
         opts[executor_module.Executor.OPT_SPEC_DIRS] = [
             thisDir + '/specs',
-            test_int_anon,
-            test_int_anon_bidirect,
-            test_int_anon_secure
+            test_if_anon,
+            test_if_anon_bidirect,
+            test_if_anon_secure
         ];
         
-        if ( NodeExecutor )
+        var internal_test = ( as.state.proto === 'internal' );
+        var node_test = NodeExecutor && !internal_test;
+
+        var end_point = '';
+        
+        if ( internal_test )
+        {
+            // configure later
+        }
+        else if ( node_test )
         {
             opts[NodeExecutor.OPT_HTTP_ADDR] = 'localhost';
             opts[NodeExecutor.OPT_HTTP_PORT] = '1080';
@@ -63,7 +72,7 @@ model_as.add(
 
             var secopts = _.clone( opts );
 
-            var end_point = as.state.proto +
+            end_point = as.state.proto +
                 "://" + opts[NodeExecutor.OPT_HTTP_ADDR] +
                 ":" + opts[NodeExecutor.OPT_HTTP_PORT] +
                 opts[NodeExecutor.OPT_HTTP_PATH];
@@ -95,14 +104,14 @@ model_as.add(
         var bidirect_iface;
         var anonsec_iface;
         
-        var is_bidirect = end_point.match( /^(ws|browser)/ ) !== null;
+        var is_bidirect = internal_test || ( end_point.match( /^(ws|browser)/ ) !== null );
         
         var execopts = _.clone( opts );
         execopts[ executor_module.Executor.OPT_MSG_SNIFFER ] = function( src, msg ){
             state.exec_msgs.push( msg );
         };
         
-        if ( NodeExecutor )
+        if ( node_test )
         {
             secopts[ executor_module.Executor.OPT_MSG_SNIFFER ] =
                     execopts[ executor_module.Executor.OPT_MSG_SNIFFER ];
@@ -110,12 +119,12 @@ model_as.add(
 
         function set_step( s )
         {
-            //console.log( 'Step: ' + s );
+            // console.log( 'Step: ' + s );
             as.state.step = s;
         }
         
         as.add( function( as ){
-            if ( !NodeExecutor ) return;
+            if ( !node_test ) return;
                
             var executor = new NodeExecutor( executor_ccm, execopts );
             as.state.executor = executor;
@@ -131,7 +140,7 @@ model_as.add(
             executor.on('error', function(){
             });
         }).add( function( as ){
-            if ( !NodeExecutor ) return;
+            if ( !node_test ) return;
                
             var secexecutor = new NodeExecutor( executor_ccm, secopts );
             as.state.secexecutor = secexecutor;
@@ -147,9 +156,17 @@ model_as.add(
             secexecutor.on('error', function(){
             });
         }).add( function( as ){
+            if ( !internal_test ) return;
+               
+            var executor = new executor_module.Executor( executor_ccm, execopts );
+            as.state.executor = executor;
+            as.state.secexecutor = executor;
+            end_point = executor;
+            secend_point = executor;
+        }).add( function( as ){
             var p = as.parallel();
             
-            if ( NodeExecutor )
+            if ( node_test || internal_test )
             {
                 p.add( function( as ){
                     as.state.executor.register( as, 'test.int.anon:1.0', interface_impl );
@@ -175,11 +192,11 @@ model_as.add(
                     }
                 } );
             } ).add( function( as ){
-                ccm.register( as, 'test_int_anon', 'test.int.anon:1.0', end_point );
+                ccm.register( as, 'test_if_anon', 'test.int.anon:1.0', end_point );
             } ).add( function( as ){
                 as.add(
                     function( as ){
-                        ccm.register( as, 'test_int_bidirect', 'test.int.bidirect:1.0', end_point, null, {
+                        ccm.register( as, 'test_if_bidirect', 'test.int.bidirect:1.0', end_point, null, {
                             executor : clientExecutor
                         } );
                         
@@ -201,22 +218,22 @@ model_as.add(
                     }
                 );
             } ).add( function( as ){
-                if ( NodeExecutor )
+                if ( node_test )
                 {
-                    ccm.register( as, 'test_int_anonsec', 'test.int.anonsec:1.0', secend_point );
+                    ccm.register( as, 'test_if_anonsec', 'test.int.anonsec:1.0', secend_point );
                 }
                 else
                 {
-                    ccm.register( as, 'test_int_anonsec', 'test.int.anonsec:1.0', secend_point, null, { targetOrigin: 'http://localhost:8000' } );
+                    ccm.register( as, 'test_if_anonsec', 'test.int.anonsec:1.0', secend_point, null, { targetOrigin: 'http://localhost:8000' } );
                 }
             } );
         }).add( function( as ){
-            anon_iface = ccm.iface( 'test_int_anon' );
-            anonsec_iface = ccm.iface( 'test_int_anonsec' );
+            anon_iface = ccm.iface( 'test_if_anon' );
+            anonsec_iface = ccm.iface( 'test_if_anonsec' );
             
             if ( is_bidirect )
             {
-                bidirect_iface = ccm.iface( 'test_int_bidirect' );
+                bidirect_iface = ccm.iface( 'test_if_bidirect' );
             }
     // ---
         }).add( function( as ){
@@ -257,7 +274,7 @@ model_as.add(
         }).add( function( as ){
             set_step( "rawUpload" );
             
-            if ( is_in_browser )
+            if ( is_in_browser || internal_test )
             {
                 as.success( { a: 'TestUpload' } );
                 return;
@@ -270,7 +287,7 @@ model_as.add(
         }).add( function( as ){
             set_step( "rawUpload + buffer" );
             
-            if ( is_in_browser )
+            if ( is_in_browser || internal_test )
             {
                 as.success( { a: 'TestUploadBuffer' } );
                 return;
@@ -284,7 +301,7 @@ model_as.add(
         }).add( function( as ){
             set_step( "rawUpload + stream" );
             
-            if ( is_in_browser )
+            if ( is_in_browser || internal_test )
             {
                 as.success( { a: 'TestUploadStreamЯ' } );
                 return;
@@ -302,23 +319,22 @@ model_as.add(
             };
             
             anon_iface.call( as, 'rawUpload', null, upload_data );
-            
         }).add( function( as, res ){
             res.a.should.equal( 'TestUploadStreamЯ' );
     // ---
         }).add( function( as ){
             set_step( "rawResult" );
             
-            if ( is_in_browser ) return;
+            if ( is_in_browser|| internal_test ) return;
 
             as.state.membuf = new MemoryStream( null, { readable : false } );
             anon_iface.call( as, 'rawResult', { a: 'TestDownloadЯ' }, null, as.state.membuf );
         }).add( function( as, res ){
-            if ( is_in_browser ) return;
+            if ( is_in_browser|| internal_test ) return;
             as.state.membuf.toString().should.equal( 'TestDownloadЯ' );
     // ---
         }).add( function( as ){
-            if ( is_in_browser )
+            if ( is_in_browser || internal_test )
             {
                 as.success( 'TestDownloadЯ' );
             }
@@ -340,20 +356,20 @@ model_as.add(
         }).add( function( as ){
             set_step( "rawUploadResult" );
             
-            if ( is_in_browser ) return;
+            if ( is_in_browser || internal_test ) return;
 
             var upload_data = new Buffer('TestUploadBuffer');
             as.state.membuf = new MemoryStream( null, { readable : false } );
             anon_iface.call( as, 'rawUploadResult', null, upload_data, as.state.membuf );
         }).add( function( as ){
-            if ( is_in_browser ) return;
+            if ( is_in_browser || internal_test ) return;
 
             as.state.membuf.toString().should.equal( 'TestUploadBuffer' );
     // ---
         }).add( function( as ){
             set_step( "rawUploadResultParams" );
             
-            if ( is_in_browser ) return;
+            if ( is_in_browser || internal_test ) return;
             
             var upload_data = new Buffer('TestUploadBuffer');
             as.state.membuf = new MemoryStream( null, { readable : false } );
@@ -368,7 +384,7 @@ model_as.add(
                 as.state.membuf
             );
         }).add( function( as ){
-            if ( is_in_browser ) return;
+            if ( is_in_browser || internal_test ) return;
             as.state.membuf.toString().should.equal( 'start{TestUploadBuffer}end' );
     // ---
         }).add(
@@ -456,7 +472,7 @@ model_as.add(
                 as.success();
             }
         ).add( function( as ){
-            if ( NodeExecutor )
+            if ( node_test )
             {
                 // console.dir(  as.state.ccm_msgs );
                 // console.dir(  as.state.exec_msgs );
@@ -479,15 +495,17 @@ model_as.add(
 ).add(
     function( as, err )
     {
-        if ( !is_in_browser )
+        if ( as.state.executor )
         {
             as.state.executor.close();
             as.state.secexecutor.close();
         }
+
         as.state.done( err );
     },
     function( as, err )
     {
+        console.log( as.state.last_exception.stack );
         as.state.done( new Error( "" + err + ": " + as.state.error_info + " @ shutdown" ) );
     }
 );
@@ -538,6 +556,16 @@ else
         as.state.proto = 'ws';
         as.execute();
     });
+    
+    it('should pass INTERNAL suite SimpleCCM', function( done )
+    {
+        var as = async_steps();
+        as.copyFrom( model_as );
+        as.state.CCMImpl = invoker_module.SimpleCCM;
+        as.state.done = done;
+        as.state.proto = 'internal';
+        as.execute();
+    });
 
     it('should pass HTTP suite AdvancedCCM', function( done )
     {
@@ -559,4 +587,14 @@ else
         as.execute();
     });
 }
+
+    it('should pass INTERNAL suite AdvancedCCM', function( done )
+    {
+        var as = async_steps();
+        as.copyFrom( model_as );
+        as.state.CCMImpl = invoker_module.AdvancedCCM;
+        as.state.done = done;
+        as.state.proto = 'internal';
+        as.execute();
+    });
 });

@@ -5,6 +5,7 @@
 
   [![NPM](https://nodei.co/npm/futoin-executor.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/futoin-executor/)
 
+**[Stability: 2 - Unstable](http://nodejs.org/api/documentation.html)**
 
 # WARNING
 
