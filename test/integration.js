@@ -179,11 +179,11 @@ model_as.add(
             
             var clientExecutor = new ClientExecutor( executor_ccm, opts ); 
             as.state.clientExecutor = clientExecutor;
-            clientExecutor._onNotExpected = function( as, err, error_info )
+            clientExecutor.on( 'notExpected', function( err, error_info )
             {
                 console.log( 'Not Expected: ' + err, error_info );
-                console.log( as.state.last_exception.stack );
-            };
+                console.log( state.last_exception.stack );
+            } );
             
             p.add( function( as ){
                 clientExecutor.register( as, 'test.int.bidirect:1.0', {
