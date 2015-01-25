@@ -129,6 +129,14 @@ exports.test_if_anon = {
                     'type' : 'string'
                 }
             }
+        },
+        
+        testHTTPheader : {
+            'result' : {
+                'r' : {
+                    'type' : 'string'
+                }
+            }
         }
     },
     requires : [
@@ -308,4 +316,30 @@ exports.interface_impl = {
             }
         );
     },
+
+    testHTTPheader : function( as, reqinfo )
+    {
+        try
+        {
+            var channel = reqinfo.channel();
+            
+            if ( channel.type() === "HTTP" )
+            {
+                channel.getRequestHeaders()['content-type'].should.equal( 'application/futoin+json' );
+                channel.setResponseHeader( 'MyHeader', 'value' );
+                channel.setStatusCode( 201 );
+                channel.setCookie( 'MyCookie', 'MyValue' );
+
+                return { r: 'OK' };
+            }
+            else
+            {
+                return { r: 'IGNORE' };
+            }
+        }
+        catch ( e )
+        {
+            as.error( 'InternalError', e.message );
+        }
+    }
 };

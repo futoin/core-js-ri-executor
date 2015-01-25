@@ -438,6 +438,16 @@ model_as.add(
             res.a.should.equal( 'ClientResult' );
         // --
         }).add(
+            function( as ){
+                set_step( 'testHTTPheader' );
+                anon_iface.call( as, 'testHTTPheader' );
+            }
+        ).add(
+            function( as, res ){
+                res.r.should.equal( as.state.proto.match( /^http/ ) ? 'OK' : 'IGNORE' );
+            }
+        // --
+        ).add(
             function( as, ok ){
                 set_step( 'clientTimeout' );
                 anon_iface.call( as, 'clientTimeout', null, null, null, 1 );

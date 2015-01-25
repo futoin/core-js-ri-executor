@@ -18,8 +18,16 @@ Reference implementation of:
  
     FTN6: FutoIn Executor Concept
     Version: 1.0
+
+    FTN3: FutoIn Interface Definition
+    Version: 1.1
+
+    FTN5: FutoIn HTTP integration
+    Version: 1.1
     
-Spec: [FTN6: Interface Executor Concept v1.x](http://specs.futoin.org/final/preview/ftn6_iface_executor_concept-1.html)
+* Spec: [FTN6: Interface Executor Concept v1.x](http://specs.futoin.org/final/preview/ftn6_iface_executor_concept-1.html)
+* Spec: [FTN3: FutoIn Interface Definition v1.x](http://specs.futoin.org/final/preview/ftn3_iface_definition.html)
+* Spec: [FTN5: FutoIn HTTP integration v1.x](http://specs.futoin.org/final/preview/ftn5_iface_http_integration.html)
 
 [Web Site](http://futoin.org/)
 
