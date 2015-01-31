@@ -20,10 +20,6 @@ module.exports = function (grunt) {
                         'futoin-invoker' : {
                             'global' : 'FutoInInvoker',
                             'amd' : 'futoin-invoker'
-                        },
-                        'lodash' : {
-                            'global' : '_',
-                            'amd' : 'lodash'
                         }
                     }
                 }
@@ -45,10 +41,6 @@ module.exports = function (grunt) {
                         'futoin-invoker' : {
                             'global' : 'FutoInInvoker',
                             'amd' : 'futoin-invoker'
-                        },
-                        'lodash' : {
-                            'global' : '_',
-                            'amd' : 'lodash'
                         }
                     }
                 }

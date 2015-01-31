@@ -2,15 +2,14 @@
     if (typeof define === 'function' && define.amd) {
         define([
             'futoin-asyncsteps',
-            'futoin-invoker',
-            'lodash'
+            'futoin-invoker'
         ], factory);
     } else if (typeof exports === 'object') {
-        module.exports = factory(require('futoin-asyncsteps'), require('futoin-invoker'), require('lodash'));
+        module.exports = factory(require('futoin-asyncsteps'), require('futoin-invoker'));
     } else {
-        this.FutoInExecutor = factory($as, FutoInInvoker, _);
+        this.FutoInExecutor = factory($as, FutoInInvoker);
     }
-}(function (__external_$as, __external_FutoInInvoker, __external__) {
+}(function (__external_$as, __external_FutoInInvoker) {
     var global = this, define;
     function _require(id) {
         var module = _require.cache[id];
@@ -44,15 +43,16 @@
         },
         function (module, exports) {
             'use strict';
-            var _ = _require(23);
+            var _extend = _require(39);
+            var _zipObject = _require(23);
             var executor = _require(2);
             var request = _require(4);
             var async_steps = _require(21);
-            var performance_now = _require(24);
+            var performance_now = _require(45);
             var browser_window = window;
             var BrowserChannelContext = function (executor, event) {
                 request.ChannelContext.call(this, executor);
-                _.extend(this, BrowserChannelContextProto);
+                _extend(this, BrowserChannelContextProto);
                 this._event_origin = event.origin;
                 this._event_source = event.source;
                 this._last_used = performance_now();
@@ -94,10 +94,10 @@
                     OPT_CONNECT_TIMEOUT: 'CONN_TIMEOUT',
                     OPT_ALLOWED_ORIGINS: 'ALLOWED_ORIGINS'
                 };
-            _.extend(BrowserExecutorConst, executor.ExecutorConst);
+            _extend(BrowserExecutorConst, executor.ExecutorConst);
             var BrowserExecutor = function (ccm, opts) {
                 executor.Executor.call(this, ccm, opts);
-                _.extend(this, BrowserExecutorConst, BrowserExecutorProto);
+                _extend(this, BrowserExecutorConst, BrowserExecutorProto);
                 opts = opts || {};
                 this._msg_sniffer = opts[this.OPT_MSG_SNIFFER] || function () {
                 };
@@ -109,7 +109,7 @@
                 var _this = this;
                 var allowed_origins = opts[this.OPT_ALLOWED_ORIGINS] || {};
                 if (allowed_origins instanceof Array) {
-                    allowed_origins = _.object(allowed_origins, allowed_origins);
+                    allowed_origins = _zipObject(allowed_origins, allowed_origins);
                 }
                 this.allowed_origins = allowed_origins;
                 var connection_timeout = opts[this.OPT_CONNECT_TIMEOUT] || 600;
@@ -131,7 +131,7 @@
                 };
                 browser_window.addEventListener('message', this._event_listener);
             };
-            _.extend(BrowserExecutor, BrowserExecutorConst);
+            _extend(BrowserExecutor, BrowserExecutorConst);
             var BrowserExecutorProto = {};
             BrowserExecutorProto.allowed_origins = null;
             BrowserExecutorProto.handleMessage = function (event) {
@@ -222,7 +222,7 @@
         },
         function (module, exports) {
             'use strict';
-            var _ = _require(23);
+            var _extend = _require(39);
             var invoker = _require(22);
             var FutoInError = invoker.FutoInError;
             var request = _require(4);
@@ -231,7 +231,7 @@
             var ChannelContext = request.ChannelContext;
             var CallbackChannelContext = function (executor) {
                 ChannelContext.call(this, executor);
-                _.extend(this, CallbackChannelContextProto);
+                _extend(this, CallbackChannelContextProto);
             };
             var CallbackChannelContextProto = {
                     type: function () {
@@ -243,7 +243,7 @@
                 };
             var InternalChannelContext = function (executor, invoker_executor) {
                 ChannelContext.call(this, executor);
-                _.extend(this, InternalChannelContextProto);
+                _extend(this, InternalChannelContextProto);
                 this._invoker_executor = invoker_executor;
             };
             var InternalChannelContextProto = {
@@ -279,7 +279,7 @@
                 };
             var executor = function (ccm, opts) {
                 ee(this);
-                _.extend(this, executor_const, executor_proto);
+                _extend(this, executor_const, executor_proto);
                 this._ccm = ccm;
                 this._ifaces = {};
                 this._impls = {};
@@ -484,12 +484,12 @@
                                 }
                                 var result = impl[func](as, reqinfo);
                                 if (result) {
-                                    _.extend(reqinfo.result(), result);
+                                    _extend(reqinfo.result(), result);
                                 }
                             });
                             as.add(function (as, result) {
                                 if (result) {
-                                    _.extend(reqinfo.result(), result);
+                                    _extend(reqinfo.result(), result);
                                 }
                                 _this._checkResponse(as, reqinfo);
                                 _this._signResponse(as, reqinfo);
@@ -680,16 +680,16 @@
                         return rawmsg;
                     }
                 };
-            _.extend(executor, executor_const);
+            _extend(executor, executor_const);
             exports.Executor = executor;
             exports.ExecutorConst = executor_const;
         },
         function (module, exports) {
             'use strict';
             var isNode = _require(5);
-            var _ = _require(23);
+            var _extend = _require(39);
             var request = _require(4);
-            _.extend(exports, request);
+            _extend(exports, request);
             var Executor = _require(2).Executor;
             exports.Executor = Executor;
             exports.ClientExecutor = Executor;
@@ -702,8 +702,8 @@
         },
         function (module, exports) {
             'use strict';
-            var _ = _require(23);
-            var performance_now = _require(24);
+            var _extend = _require(39);
+            var performance_now = _require(45);
             var async_steps = _require(21);
             var userinfo_const = {
                     INFO_FirstName: 'FirstName',
@@ -719,12 +719,12 @@
                     INFO_AvatarURL: 'AvatarURL'
                 };
             exports.UserInfo = function (ccm, local_id, global_id) {
-                _.extend(this, userinfo_const, UserInfoProto);
+                _extend(this, userinfo_const, UserInfoProto);
                 this._ccm = ccm;
                 this._local_id = local_id;
                 this._global_id = global_id;
             };
-            _.extend(exports.UserInfo, userinfo_const);
+            _extend(exports.UserInfo, userinfo_const);
             var UserInfoProto = {
                     localID: function () {
                         return this._local_id;
@@ -738,7 +738,7 @@
                     }
                 };
             exports.SourceAddress = function (type, host, port) {
-                _.extend(this, SourceAddressProto);
+                _extend(this, SourceAddressProto);
                 if (type === null) {
                     if (typeof host !== 'string') {
                         type = 'LOCAL';
@@ -767,7 +767,7 @@
                     }
                 };
             exports.DerivedKey = function (ccm, base_id, sequence_id) {
-                _.extend(this, DerivedKeyProto);
+                _extend(this, DerivedKeyProto);
                 this._ccm = ccm;
                 this._base_id = base_id;
                 this._sequence_id = sequence_id;
@@ -789,7 +789,7 @@
                     }
                 };
             exports.ChannelContext = function (executor) {
-                _.extend(this, ChannelContextProto);
+                _extend(this, ChannelContextProto);
                 this._executor = executor;
                 this._ifaces = {};
                 this.state = function () {
@@ -859,7 +859,7 @@
                     INFO_CHANNEL_CONTEXT: 'CHANNEL_CONTEXT'
                 };
             exports.RequestInfo = function (executor, rawreq) {
-                _.extend(this, reqinfo_const, RequestInfoProto);
+                _extend(this, reqinfo_const, RequestInfoProto);
                 this._executor = executor;
                 if (typeof rawreq === 'string') {
                     rawreq = JSON.parse(rawreq);
@@ -889,7 +889,7 @@
                 info[this.INFO_CHANNEL_CONTEXT] = null;
                 info[this.INFO_REQUEST_TIME_FLOAT] = performance_now();
             };
-            _.extend(exports.RequestInfo, reqinfo_const);
+            _extend(exports.RequestInfo, reqinfo_const);
             var RequestInfoProto = {
                     _executor: null,
                     _rawreq: null,
@@ -1265,7 +1265,318 @@
             module.exports = __external_FutoInInvoker;
         },
         function (module, exports) {
-            module.exports = __external__;
+            var isArray = _require(35);
+            function zipObject(props, values) {
+                var index = -1, length = props ? props.length : 0, result = {};
+                if (length && !values && !isArray(props[0])) {
+                    values = [];
+                }
+                while (++index < length) {
+                    var key = props[index];
+                    if (values) {
+                        result[key] = values[index];
+                    } else if (key) {
+                        result[key[0]] = key[1];
+                    }
+                }
+                return result;
+            }
+            module.exports = zipObject;
+        },
+        function (module, exports) {
+            var baseCopy = _require(25), keys = _require(40);
+            function baseAssign(object, source, customizer) {
+                var props = keys(source);
+                if (!customizer) {
+                    return baseCopy(source, object, props);
+                }
+                var index = -1, length = props.length;
+                while (++index < length) {
+                    var key = props[index], value = object[key], result = customizer(value, source[key], key, object, source);
+                    if ((result === result ? result !== value : value === value) || typeof value == 'undefined' && !(key in object)) {
+                        object[key] = result;
+                    }
+                }
+                return object;
+            }
+            module.exports = baseAssign;
+        },
+        function (module, exports) {
+            function baseCopy(source, object, props) {
+                if (!props) {
+                    props = object;
+                    object = {};
+                }
+                var index = -1, length = props.length;
+                while (++index < length) {
+                    var key = props[index];
+                    object[key] = source[key];
+                }
+                return object;
+            }
+            module.exports = baseCopy;
+        },
+        function (module, exports) {
+            function baseToString(value) {
+                if (typeof value == 'string') {
+                    return value;
+                }
+                return value == null ? '' : value + '';
+            }
+            module.exports = baseToString;
+        },
+        function (module, exports) {
+            var identity = _require(44);
+            function bindCallback(func, thisArg, argCount) {
+                if (typeof func != 'function') {
+                    return identity;
+                }
+                if (typeof thisArg == 'undefined') {
+                    return func;
+                }
+                switch (argCount) {
+                case 1:
+                    return function (value) {
+                        return func.call(thisArg, value);
+                    };
+                case 3:
+                    return function (value, index, collection) {
+                        return func.call(thisArg, value, index, collection);
+                    };
+                case 4:
+                    return function (accumulator, value, index, collection) {
+                        return func.call(thisArg, accumulator, value, index, collection);
+                    };
+                case 5:
+                    return function (value, other, key, object, source) {
+                        return func.call(thisArg, value, other, key, object, source);
+                    };
+                }
+                return function () {
+                    return func.apply(thisArg, arguments);
+                };
+            }
+            module.exports = bindCallback;
+        },
+        function (module, exports) {
+            var bindCallback = _require(27), isIterateeCall = _require(30);
+            function createAssigner(assigner) {
+                return function () {
+                    var length = arguments.length, object = arguments[0];
+                    if (length < 2 || object == null) {
+                        return object;
+                    }
+                    if (length > 3 && isIterateeCall(arguments[1], arguments[2], arguments[3])) {
+                        length = 2;
+                    }
+                    if (length > 3 && typeof arguments[length - 2] == 'function') {
+                        var customizer = bindCallback(arguments[--length - 1], arguments[length--], 5);
+                    } else if (length > 2 && typeof arguments[length - 1] == 'function') {
+                        customizer = arguments[--length];
+                    }
+                    var index = 0;
+                    while (++index < length) {
+                        var source = arguments[index];
+                        if (source) {
+                            assigner(object, source, customizer);
+                        }
+                    }
+                    return object;
+                };
+            }
+            module.exports = createAssigner;
+        },
+        function (module, exports) {
+            var MAX_SAFE_INTEGER = Math.pow(2, 53) - 1;
+            function isIndex(value, length) {
+                value = +value;
+                length = length == null ? MAX_SAFE_INTEGER : length;
+                return value > -1 && value % 1 == 0 && value < length;
+            }
+            module.exports = isIndex;
+        },
+        function (module, exports) {
+            var isIndex = _require(29), isLength = _require(31), isObject = _require(37);
+            function isIterateeCall(value, index, object) {
+                if (!isObject(object)) {
+                    return false;
+                }
+                var type = typeof index;
+                if (type == 'number') {
+                    var length = object.length, prereq = isLength(length) && isIndex(index, length);
+                } else {
+                    prereq = type == 'string' && index in value;
+                }
+                return prereq && object[index] === value;
+            }
+            module.exports = isIterateeCall;
+        },
+        function (module, exports) {
+            var MAX_SAFE_INTEGER = Math.pow(2, 53) - 1;
+            function isLength(value) {
+                return typeof value == 'number' && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
+            }
+            module.exports = isLength;
+        },
+        function (module, exports) {
+            function isObjectLike(value) {
+                return value && typeof value == 'object' || false;
+            }
+            module.exports = isObjectLike;
+        },
+        function (module, exports) {
+            var isArguments = _require(34), isArray = _require(35), isIndex = _require(29), isLength = _require(31), keysIn = _require(41), support = _require(43);
+            var objectProto = Object.prototype;
+            var hasOwnProperty = objectProto.hasOwnProperty;
+            function shimKeys(object) {
+                var props = keysIn(object), propsLength = props.length, length = propsLength && object.length;
+                var allowIndexes = length && isLength(length) && (isArray(object) || support.nonEnumArgs && isArguments(object));
+                var index = -1, result = [];
+                while (++index < propsLength) {
+                    var key = props[index];
+                    if (allowIndexes && isIndex(key, length) || hasOwnProperty.call(object, key)) {
+                        result.push(key);
+                    }
+                }
+                return result;
+            }
+            module.exports = shimKeys;
+        },
+        function (module, exports) {
+            var isLength = _require(31), isObjectLike = _require(32);
+            var argsTag = '[object Arguments]';
+            var objectProto = Object.prototype;
+            var objToString = objectProto.toString;
+            function isArguments(value) {
+                var length = isObjectLike(value) ? value.length : undefined;
+                return isLength(length) && objToString.call(value) == argsTag || false;
+            }
+            module.exports = isArguments;
+        },
+        function (module, exports) {
+            var isLength = _require(31), isNative = _require(36), isObjectLike = _require(32);
+            var arrayTag = '[object Array]';
+            var objectProto = Object.prototype;
+            var objToString = objectProto.toString;
+            var nativeIsArray = isNative(nativeIsArray = Array.isArray) && nativeIsArray;
+            var isArray = nativeIsArray || function (value) {
+                    return isObjectLike(value) && isLength(value.length) && objToString.call(value) == arrayTag || false;
+                };
+            module.exports = isArray;
+        },
+        function (module, exports) {
+            var escapeRegExp = _require(42), isObjectLike = _require(32);
+            var funcTag = '[object Function]';
+            var reHostCtor = /^\[object .+?Constructor\]$/;
+            var objectProto = Object.prototype;
+            var fnToString = Function.prototype.toString;
+            var objToString = objectProto.toString;
+            var reNative = RegExp('^' + escapeRegExp(objToString).replace(/toString|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$');
+            function isNative(value) {
+                if (value == null) {
+                    return false;
+                }
+                if (objToString.call(value) == funcTag) {
+                    return reNative.test(fnToString.call(value));
+                }
+                return isObjectLike(value) && reHostCtor.test(value) || false;
+            }
+            module.exports = isNative;
+        },
+        function (module, exports) {
+            function isObject(value) {
+                var type = typeof value;
+                return type == 'function' || value && type == 'object' || false;
+            }
+            module.exports = isObject;
+        },
+        function (module, exports) {
+            var baseAssign = _require(24), createAssigner = _require(28);
+            var assign = createAssigner(baseAssign);
+            module.exports = assign;
+        },
+        function (module, exports) {
+            module.exports = _require(38);
+        },
+        function (module, exports) {
+            var isLength = _require(31), isNative = _require(36), isObject = _require(37), shimKeys = _require(33);
+            var nativeKeys = isNative(nativeKeys = Object.keys) && nativeKeys;
+            var keys = !nativeKeys ? shimKeys : function (object) {
+                    if (object) {
+                        var Ctor = object.constructor, length = object.length;
+                    }
+                    if (typeof Ctor == 'function' && Ctor.prototype === object || typeof object != 'function' && (length && isLength(length))) {
+                        return shimKeys(object);
+                    }
+                    return isObject(object) ? nativeKeys(object) : [];
+                };
+            module.exports = keys;
+        },
+        function (module, exports) {
+            var isArguments = _require(34), isArray = _require(35), isIndex = _require(29), isLength = _require(31), isObject = _require(37), support = _require(43);
+            var objectProto = Object.prototype;
+            var hasOwnProperty = objectProto.hasOwnProperty;
+            function keysIn(object) {
+                if (object == null) {
+                    return [];
+                }
+                if (!isObject(object)) {
+                    object = Object(object);
+                }
+                var length = object.length;
+                length = length && isLength(length) && (isArray(object) || support.nonEnumArgs && isArguments(object)) && length || 0;
+                var Ctor = object.constructor, index = -1, isProto = typeof Ctor == 'function' && Ctor.prototype == object, result = Array(length), skipIndexes = length > 0;
+                while (++index < length) {
+                    result[index] = index + '';
+                }
+                for (var key in object) {
+                    if (!(skipIndexes && isIndex(key, length)) && !(key == 'constructor' && (isProto || !hasOwnProperty.call(object, key)))) {
+                        result.push(key);
+                    }
+                }
+                return result;
+            }
+            module.exports = keysIn;
+        },
+        function (module, exports) {
+            var baseToString = _require(26);
+            var reRegExpChars = /[.*+?^${}()|[\]\/\\]/g, reHasRegExpChars = RegExp(reRegExpChars.source);
+            function escapeRegExp(string) {
+                string = baseToString(string);
+                return string && reHasRegExpChars.test(string) ? string.replace(reRegExpChars, '\\$&') : string;
+            }
+            module.exports = escapeRegExp;
+        },
+        function (module, exports) {
+            var isNative = _require(36);
+            var reThis = /\bthis\b/;
+            var objectProto = Object.prototype;
+            var document = (document = global.window) && document.document;
+            var propertyIsEnumerable = objectProto.propertyIsEnumerable;
+            var support = {};
+            (function (x) {
+                support.funcDecomp = !isNative(global.WinRTError) && reThis.test(function () {
+                    return this;
+                });
+                support.funcNames = typeof Function.name == 'string';
+                try {
+                    support.dom = document.createDocumentFragment().nodeType === 11;
+                } catch (e) {
+                    support.dom = false;
+                }
+                try {
+                    support.nonEnumArgs = !propertyIsEnumerable.call(arguments, 1);
+                } catch (e) {
+                    support.nonEnumArgs = true;
+                }
+            }(0, 0));
+            module.exports = support;
+        },
+        function (module, exports) {
+            function identity(value) {
+                return value;
+            }
+            module.exports = identity;
         },
         function (module, exports) {
             (function () {
