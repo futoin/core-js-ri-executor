@@ -40,7 +40,7 @@
     "event-emitter": "^0.3.1",
     "faye-websocket": "^0.9.2",
     "futoin-asyncsteps": "^1.5.1",
-    "futoin-invoker": ">=0.5.5",
+    "futoin-invoker": ">=0.5.6",
     "lodash": "*",
     "performance-now": "*"
   },
