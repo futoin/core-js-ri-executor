@@ -90,6 +90,12 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
 
 * [futoin-executor](#module_futoin-executor)
 
+**Functions**
+
+* [BasicAuthFace()](#BasicAuthFace)
+  * [BasicAuthFace.ifacespec](#BasicAuthFace.ifacespec)
+  * [BasicAuthFace.register()](#BasicAuthFace.register)
+
 **Members**
 
 * [FutoInExecutor](#FutoInExecutor)
@@ -98,6 +104,11 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
  
 <a name="module_futoin-executor"></a>
 #futoin-executor
+<a name="BasicAuthFace"></a>
+#BasicAuthFace()
+BasicAuth is not official spec - it is a temporary solution
+until FTN8 Security Concept is finalized
+
 <a name="FutoInExecutor"></a>
 #FutoInExecutor
 **window.FutoInExecutor** - Browser-only reference to futoin-executor

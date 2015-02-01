@@ -309,7 +309,7 @@
                     ccm: function () {
                         return this._ccm;
                     },
-                    register: function (as, ifacever, impl) {
+                    register: function (as, ifacever, impl, specdirs) {
                         var m = ifacever.match(invoker.SpecTools._ifacever_pattern);
                         if (m === null) {
                             as.error(FutoInError.InternalError, 'Invalid ifacever');
@@ -328,7 +328,7 @@
                                 mjrver: mjr,
                                 mnrver: mnr
                             };
-                        invoker.SpecTools.loadIface(as, info, this._specdirs);
+                        invoker.SpecTools.loadIface(as, info, specdirs || this._specdirs);
                         var _this = this;
                         as.add(function (as) {
                             if (!(iface in ifaces)) {
@@ -465,12 +465,22 @@
                         var _this = this;
                         as.add(function (as) {
                             var reqinfo = as.state.reqinfo;
-                            _this.emit('request', reqinfo, reqinfo.info[reqinfo.INFO_RAW_REQUEST]);
+                            var reqinfo_info = reqinfo.info;
+                            var rawreq = reqinfo_info[reqinfo.INFO_RAW_REQUEST];
+                            _this.emit('request', reqinfo, rawreq);
                             _this._getInfo(as, reqinfo);
                             if (as.state._futoin_func_info.heavy) {
                                 reqinfo.cancelAfter(_this._heavy_timeout);
                             } else {
                                 reqinfo.cancelAfter(_this._request_timeout);
+                            }
+                            var sec = rawreq.sec;
+                            if (sec) {
+                                sec = sec.split(':');
+                                if (sec[0] === 'hmac') {
+                                } else {
+                                    _this._checkBasicAuth(as, reqinfo, sec);
+                                }
                             }
                             as.add(function (as) {
                                 _this._checkConstraints(as, reqinfo);
@@ -493,7 +503,7 @@
                                 }
                                 _this._checkResponse(as, reqinfo);
                                 _this._signResponse(as, reqinfo);
-                                _this.emit('response', reqinfo, reqinfo.info[reqinfo.INFO_RAW_RESPONSE]);
+                                _this.emit('response', reqinfo, reqinfo_info[reqinfo.INFO_RAW_RESPONSE]);
                             });
                         }, function (as, err) {
                             var reqinfo = as.state.reqinfo;
@@ -565,6 +575,26 @@
                         if (finfo.rawresult) {
                             reqinfo_info[reqinfo.INFO_HAVE_RAW_RESULT] = true;
                         }
+                    },
+                    _checkBasicAuth: function (as, reqinfo, sec) {
+                        var _this = this;
+                        as.add(function (as) {
+                            var basicauth = _this._ccm.iface('#basicauth');
+                            var reqinfo_info = reqinfo.info;
+                            basicauth.call(as, 'auth', {
+                                user: sec[0],
+                                pwd: sec[1],
+                                client_addr: reqinfo_info[reqinfo.INFO_CLIENT_ADDR].asString(),
+                                is_secure: reqinfo_info[reqinfo.INFO_SECURE_CHANNEL]
+                            });
+                            as.add(function (as, rsp) {
+                                reqinfo_info[reqinfo.INFO_USER_INFO] = new request.UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
+                                reqinfo_info[reqinfo.INFO_SECURITY_LEVEL] = request.RequestInfo.SL_INFO;
+                            });
+                        }, function (as, err) {
+                            void err;
+                            as.success();
+                        });
                     },
                     _checkConstraints: function (as, reqinfo) {
                         var reqinfo_info = reqinfo.info;
@@ -718,11 +748,12 @@
                     INFO_GovernmentRegID: 'GovernmentRegID',
                     INFO_AvatarURL: 'AvatarURL'
                 };
-            exports.UserInfo = function (ccm, local_id, global_id) {
+            exports.UserInfo = function (ccm, local_id, global_id, details) {
                 _extend(this, userinfo_const, UserInfoProto);
                 this._ccm = ccm;
                 this._local_id = local_id;
                 this._global_id = global_id;
+                this._details = details;
             };
             _extend(exports.UserInfo, userinfo_const);
             var UserInfoProto = {
@@ -733,6 +764,13 @@
                         return this._global_id;
                     },
                     details: function (as, user_field_identifiers) {
+                        var user_details = this._details;
+                        if (user_details) {
+                            as.add(function (as) {
+                                as.success(user_details);
+                            });
+                            return;
+                        }
                         as.error('NotImplemented');
                         void user_field_identifiers;
                     }
@@ -874,7 +912,6 @@
                     return this.info;
                 };
                 this.info = info;
-                info[this.INFO_X509_CN] = null;
                 info[this.INFO_X509_CN] = null;
                 info[this.INFO_PUBKEY] = null;
                 info[this.INFO_CLIENT_ADDR] = null;

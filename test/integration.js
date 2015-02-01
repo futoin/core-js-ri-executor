@@ -5,6 +5,8 @@ var assert;
 var executor_module = require( '../lib/main' );
 var invoker_module = require( 'futoin-invoker' );
 var async_steps = require( 'futoin-asyncsteps' );
+var BasicAuthFace = require( '../lib/BasicAuthFace' );
+var BasicAuthService = require( '../lib/BasicAuthService' );
 var _ = require( 'lodash' );
 
 var is_in_browser = ( 'BrowserExecutor' in executor_module );
@@ -177,7 +179,11 @@ model_as.add(
                 } );
             }
             
-            var clientExecutor = new ClientExecutor( executor_ccm, opts ); 
+            var basicAuthExecutor = new executor_module.Executor( executor_ccm );
+            var basic_auth_service = BasicAuthService.register( as, basicAuthExecutor );
+            basic_auth_service.addUser( 'user', 'pass' );
+            
+            var clientExecutor = new ClientExecutor( ccm, opts ); 
             as.state.clientExecutor = clientExecutor;
             clientExecutor.on( 'notExpected', function( err, error_info )
             {
@@ -193,6 +199,7 @@ model_as.add(
                 } );
             } ).add( function( as ){
                 ccm.register( as, 'test_if_anon', 'test.int.anon:1.0', end_point, 'user:pass' );
+                BasicAuthFace.register( as, executor_ccm, basicAuthExecutor );
             } ).add( function( as ){
                 as.add(
                     function( as ){
@@ -271,6 +278,18 @@ model_as.add(
         }).add( function( as, res ){
             res.a.should.equal( 'test' );
     // ---
+        }).add( function( as ){
+            if ( is_in_browser )
+            {
+                as.success( { a : 'test' } );
+                return;
+            }
+            
+            set_step( "testAuth" );
+            anon_iface.call( as, 'testAuth' );
+        }).add( function( as, res ){
+            res.a.should.equal( 'test' );
+    // ---            
         }).add( function( as ){
             set_step( "rawUpload" );
             
@@ -566,16 +585,6 @@ else
         as.state.proto = 'ws';
         as.execute();
     });
-    
-    it('should pass INTERNAL suite SimpleCCM', function( done )
-    {
-        var as = async_steps();
-        as.copyFrom( model_as );
-        as.state.CCMImpl = invoker_module.SimpleCCM;
-        as.state.done = done;
-        as.state.proto = 'internal';
-        as.execute();
-    });
 
     it('should pass HTTP suite AdvancedCCM', function( done )
     {
@@ -598,8 +607,20 @@ else
     });
 }
 
+    it('should pass INTERNAL suite SimpleCCM', function( done )
+    {
+        this.timeout( 5e3 );
+        var as = async_steps();
+        as.copyFrom( model_as );
+        as.state.CCMImpl = invoker_module.SimpleCCM;
+        as.state.done = done;
+        as.state.proto = 'internal';
+        as.execute();
+    });
+
     it('should pass INTERNAL suite AdvancedCCM', function( done )
     {
+        this.timeout( 5e3 );
         var as = async_steps();
         as.copyFrom( model_as );
         as.state.CCMImpl = invoker_module.AdvancedCCM;

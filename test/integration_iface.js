@@ -67,6 +67,13 @@ exports.test_if_anon = {
                 }
             }
         },
+        'testAuth' : {
+            'result' : {
+                'a' : {
+                    'type' : 'string'
+                }
+            }
+        },
         'rawUpload' : {
             'result' : {
                 'a' : {
@@ -219,6 +226,20 @@ exports.interface_impl = {
     
     noParams : function( as, reqinfo )
     {
+        return { a : 'test' };
+    },
+    
+    testAuth : function( as, reqinfo )
+    {
+        try
+        {
+            reqinfo.info[ reqinfo.INFO_SECURITY_LEVEL ].should.equal( reqinfo.SL_INFO );
+            reqinfo.info[ reqinfo.INFO_USER_INFO ].should.not.be.null;
+        }
+        catch ( e )
+        {
+            as.error( 'InternalError', e.message );
+        }            
         return { a : 'test' };
     },
     
