@@ -194,6 +194,11 @@ exports.test_if_anon_bidirect = {
 exports.interface_impl = {
     regular : function( as, reqinfo )
     {
+        if ( reqinfo.info()[ reqinfo.INFO_RAW_REQUEST ].sec !== 'user:pass' )
+        {
+            as.error( 'SecurityError' );
+        }
+
         var params = reqinfo.params();
         var result = reqinfo.result();
         

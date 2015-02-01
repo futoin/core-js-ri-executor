@@ -192,7 +192,7 @@ model_as.add(
                     }
                 } );
             } ).add( function( as ){
-                ccm.register( as, 'test_if_anon', 'test.int.anon:1.0', end_point );
+                ccm.register( as, 'test_if_anon', 'test.int.anon:1.0', end_point, 'user:pass' );
             } ).add( function( as ){
                 as.add(
                     function( as ){
