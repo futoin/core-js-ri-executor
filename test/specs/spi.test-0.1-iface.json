@@ -1,0 +1,51 @@
+{
+    "iface" : "spi.test",
+    "version" : "0.1",
+    "ftn3rev" : "1.1",
+    "funcs" : {
+        "normalCall" : {
+            "params" : {
+                "a" : {
+                    "type" : "string"
+                }
+            },
+            "result" : {
+                "b" : {
+                    "type" : "string"
+                }
+            }
+        },
+        "noResult" : {
+            "params" : {
+                "a" : {
+                    "type" : "string"
+                }
+            }
+        },
+        "errorCall" : {
+            "result" : {
+                "b" : {
+                    "type" : "string"
+                }
+            },
+            "throws" : [
+                "MyError"
+            ]
+        },
+        "rawUpload" : {
+            "params" : {
+                "a" : {
+                    "type" : "string"
+                }
+            },
+            "result" : {
+                "b" : {
+                    "type" : "string"
+                }
+            }
+        },
+    },
+    "requires" : [
+        "AllowAnonymous"
+    ]
+}
