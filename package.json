@@ -50,21 +50,22 @@
     "grunt-contrib-connect": "*",
     "grunt-contrib-uglify": "*",
     "grunt-external-daemon": "^1.1.0",
+    "grunt-jsdoc-to-markdown": "*",
     "grunt-mocha-phantomjs": "*",
     "grunt-npm-helper": "*",
     "grunt-npm2bower-sync": "0.4.0",
     "grunt-pure-cjs": "*",
     "grunt-release": "*",
     "grunt-text-replace": "*",
-    "grunt-jsdoc-to-markdown": "*",
     "istanbul": "*",
     "jscs": "*",
     "jsdoc": "~3.2",
     "jsdoc-to-markdown": "^0.5.9",
     "jshint": "*",
     "jshint-full-path": "*",
+    "memorystream": "^0.2.0",
+    "minimist": "^1.1.0",
     "mocha": "*",
-    "mocha-phantomjs": "*",
-    "memorystream": "^0.2.0"
+    "mocha-phantomjs": "*"
   }
 }
