@@ -1563,7 +1563,7 @@
                 }
                 var length = object.length;
                 length = length && isLength(length) && (isArray(object) || support.nonEnumArgs && isArguments(object)) && length || 0;
-                var Ctor = object.constructor, index = -1, isProto = typeof Ctor == 'function' && Ctor.prototype == object, result = Array(length), skipIndexes = length > 0;
+                var Ctor = object.constructor, index = -1, isProto = typeof Ctor == 'function' && Ctor.prototype === object, result = Array(length), skipIndexes = length > 0;
                 while (++index < length) {
                     result[index] = index + '';
                 }
