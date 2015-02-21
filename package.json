@@ -59,7 +59,7 @@
     "grunt-text-replace": "*",
     "istanbul": "*",
     "jscs": "*",
-    "jsdoc": "~3.3",
+    "jsdoc": "^3.2",
     "jsdoc-to-markdown": "^0.5.11",
     "jshint": "*",
     "jshint-full-path": "*",
