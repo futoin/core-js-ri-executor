@@ -1,6 +1,6 @@
 {
   "name": "futoin-executor",
-  "version": "0.5.5",
+  "version": "0.6.0",
   "main": "dist/futoin-invoker.js",
   "moduleType": [
     "amd",
