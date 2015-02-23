@@ -17,13 +17,13 @@ The documentation of this specific implementation is not complete either.
 Reference implementation of:
  
     FTN6: FutoIn Executor Concept
-    Version: 1.0
+    Version: 1.4
 
     FTN3: FutoIn Interface Definition
-    Version: 1.1
+    Version: 1.2
 
     FTN5: FutoIn HTTP integration
-    Version: 1.1
+    Version: 1.2
     
 * Spec: [FTN6: Interface Executor Concept v1.x](http://specs.futoin.org/final/preview/ftn6_iface_executor_concept-1.html)
 * Spec: [FTN3: FutoIn Interface Definition v1.x](http://specs.futoin.org/final/preview/ftn3_iface_definition.html)
