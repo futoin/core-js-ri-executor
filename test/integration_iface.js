@@ -99,8 +99,14 @@ exports.test_if_anon = {
                 'a' : {
                     'type' : 'string'
                 },
-                'c' : {
+                'e' : {
                     'type' : 'string'
+                },
+                'c' : {
+                    'type' : 'integer'
+                },
+                'o' : {
+                    'type' : 'map'
                 }
             },
             rawupload : true,
@@ -201,9 +207,12 @@ exports.test_if_anon_bidirect = {
 exports.interface_impl = {
     regular : function( as, reqinfo )
     {
-        if ( reqinfo.info()[ reqinfo.INFO_RAW_REQUEST ].sec !== 'user:pass' )
+        var rawmsg = reqinfo.info()[ reqinfo.INFO_RAW_REQUEST ];
+
+        if ( rawmsg.sec !== 'user:pass' &&
+             rawmsg.sec.substr( 0, 15 ) !== '-hmac:hmacuser:' )
         {
-            as.error( 'SecurityError' );
+            as.error( 'SecurityError', 'Integration Test' );
         }
 
         var params = reqinfo.params();
@@ -290,7 +299,7 @@ exports.interface_impl = {
             data.push( chunk );
         });
         raw_inp.on( 'end', function( chunk ){
-            raw_out.write( reqinfo.params().a + data.join( '' ) + reqinfo.params().c, 'utf8' );
+            raw_out.write( reqinfo.params().a + data.join( '' ) + reqinfo.params().e, 'utf8' );
             as.success();
         });
         as.setCancel( function( as ){} );

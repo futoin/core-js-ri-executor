@@ -43,12 +43,12 @@
         },
         function (module, exports) {
             'use strict';
-            var _extend = _require(39);
+            var _extend = _require(50);
             var _zipObject = _require(23);
             var executor = _require(2);
             var request = _require(4);
             var async_steps = _require(21);
-            var performance_now = _require(45);
+            var performance_now = _require(57);
             var browser_window = window;
             var BrowserChannelContext = function (executor, event) {
                 request.ChannelContext.call(this, executor);
@@ -222,12 +222,13 @@
         },
         function (module, exports) {
             'use strict';
-            var _extend = _require(39);
+            var _extend = _require(50);
             var invoker = _require(22);
             var FutoInError = invoker.FutoInError;
             var request = _require(4);
             var async_steps = _require(21);
             var ee = _require(6);
+            var _clone = _require(44);
             var ChannelContext = request.ChannelContext;
             var CallbackChannelContext = function (executor) {
                 ChannelContext.call(this, executor);
@@ -459,35 +460,34 @@
                         });
                     },
                     process: function (as) {
-                        if (!('reqinfo' in as.state) || '_futoin_func_info' in as.state) {
+                        var reqinfo = as.state.reqinfo;
+                        if (!reqinfo || '_func_info' in reqinfo.info) {
                             as.error(FutoInError.InternalError, 'Invalid process() invocation');
                         }
                         var _this = this;
                         as.add(function (as) {
-                            var reqinfo = as.state.reqinfo;
                             var reqinfo_info = reqinfo.info;
                             var rawreq = reqinfo_info[reqinfo.INFO_RAW_REQUEST];
                             _this.emit('request', reqinfo, rawreq);
                             _this._getInfo(as, reqinfo);
-                            if (as.state._futoin_func_info.heavy) {
+                            if (reqinfo_info._func_info.heavy) {
                                 reqinfo.cancelAfter(_this._heavy_timeout);
                             } else {
                                 reqinfo.cancelAfter(_this._request_timeout);
                             }
+                            _this._checkParams(as, reqinfo);
                             var sec = rawreq.sec;
                             if (sec) {
                                 sec = sec.split(':');
-                                if (sec[0] === 'hmac') {
+                                if (sec[0] === '-hmac') {
+                                    _this._checkAuthHMAC(as, reqinfo, sec[1], sec[2], sec[3]);
                                 } else {
                                     _this._checkBasicAuth(as, reqinfo, sec);
                                 }
                             }
                             as.add(function (as) {
                                 _this._checkConstraints(as, reqinfo);
-                                _this._checkParams(as, reqinfo);
-                            });
-                            as.add(function (as) {
-                                var func = as.state._futoin_func;
+                                var func = reqinfo_info._func;
                                 var impl = _this._getImpl(as, reqinfo);
                                 if (!(func in impl)) {
                                     as.error(FutoInError.InternalError, 'Missing function implementation');
@@ -502,13 +502,13 @@
                                     _extend(reqinfo.result(), result);
                                 }
                                 _this._checkResponse(as, reqinfo);
-                                _this._signResponse(as, reqinfo);
-                                _this.emit('response', reqinfo, reqinfo_info[reqinfo.INFO_RAW_RESPONSE]);
+                                as.success(reqinfo);
                             });
                         }, function (as, err) {
                             var reqinfo = as.state.reqinfo;
+                            var reqinfo_info = reqinfo.info;
                             var error_info = as.state.error_info;
-                            if (!(err in invoker.SpecTools.standard_errors) && (!as.state._futoin_func_info || !(err in as.state._futoin_func_info.throws))) {
+                            if (!(err in invoker.SpecTools.standard_errors) && (!reqinfo_info._func_info || !(err in reqinfo_info._func_info.throws))) {
                                 _this.emit('notExpected', err, error_info);
                                 err = FutoInError.InternalError;
                                 error_info = 'Not expected error';
@@ -519,9 +519,9 @@
                             if (error_info) {
                                 rawrsp.edesc = error_info;
                             }
+                            as.success(reqinfo);
+                        }).add(function (as, reqinfo) {
                             _this._signResponse(as, reqinfo);
-                            _this.emit('response', reqinfo, rawrsp);
-                            as.success();
                         });
                     },
                     checkAccess: function (as, acd) {
@@ -569,9 +569,9 @@
                             as.error(FutoInError.InvalidRequest, 'Not defined interface function');
                         }
                         var finfo = iface_info.funcs[func];
-                        as.state._futoin_iface_info = iface_info;
-                        as.state._futoin_func = func;
-                        as.state._futoin_func_info = finfo;
+                        reqinfo_info._iface_info = iface_info;
+                        reqinfo_info._func = func;
+                        reqinfo_info._func_info = finfo;
                         if (finfo.rawresult) {
                             reqinfo_info[reqinfo.INFO_HAVE_RAW_RESULT] = true;
                         }
@@ -596,11 +596,40 @@
                             as.success();
                         });
                     },
+                    _checkAuthHMAC: function (as, reqinfo, user, algo, sig) {
+                        var _this = this;
+                        as.add(function (as) {
+                            var basicauth = _this._ccm.iface('#basicauth');
+                            var reqinfo_info = reqinfo.info;
+                            var req = _clone(reqinfo.info[reqinfo.INFO_RAW_REQUEST]);
+                            delete req.sec;
+                            basicauth.call(as, 'checkHMAC', {
+                                msg: req,
+                                user: user,
+                                algo: algo,
+                                sig: sig,
+                                client_addr: reqinfo_info[reqinfo.INFO_CLIENT_ADDR].asString(),
+                                is_secure: reqinfo_info[reqinfo.INFO_SECURE_CHANNEL]
+                            });
+                            as.add(function (as, rsp) {
+                                reqinfo_info[reqinfo.INFO_USER_INFO] = new request.UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
+                                reqinfo_info[reqinfo.INFO_SECURITY_LEVEL] = request.RequestInfo.SL_INFO;
+                                reqinfo_info._hmac_algo = algo;
+                                reqinfo_info._hmac_user = user;
+                            });
+                        }, function (as, err) {
+                            void err;
+                            as.error(FutoInError.SecurityError, 'Signature Verification Failed');
+                        });
+                    },
                     _checkConstraints: function (as, reqinfo) {
                         var reqinfo_info = reqinfo.info;
-                        var constraints = as.state._futoin_iface_info.constraints;
+                        var constraints = reqinfo_info._iface_info.constraints;
                         if ('SecureChannel' in constraints && !reqinfo_info[reqinfo.INFO_SECURE_CHANNEL]) {
                             as.error(FutoInError.SecurityError, 'Insecure channel');
+                        }
+                        if ('MessageSignature' in constraints && !reqinfo_info[reqinfo.INFO_DERIVED_KEY] && !reqinfo_info._hmac_user) {
+                            as.error(FutoInError.SecurityError, 'Message Signature is required');
                         }
                         if (!('AllowAnonymous' in constraints) && !reqinfo_info[reqinfo.INFO_USER_INFO]) {
                             as.error(FutoInError.SecurityError, 'Anonymous not allowed');
@@ -611,8 +640,9 @@
                         }
                     },
                     _checkParams: function (as, reqinfo) {
-                        var rawreq = reqinfo.info[reqinfo.INFO_RAW_REQUEST];
-                        var finfo = as.state._futoin_func_info;
+                        var reqinfo_info = reqinfo.info;
+                        var rawreq = reqinfo_info[reqinfo.INFO_RAW_REQUEST];
+                        var finfo = reqinfo_info._func_info;
                         if (reqinfo[reqinfo.INFO_HAVE_RAW_UPLOAD] && !finfo.rawupload) {
                             as.error(FutoInError.InvalidRequest, 'Raw upload is not allowed');
                         }
@@ -623,7 +653,21 @@
                                 if (!(k in finfo.params)) {
                                     as.error(FutoInError.InvalidRequest, 'Unknown parameter');
                                 }
-                                invoker.SpecTools.checkParameterType(as, as.state._futoin_iface_info, as.state._futoin_func, k, reqparams[k]);
+                                var check_res = invoker.SpecTools.checkParameterType(reqinfo_info._iface_info, reqinfo_info._func, k, reqparams[k]);
+                                if (check_res) {
+                                    continue;
+                                }
+                                if (reqinfo_info._from_query_string) {
+                                    try {
+                                        reqparams[k] = JSON.parse(reqparams[k]);
+                                        check_res = invoker.SpecTools.checkParameterType(reqinfo_info._iface_info, reqinfo_info._func, k, reqparams[k]);
+                                        if (check_res) {
+                                            continue;
+                                        }
+                                    } catch (e) {
+                                    }
+                                }
+                                as.error(FutoInError.InvalidRequest, 'Type mismatch for parameter: ' + k);
                             }
                             for (k in finfo.params) {
                                 if (!(k in reqparams)) {
@@ -640,8 +684,8 @@
                         }
                     },
                     _getImpl: function (as, reqinfo) {
-                        void reqinfo;
-                        var iface_info = as.state._futoin_iface_info;
+                        var reqinfo_info = reqinfo.info;
+                        var iface_info = reqinfo_info._iface_info;
                         var iname = iface_info.iface;
                         var imjr = iface_info.mjrver;
                         var impl = this._impls[iname][imjr];
@@ -664,7 +708,7 @@
                         }
                         var reqinfo_info = reqinfo.info;
                         var rsp = reqinfo_info[reqinfo.INFO_RAW_RESPONSE];
-                        var finfo = as.state._futoin_func_info;
+                        var finfo = reqinfo_info._func_info;
                         if (finfo.rawresult) {
                             reqinfo_info[reqinfo.INFO_RAW_RESPONSE] = null;
                             if (Object.keys(rsp.r).length > 0) {
@@ -684,7 +728,7 @@
                                 if (!(k in resvars)) {
                                     as.error(FutoInError.InternalError, 'Unknown result variable \'' + k + '\'');
                                 }
-                                invoker.SpecTools.checkResultType(as, as.state._futoin_iface_info, as.state._futoin_func, k, rsp.r[k]);
+                                invoker.SpecTools.checkResultType(as, reqinfo_info._iface_info, reqinfo_info._func, k, rsp.r[k]);
                                 ++c;
                             }
                             if (Object.keys(resvars).length !== c) {
@@ -695,9 +739,37 @@
                         }
                     },
                     _signResponse: function (as, reqinfo) {
-                        if (!reqinfo.info[reqinfo.INFO_DERIVED_KEY]) {
+                        var reqinfo_info = reqinfo.info;
+                        var rawrsp = reqinfo_info[reqinfo.INFO_RAW_RESPONSE];
+                        if (!rawrsp) {
+                            this.emit('response', reqinfo, rawrsp);
                             return;
                         }
+                        if (reqinfo_info[reqinfo.INFO_DERIVED_KEY]) {
+                            this.emit('response', reqinfo, rawrsp);
+                            return;
+                        }
+                        if (reqinfo_info._hmac_user) {
+                            var _this = this;
+                            as.add(function (as) {
+                                var basicauth = _this._ccm.iface('#basicauth');
+                                basicauth.call(as, 'genHMAC', {
+                                    msg: rawrsp,
+                                    user: reqinfo_info._hmac_user,
+                                    algo: reqinfo_info._hmac_algo
+                                });
+                                as.add(function (as, rsp) {
+                                    rawrsp.sec = rsp.sig;
+                                    _this.emit('response', reqinfo, rawrsp);
+                                });
+                            }, function (as, err) {
+                                void err;
+                                _this.emit('response', reqinfo, rawrsp);
+                                as.success();
+                            });
+                            return;
+                        }
+                        this.emit('response', reqinfo, rawrsp);
                     },
                     close: function () {
                     },
@@ -717,7 +789,7 @@
         function (module, exports) {
             'use strict';
             var isNode = _require(5);
-            var _extend = _require(39);
+            var _extend = _require(50);
             var request = _require(4);
             _extend(exports, request);
             var Executor = _require(2).Executor;
@@ -732,8 +804,8 @@
         },
         function (module, exports) {
             'use strict';
-            var _extend = _require(39);
-            var performance_now = _require(45);
+            var _extend = _require(50);
+            var performance_now = _require(57);
             var async_steps = _require(21);
             var userinfo_const = {
                     INFO_FirstName: 'FirstName',
@@ -1303,7 +1375,7 @@
             module.exports = __external_FutoInInvoker;
         },
         function (module, exports) {
-            var isArray = _require(35);
+            var isArray = _require(46);
             function zipObject(props, values) {
                 var index = -1, length = props ? props.length : 0, result = {};
                 if (length && !values && !isArray(props[0])) {
@@ -1322,7 +1394,30 @@
             module.exports = zipObject;
         },
         function (module, exports) {
-            var baseCopy = _require(25), keys = _require(40);
+            function arrayCopy(source, array) {
+                var index = -1, length = source.length;
+                array || (array = Array(length));
+                while (++index < length) {
+                    array[index] = source[index];
+                }
+                return array;
+            }
+            module.exports = arrayCopy;
+        },
+        function (module, exports) {
+            function arrayEach(array, iteratee) {
+                var index = -1, length = array.length;
+                while (++index < length) {
+                    if (iteratee(array[index], index, array) === false) {
+                        break;
+                    }
+                }
+                return array;
+            }
+            module.exports = arrayEach;
+        },
+        function (module, exports) {
+            var baseCopy = _require(28), keys = _require(51);
             function baseAssign(object, source, customizer) {
                 var props = keys(source);
                 if (!customizer) {
@@ -1340,6 +1435,60 @@
             module.exports = baseAssign;
         },
         function (module, exports) {
+            var arrayCopy = _require(24), arrayEach = _require(25), baseCopy = _require(28), baseForOwn = _require(30), initCloneArray = _require(35), initCloneByTag = _require(36), initCloneObject = _require(37), isArray = _require(46), isObject = _require(48), keys = _require(51);
+            var argsTag = '[object Arguments]', arrayTag = '[object Array]', boolTag = '[object Boolean]', dateTag = '[object Date]', errorTag = '[object Error]', funcTag = '[object Function]', mapTag = '[object Map]', numberTag = '[object Number]', objectTag = '[object Object]', regexpTag = '[object RegExp]', setTag = '[object Set]', stringTag = '[object String]', weakMapTag = '[object WeakMap]';
+            var arrayBufferTag = '[object ArrayBuffer]', float32Tag = '[object Float32Array]', float64Tag = '[object Float64Array]', int8Tag = '[object Int8Array]', int16Tag = '[object Int16Array]', int32Tag = '[object Int32Array]', uint8Tag = '[object Uint8Array]', uint8ClampedTag = '[object Uint8ClampedArray]', uint16Tag = '[object Uint16Array]', uint32Tag = '[object Uint32Array]';
+            var cloneableTags = {};
+            cloneableTags[argsTag] = cloneableTags[arrayTag] = cloneableTags[arrayBufferTag] = cloneableTags[boolTag] = cloneableTags[dateTag] = cloneableTags[float32Tag] = cloneableTags[float64Tag] = cloneableTags[int8Tag] = cloneableTags[int16Tag] = cloneableTags[int32Tag] = cloneableTags[numberTag] = cloneableTags[objectTag] = cloneableTags[regexpTag] = cloneableTags[stringTag] = cloneableTags[uint8Tag] = cloneableTags[uint8ClampedTag] = cloneableTags[uint16Tag] = cloneableTags[uint32Tag] = true;
+            cloneableTags[errorTag] = cloneableTags[funcTag] = cloneableTags[mapTag] = cloneableTags[setTag] = cloneableTags[weakMapTag] = false;
+            var objectProto = Object.prototype;
+            var objToString = objectProto.toString;
+            function baseClone(value, isDeep, customizer, key, object, stackA, stackB) {
+                var result;
+                if (customizer) {
+                    result = object ? customizer(value, key, object) : customizer(value);
+                }
+                if (typeof result != 'undefined') {
+                    return result;
+                }
+                if (!isObject(value)) {
+                    return value;
+                }
+                var isArr = isArray(value);
+                if (isArr) {
+                    result = initCloneArray(value);
+                    if (!isDeep) {
+                        return arrayCopy(value, result);
+                    }
+                } else {
+                    var tag = objToString.call(value), isFunc = tag == funcTag;
+                    if (tag == objectTag || tag == argsTag || isFunc && !object) {
+                        result = initCloneObject(isFunc ? {} : value);
+                        if (!isDeep) {
+                            return baseCopy(value, result, keys(value));
+                        }
+                    } else {
+                        return cloneableTags[tag] ? initCloneByTag(value, tag, isDeep) : object ? value : {};
+                    }
+                }
+                stackA || (stackA = []);
+                stackB || (stackB = []);
+                var length = stackA.length;
+                while (length--) {
+                    if (stackA[length] == value) {
+                        return stackB[length];
+                    }
+                }
+                stackA.push(value);
+                stackB.push(result);
+                (isArr ? arrayEach : baseForOwn)(value, function (subValue, key) {
+                    result[key] = baseClone(subValue, isDeep, customizer, key, value, stackA, stackB);
+                });
+                return result;
+            }
+            module.exports = baseClone;
+        },
+        function (module, exports) {
             function baseCopy(source, object, props) {
                 if (!props) {
                     props = object;
@@ -1355,6 +1504,27 @@
             module.exports = baseCopy;
         },
         function (module, exports) {
+            var toObject = _require(43);
+            function baseFor(object, iteratee, keysFunc) {
+                var index = -1, iterable = toObject(object), props = keysFunc(object), length = props.length;
+                while (++index < length) {
+                    var key = props[index];
+                    if (iteratee(iterable[key], key, iterable) === false) {
+                        break;
+                    }
+                }
+                return object;
+            }
+            module.exports = baseFor;
+        },
+        function (module, exports) {
+            var baseFor = _require(29), keys = _require(51);
+            function baseForOwn(object, iteratee) {
+                return baseFor(object, iteratee, keys);
+            }
+            module.exports = baseForOwn;
+        },
+        function (module, exports) {
             function baseToString(value) {
                 if (typeof value == 'string') {
                     return value;
@@ -1364,7 +1534,7 @@
             module.exports = baseToString;
         },
         function (module, exports) {
-            var identity = _require(44);
+            var identity = _require(56);
             function bindCallback(func, thisArg, argCount) {
                 if (typeof func != 'function') {
                     return identity;
@@ -1397,7 +1567,37 @@
             module.exports = bindCallback;
         },
         function (module, exports) {
-            var bindCallback = _require(27), isIterateeCall = _require(30);
+            var constant = _require(55), isNative = _require(47);
+            var ArrayBuffer = isNative(ArrayBuffer = global.ArrayBuffer) && ArrayBuffer, bufferSlice = isNative(bufferSlice = ArrayBuffer && new ArrayBuffer(0).slice) && bufferSlice, floor = Math.floor, Uint8Array = isNative(Uint8Array = global.Uint8Array) && Uint8Array;
+            var Float64Array = function () {
+                    try {
+                        var func = isNative(func = global.Float64Array) && func, result = new func(new ArrayBuffer(10), 0, 1) && func;
+                    } catch (e) {
+                    }
+                    return result;
+                }();
+            var FLOAT64_BYTES_PER_ELEMENT = Float64Array ? Float64Array.BYTES_PER_ELEMENT : 0;
+            function bufferClone(buffer) {
+                return bufferSlice.call(buffer, 0);
+            }
+            if (!bufferSlice) {
+                bufferClone = !(ArrayBuffer && Uint8Array) ? constant(null) : function (buffer) {
+                    var byteLength = buffer.byteLength, floatLength = Float64Array ? floor(byteLength / FLOAT64_BYTES_PER_ELEMENT) : 0, offset = floatLength * FLOAT64_BYTES_PER_ELEMENT, result = new ArrayBuffer(byteLength);
+                    if (floatLength) {
+                        var view = new Float64Array(result, 0, floatLength);
+                        view.set(new Float64Array(buffer, 0, floatLength));
+                    }
+                    if (byteLength != offset) {
+                        view = new Uint8Array(result, offset);
+                        view.set(new Uint8Array(buffer, offset));
+                    }
+                    return result;
+                };
+            }
+            module.exports = bufferClone;
+        },
+        function (module, exports) {
+            var bindCallback = _require(32), isIterateeCall = _require(39);
             function createAssigner(assigner) {
                 return function () {
                     var length = arguments.length, object = arguments[0];
@@ -1425,6 +1625,64 @@
             module.exports = createAssigner;
         },
         function (module, exports) {
+            var objectProto = Object.prototype;
+            var hasOwnProperty = objectProto.hasOwnProperty;
+            function initCloneArray(array) {
+                var length = array.length, result = new array.constructor(length);
+                if (length && typeof array[0] == 'string' && hasOwnProperty.call(array, 'index')) {
+                    result.index = array.index;
+                    result.input = array.input;
+                }
+                return result;
+            }
+            module.exports = initCloneArray;
+        },
+        function (module, exports) {
+            var bufferClone = _require(33);
+            var boolTag = '[object Boolean]', dateTag = '[object Date]', numberTag = '[object Number]', regexpTag = '[object RegExp]', stringTag = '[object String]';
+            var arrayBufferTag = '[object ArrayBuffer]', float32Tag = '[object Float32Array]', float64Tag = '[object Float64Array]', int8Tag = '[object Int8Array]', int16Tag = '[object Int16Array]', int32Tag = '[object Int32Array]', uint8Tag = '[object Uint8Array]', uint8ClampedTag = '[object Uint8ClampedArray]', uint16Tag = '[object Uint16Array]', uint32Tag = '[object Uint32Array]';
+            var reFlags = /\w*$/;
+            function initCloneByTag(object, tag, isDeep) {
+                var Ctor = object.constructor;
+                switch (tag) {
+                case arrayBufferTag:
+                    return bufferClone(object);
+                case boolTag:
+                case dateTag:
+                    return new Ctor(+object);
+                case float32Tag:
+                case float64Tag:
+                case int8Tag:
+                case int16Tag:
+                case int32Tag:
+                case uint8Tag:
+                case uint8ClampedTag:
+                case uint16Tag:
+                case uint32Tag:
+                    var buffer = object.buffer;
+                    return new Ctor(isDeep ? bufferClone(buffer) : buffer, object.byteOffset, object.length);
+                case numberTag:
+                case stringTag:
+                    return new Ctor(object);
+                case regexpTag:
+                    var result = new Ctor(object.source, reFlags.exec(object));
+                    result.lastIndex = object.lastIndex;
+                }
+                return result;
+            }
+            module.exports = initCloneByTag;
+        },
+        function (module, exports) {
+            function initCloneObject(object) {
+                var Ctor = object.constructor;
+                if (!(typeof Ctor == 'function' && Ctor instanceof Ctor)) {
+                    Ctor = Object;
+                }
+                return new Ctor();
+            }
+            module.exports = initCloneObject;
+        },
+        function (module, exports) {
             var MAX_SAFE_INTEGER = Math.pow(2, 53) - 1;
             function isIndex(value, length) {
                 value = +value;
@@ -1434,7 +1692,7 @@
             module.exports = isIndex;
         },
         function (module, exports) {
-            var isIndex = _require(29), isLength = _require(31), isObject = _require(37);
+            var isIndex = _require(38), isLength = _require(40), isObject = _require(48);
             function isIterateeCall(value, index, object) {
                 if (!isObject(object)) {
                     return false;
@@ -1464,7 +1722,7 @@
             module.exports = isObjectLike;
         },
         function (module, exports) {
-            var isArguments = _require(34), isArray = _require(35), isIndex = _require(29), isLength = _require(31), keysIn = _require(41), support = _require(43);
+            var isArguments = _require(45), isArray = _require(46), isIndex = _require(38), isLength = _require(40), keysIn = _require(52), support = _require(54);
             var objectProto = Object.prototype;
             var hasOwnProperty = objectProto.hasOwnProperty;
             function shimKeys(object) {
@@ -1482,7 +1740,29 @@
             module.exports = shimKeys;
         },
         function (module, exports) {
-            var isLength = _require(31), isObjectLike = _require(32);
+            var isObject = _require(48);
+            function toObject(value) {
+                return isObject(value) ? value : Object(value);
+            }
+            module.exports = toObject;
+        },
+        function (module, exports) {
+            var baseClone = _require(27), bindCallback = _require(32), isIterateeCall = _require(39);
+            function clone(value, isDeep, customizer, thisArg) {
+                if (isDeep && typeof isDeep != 'boolean' && isIterateeCall(value, isDeep, customizer)) {
+                    isDeep = false;
+                } else if (typeof isDeep == 'function') {
+                    thisArg = customizer;
+                    customizer = isDeep;
+                    isDeep = false;
+                }
+                customizer = typeof customizer == 'function' && bindCallback(customizer, thisArg, 1);
+                return baseClone(value, isDeep, customizer);
+            }
+            module.exports = clone;
+        },
+        function (module, exports) {
+            var isLength = _require(40), isObjectLike = _require(41);
             var argsTag = '[object Arguments]';
             var objectProto = Object.prototype;
             var objToString = objectProto.toString;
@@ -1493,7 +1773,7 @@
             module.exports = isArguments;
         },
         function (module, exports) {
-            var isLength = _require(31), isNative = _require(36), isObjectLike = _require(32);
+            var isLength = _require(40), isNative = _require(47), isObjectLike = _require(41);
             var arrayTag = '[object Array]';
             var objectProto = Object.prototype;
             var objToString = objectProto.toString;
@@ -1504,7 +1784,7 @@
             module.exports = isArray;
         },
         function (module, exports) {
-            var escapeRegExp = _require(42), isObjectLike = _require(32);
+            var escapeRegExp = _require(53), isObjectLike = _require(41);
             var funcTag = '[object Function]';
             var reHostCtor = /^\[object .+?Constructor\]$/;
             var objectProto = Object.prototype;
@@ -1530,15 +1810,15 @@
             module.exports = isObject;
         },
         function (module, exports) {
-            var baseAssign = _require(24), createAssigner = _require(28);
+            var baseAssign = _require(26), createAssigner = _require(34);
             var assign = createAssigner(baseAssign);
             module.exports = assign;
         },
         function (module, exports) {
-            module.exports = _require(38);
+            module.exports = _require(49);
         },
         function (module, exports) {
-            var isLength = _require(31), isNative = _require(36), isObject = _require(37), shimKeys = _require(33);
+            var isLength = _require(40), isNative = _require(47), isObject = _require(48), shimKeys = _require(42);
             var nativeKeys = isNative(nativeKeys = Object.keys) && nativeKeys;
             var keys = !nativeKeys ? shimKeys : function (object) {
                     if (object) {
@@ -1552,7 +1832,7 @@
             module.exports = keys;
         },
         function (module, exports) {
-            var isArguments = _require(34), isArray = _require(35), isIndex = _require(29), isLength = _require(31), isObject = _require(37), support = _require(43);
+            var isArguments = _require(45), isArray = _require(46), isIndex = _require(38), isLength = _require(40), isObject = _require(48), support = _require(54);
             var objectProto = Object.prototype;
             var hasOwnProperty = objectProto.hasOwnProperty;
             function keysIn(object) {
@@ -1578,7 +1858,7 @@
             module.exports = keysIn;
         },
         function (module, exports) {
-            var baseToString = _require(26);
+            var baseToString = _require(31);
             var reRegExpChars = /[.*+?^${}()|[\]\/\\]/g, reHasRegExpChars = RegExp(reRegExpChars.source);
             function escapeRegExp(string) {
                 string = baseToString(string);
@@ -1587,7 +1867,7 @@
             module.exports = escapeRegExp;
         },
         function (module, exports) {
-            var isNative = _require(36);
+            var isNative = _require(47);
             var reThis = /\bthis\b/;
             var objectProto = Object.prototype;
             var document = (document = global.window) && document.document;
@@ -1610,6 +1890,14 @@
                 }
             }(0, 0));
             module.exports = support;
+        },
+        function (module, exports) {
+            function constant(value) {
+                return function () {
+                    return value;
+                };
+            }
+            module.exports = constant;
         },
         function (module, exports) {
             function identity(value) {

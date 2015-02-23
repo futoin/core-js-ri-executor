@@ -182,6 +182,7 @@ model_as.add(
             var basicAuthExecutor = new executor_module.Executor( executor_ccm );
             var basic_auth_service = BasicAuthService.register( as, basicAuthExecutor );
             basic_auth_service.addUser( 'user', 'pass' );
+            basic_auth_service.addUser( 'hmacuser', 'MyLongLongSecretKey' );
             
             var clientExecutor = new ClientExecutor( ccm, opts ); 
             as.state.clientExecutor = clientExecutor;
@@ -198,12 +199,24 @@ model_as.add(
                     }
                 } );
             } ).add( function( as ){
-                ccm.register( as, 'test_if_anon', 'test.int.anon:1.0', end_point, 'user:pass' );
+                ccm.register(
+                        as,
+                        'test_if_anon',
+                        'test.int.anon:1.0',
+                        end_point,
+                        as.state.creds || 'user:pass',
+                        { hmacKey: 'TXlMb25nTG9uZ1NlY3JldEtleQ==' }
+                );
                 BasicAuthFace.register( as, executor_ccm, basicAuthExecutor );
             } ).add( function( as ){
                 as.add(
                     function( as ){
-                        ccm.register( as, 'test_if_bidirect', 'test.int.bidirect:1.0', end_point, null, {
+                        ccm.register(
+                            as,
+                            'test_if_bidirect',
+                            'test.int.bidirect:1.0',
+                            end_point,
+                            null, {
                             executor : clientExecutor
                         } );
                         
@@ -397,7 +410,9 @@ model_as.add(
                 'rawUploadResultParams',
                 {
                     a : 'start{',
-                    c : '}end'
+                    e : '}end',
+                    c : 1,
+                    o : { a : '123' }
                 },
                 upload_data,
                 as.state.membuf
@@ -436,7 +451,7 @@ model_as.add(
             },
             function( as, err )
             {
-                err.should.equal( 'InternalError' );
+                err.should.equal( as.state.creds ? 'SecurityError' : 'InternalError' );
                 as.success( 'OK' );
             }
         ).add( function( as, res ){
@@ -603,6 +618,17 @@ else
         as.state.CCMImpl = invoker_module.AdvancedCCM;
         as.state.done = done;
         as.state.proto = 'ws';
+        as.execute();
+    });
+
+    it('should pass WS suite AdvancedCCM with HMAC', function( done )
+    {
+        var as = async_steps();
+        as.copyFrom( model_as );
+        as.state.CCMImpl = invoker_module.AdvancedCCM;
+        as.state.done = done;
+        as.state.proto = 'ws';
+        as.state.creds = '-hmac:hmacuser';
         as.execute();
     });
 }
