@@ -62,6 +62,15 @@ Command line:
 $ npm install futoin-executor --save
 ```
 
+All public classes can be accessed through module:
+```javascript
+var Executor = require('futoin-executor').Executor;
+```
+
+or included modular way, e.g.:
+```javascript
+var Executor = require('futoin-executor/Executor');
+```
 # Installation for Browser
 
 ```sh
@@ -69,9 +78,8 @@ $ bower install futoin-executor --save
 ```
 
 Please note that browser build is available under in dist/ folder in sources generated
-with [pure-sjc](https://github.com/RReverser/pure-cjs). It depends on
-[lodash](https://www.npmjs.com/package/lodash) and
-[futoin-invoker](https://www.npmjs.com/package/futoin-invoker).
+with [pure-sjc](https://github.com/RReverser/pure-cjs). It include modular parts of
+[lodash](https://www.npmjs.com/package/lodash).
 
 *Note: there are the following globals available*:
 
@@ -90,12 +98,6 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
 
 * [futoin-executor](#module_futoin-executor)
 
-**Functions**
-
-* [BasicAuthFace()](#BasicAuthFace)
-  * [BasicAuthFace.ifacespec](#BasicAuthFace.ifacespec)
-  * [BasicAuthFace.register()](#BasicAuthFace.register)
-
 **Members**
 
 * [FutoInExecutor](#FutoInExecutor)
@@ -104,11 +106,6 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
  
 <a name="module_futoin-executor"></a>
 #futoin-executor
-<a name="BasicAuthFace"></a>
-#BasicAuthFace()
-BasicAuth is not official spec - it is a temporary solution
-until FTN8 Security Concept is finalized
-
 <a name="FutoInExecutor"></a>
 #FutoInExecutor
 **window.FutoInExecutor** - Browser-only reference to futoin-executor

@@ -1,12 +1,10 @@
 'use strict';
 
-var _extend = require( 'lodash/object/extend' );
 var BasicAuthFace = require( './BasicAuthFace' );
-var SpecTools = require( 'futoin-invoker' ).SpecTools;
+var SpecTools = require( 'futoin-invoker/SpecTools' );
 
 function BasicAuthService()
 {
-    _extend( this, BasicAuthServiceProto );
     this._user_list = {};
     this._next_id = 1;
 }
@@ -93,4 +91,5 @@ var BasicAuthServiceProto =
     }
 };
 
+BasicAuthService.prototype = BasicAuthServiceProto;
 module.exports = BasicAuthService;

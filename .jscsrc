@@ -111,7 +111,7 @@
 
     
     "excludeFiles": [
-        "lib/browser.js",
+        "lib/browser*.js",
         "dist/**",
         "node_modules/**",
         "bower_components/**",

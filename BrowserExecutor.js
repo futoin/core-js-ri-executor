@@ -1,25 +1,30 @@
 "use strict";
 
+var _clone = require( 'lodash/lang/clone' );
 var _extend = require( 'lodash/object/extend' );
 var _zipObject = require( 'lodash/array/zipObject' );
-var executor = require( './executor' );
-var request = require( './request' );
 var async_steps = require( 'futoin-asyncsteps' );
 var performance_now = require( "performance-now" );
 var browser_window = window; // jshint ignore:line
 
+var Executor = require( './Executor' );
+var ChannelContext = require( './ChannelContext' );
+var SourceAddress = require( './SourceAddress' );
+var RequestInfo = require( './RequestInfo' );
+
 // ---
 var BrowserChannelContext = function( executor, event )
 {
-    request.ChannelContext.call( this, executor );
-    _extend( this, BrowserChannelContextProto );
+    ChannelContext.call( this, executor );
+
     this._event_origin = event.origin;
     this._event_source = event.source;
     this._last_used = performance_now();
     this._is_secure_channel = true;
 };
 
-var BrowserChannelContextProto = {};
+var BrowserChannelContextProto = _clone( ChannelContext.prototype );
+BrowserChannelContext.prototype = BrowserChannelContextProto;
 
 BrowserChannelContextProto.type = function()
 {
@@ -73,19 +78,16 @@ BrowserChannelContextProto._getPerformRequest = function()
 // ---
 var BrowserExecutorConst =
 {
-    OPT_CONNECT_TIMEOUT : 'CONN_TIMEOUT',
-    OPT_ALLOWED_ORIGINS : 'ALLOWED_ORIGINS'
+    OPT_CONNECT_TIMEOUT : 'connectTimeout',
+    OPT_ALLOWED_ORIGINS : 'allowedOrigins',
 };
-
-_extend( BrowserExecutorConst, executor.ExecutorConst );
 
 var BrowserExecutor = function( ccm, opts )
 {
-    executor.Executor.call( this, ccm, opts );
-    _extend( this, BrowserExecutorConst, BrowserExecutorProto );
+    Executor.call( this, ccm, opts );
 
     opts = opts || {};
-    this._msg_sniffer = opts[ this.OPT_MSG_SNIFFER ] || function()
+    this._msg_sniffer = opts.messageSniffer || function()
             {};
     this._contexts = [];
     this._reverse_requests = {
@@ -96,7 +98,7 @@ var BrowserExecutor = function( ccm, opts )
     var _this = this;
 
     // --
-    var allowed_origins = opts[ this.OPT_ALLOWED_ORIGINS ] || {};
+    var allowed_origins = opts.allowedOrigins || {};
 
     if ( allowed_origins instanceof Array )
     {
@@ -106,7 +108,7 @@ var BrowserExecutor = function( ccm, opts )
     this.allowed_origins = allowed_origins;
 
     // --
-    var connection_timeout = opts[ this.OPT_CONNECT_TIMEOUT ] || 600;
+    var connection_timeout = opts.connectTimeout || 600;
 
     var connection_cleanup = function()
     {
@@ -138,9 +140,10 @@ var BrowserExecutor = function( ccm, opts )
     browser_window.addEventListener( 'message', this._event_listener );
 };
 
-_extend( BrowserExecutor, BrowserExecutorConst );
-
-var BrowserExecutorProto = {};
+var BrowserExecutorProto = _clone( Executor.prototype );
+BrowserExecutor.prototype = BrowserExecutorProto;
+_extend( BrowserExecutor, BrowserExecutorConst, BrowserExecutorProto.Const );
+_extend( BrowserExecutorProto, BrowserExecutorConst );
 
 BrowserExecutorProto.allowed_origins = null;
 
@@ -220,14 +223,14 @@ BrowserExecutorProto.handleMessage = function( event )
     }
 
     // ---
-    var source_addr = new request.SourceAddress(
+    var source_addr = new SourceAddress(
                 'LOCAL',
                 source,
                 origin
     );
 
     // ---
-    var reqinfo = new request.RequestInfo( this, ftnreq );
+    var reqinfo = new RequestInfo( this, ftnreq );
 
     var reqinfo_info = reqinfo.info;
     reqinfo_info[ reqinfo.INFO_CHANNEL_CONTEXT ] = context;
@@ -297,4 +300,4 @@ BrowserExecutorProto.close = function( close_cb )
     }
 };
 
-exports = module.exports = BrowserExecutor;
+module.exports = BrowserExecutor;

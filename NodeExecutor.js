@@ -1,26 +1,30 @@
 "use strict";
 
+var _clone = require( 'lodash/lang/clone' );
 var _extend = require( 'lodash/object/extend' );
-var executor = require( './executor' );
-var request = require( './request' );
 var WebSocket = require( 'faye-websocket' );
 var http = require( 'http' );
 var url = require( 'url' );
 var async_steps = require( 'futoin-asyncsteps' );
 var Cookies = require( "cookies" );
 
+var Executor = require( './Executor' );
+var ChannelContext = require( './ChannelContext' );
+var SourceAddress = require( './SourceAddress' );
+var RequestInfo = require( './RequestInfo' );
+
 // TODO: message size limit @security
 
 // ---
 var HTTPChannelContext = function( executor, req, rsp )
 {
-    request.ChannelContext.call( this, executor );
-    _extend( this, HTTPChannelContextProto );
+    ChannelContext.call( this, executor );
     this._http_req = req;
     this._http_rsp = rsp;
 };
 
-var HTTPChannelContextProto = {};
+var HTTPChannelContextProto = _clone( ChannelContext.prototype );
+HTTPChannelContext.prototype = HTTPChannelContextProto;
 
 HTTPChannelContextProto.type = function()
 {
@@ -110,14 +114,14 @@ HTTPChannelContextProto.setCookie = function( name, value, options )
 // ---
 var WSChannelContext = function( executor, conn )
 {
-    request.ChannelContext.call( this, executor );
-    _extend( this, WSChannelContextProto );
+    ChannelContext.call( this, executor );
     this._ws_conn = conn;
     conn._ftn_srid = 1;
     conn._ftn_reqas = {};
 };
 
-var WSChannelContextProto = {};
+var WSChannelContextProto = _clone( ChannelContext.prototype );
+WSChannelContext.prototype = WSChannelContextProto;
 
 WSChannelContextProto.type = function()
 {
@@ -185,28 +189,25 @@ var NodeExecutorConst =
     OPT_TRUST_PROXY : "trustProxy"
 };
 
-_extend( NodeExecutorConst, executor.ExecutorConst );
-
 var NodeExecutor = function( ccm, opts )
 {
-    executor.Executor.call( this, ccm, opts );
-    _extend( this, NodeExecutorProto, NodeExecutorConst );
+    Executor.call( this, ccm, opts );
 
     opts = opts || {};
-    this._msg_sniffer = opts[ this.OPT_MSG_SNIFFER ] || function()
+    this._msg_sniffer = opts.messageSniffer || function()
             {};
 
     var _this = this;
 
     // ---
-    if ( !opts[ this.OPT_HTTP_PATH ] )
+    if ( !opts.httpPath )
     {
         console.log( '[Executor] Missing OPT_HTTP_PATH option' );
         throw Error( 'InternalError' );
     }
 
     // ---
-    var http_path = opts[ this.OPT_HTTP_PATH ] || '/';
+    var http_path = opts.httpPath;
 
     if ( http_path[ http_path.length - 1 ] !== '/' )
     {
@@ -216,25 +217,25 @@ var NodeExecutor = function( ccm, opts )
     this._http_path = http_path;
 
     // ---
-    this._is_secure_channel = opts[ this.OPT_IS_SECURE_CHANNEL ] || false;
-    this._trust_proxy = opts[ this.OPT_TRUST_PROXY ] || false;
+    this._is_secure_channel = opts.secureChannel || false;
+    this._trust_proxy = opts.trustProxy || false;
 
     // ---
     var http_server;
     var managed_server = false;
 
-    if ( opts[ this.OPT_HTTP_SERVER ] )
+    if ( opts.httpServer )
     {
-        http_server = opts[ this.OPT_HTTP_SERVER ];
+        http_server = opts.httpServer;
     }
-    else if ( opts[ this.OPT_HTTP_ADDR ] && opts[ this.OPT_HTTP_PORT ] )
+    else if ( opts.httpAddr && opts.httpPort )
     {
         http_server = http.createServer();
 
         http_server.listen(
-                opts[ this.OPT_HTTP_PORT ],
-                opts[ this.OPT_HTTP_ADDR ],
-                opts[ this.OPT_HTTP_BACKLOG ] );
+                opts.httpPort,
+                opts.httpAddr,
+                opts.httpBacklog );
 
         http_server.on(
             'listening',
@@ -310,9 +311,10 @@ var NodeExecutor = function( ccm, opts )
     );
 };
 
-_extend( NodeExecutor, NodeExecutorConst );
-
-var NodeExecutorProto = {};
+var NodeExecutorProto = _clone( Executor.prototype );
+NodeExecutor.prototype = NodeExecutorProto;
+_extend( NodeExecutor, NodeExecutorConst, NodeExecutorProto.Const );
+_extend( NodeExecutorProto, NodeExecutorConst );
 
 NodeExecutorProto._http_server = null;
 NodeExecutorProto._http_path = null;
@@ -418,7 +420,7 @@ NodeExecutorProto.handleHTTPRequest = function( req, rsp )
 NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upload, from_query )
 {
     var _this = this;
-    var reqinfo = new request.RequestInfo( this, ftnreq );
+    var reqinfo = new RequestInfo( this, ftnreq );
 
     // ---
     var context = new HTTPChannelContext( this, req, rsp );
@@ -433,7 +435,7 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
         source_address = req.headers[ 'x-forwarded-for' ];
     }
 
-    source_address = new request.SourceAddress( null, source_address, req.connection.remotePort );
+    source_address = new SourceAddress( null, source_address, req.connection.remotePort );
 
     // ---
     this._msg_sniffer( source_address, ftnreq, true );
@@ -542,7 +544,7 @@ NodeExecutorProto.handleWSConnection = function( ugrade_req, ws )
         source_addr = ugrade_req.headers[ 'x-forwarded-for' ];
     }
 
-    source_addr = new request.SourceAddress(
+    source_addr = new SourceAddress(
                 null,
                 source_addr,
                 ugrade_req.connection.remotePort
@@ -601,7 +603,7 @@ NodeExecutorProto.handleWSConnection = function( ugrade_req, ws )
 
 NodeExecutorProto._handleWSRequest = function( context, ftnreq )
 {
-    var reqinfo = new request.RequestInfo( this, ftnreq );
+    var reqinfo = new RequestInfo( this, ftnreq );
 
     var reqinfo_info = reqinfo.info;
     reqinfo_info[ reqinfo.INFO_CHANNEL_CONTEXT ] = context;
@@ -683,4 +685,4 @@ NodeExecutorProto.close = function( close_cb )
     this._http_server.close( close_cb );
 };
 
-exports = module.exports = NodeExecutor;
+module.exports = NodeExecutor;

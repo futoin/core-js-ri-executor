@@ -5,8 +5,8 @@ var assert;
 var executor_module = require( '../lib/main' );
 var invoker_module = require( 'futoin-invoker' );
 var async_steps = require( 'futoin-asyncsteps' );
-var BasicAuthFace = require( '../lib/BasicAuthFace' );
-var BasicAuthService = require( '../lib/BasicAuthService' );
+var BasicAuthFace = require( '../BasicAuthFace' );
+var BasicAuthService = require( '../BasicAuthService' );
 var _ = require( 'lodash' );
 
 var is_in_browser = ( 'BrowserExecutor' in executor_module );

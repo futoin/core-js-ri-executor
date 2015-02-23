@@ -26,39 +26,26 @@
     _require.cache = [];
     _require.modules = [
         function (module, exports) {
-            (function (window) {
-                'use strict';
-                var futoin = window.FutoIn || {};
-                if (typeof futoin.Executor === 'undefined') {
-                    var executor_module = _require(3);
-                    window.FutoInExecutor = executor_module;
-                    futoin.Executor = executor_module;
-                    window.FutoIn = futoin;
-                    window.BrowserExecutor = executor_module.BrowserExecutor;
-                    if (module) {
-                        module.exports = executor_module;
-                    }
-                }
-            }(window));
-        },
-        function (module, exports) {
             'use strict';
-            var _extend = _require(50);
-            var _zipObject = _require(23);
-            var executor = _require(2);
-            var request = _require(4);
-            var async_steps = _require(21);
-            var performance_now = _require(57);
+            var _clone = _require(48);
+            var _extend = _require(54);
+            var _zipObject = _require(27);
+            var async_steps = _require(25);
+            var performance_now = _require(61);
             var browser_window = window;
+            var Executor = _require(3);
+            var ChannelContext = _require(1);
+            var SourceAddress = _require(5);
+            var RequestInfo = _require(4);
             var BrowserChannelContext = function (executor, event) {
-                request.ChannelContext.call(this, executor);
-                _extend(this, BrowserChannelContextProto);
+                ChannelContext.call(this, executor);
                 this._event_origin = event.origin;
                 this._event_source = event.source;
                 this._last_used = performance_now();
                 this._is_secure_channel = true;
             };
-            var BrowserChannelContextProto = {};
+            var BrowserChannelContextProto = _clone(ChannelContext.prototype);
+            BrowserChannelContext.prototype = BrowserChannelContextProto;
             BrowserChannelContextProto.type = function () {
                 return 'BROWSER';
             };
@@ -91,15 +78,13 @@
                 };
             };
             var BrowserExecutorConst = {
-                    OPT_CONNECT_TIMEOUT: 'CONN_TIMEOUT',
-                    OPT_ALLOWED_ORIGINS: 'ALLOWED_ORIGINS'
+                    OPT_CONNECT_TIMEOUT: 'connectTimeout',
+                    OPT_ALLOWED_ORIGINS: 'allowedOrigins'
                 };
-            _extend(BrowserExecutorConst, executor.ExecutorConst);
             var BrowserExecutor = function (ccm, opts) {
-                executor.Executor.call(this, ccm, opts);
-                _extend(this, BrowserExecutorConst, BrowserExecutorProto);
+                Executor.call(this, ccm, opts);
                 opts = opts || {};
-                this._msg_sniffer = opts[this.OPT_MSG_SNIFFER] || function () {
+                this._msg_sniffer = opts.messageSniffer || function () {
                 };
                 this._contexts = [];
                 this._reverse_requests = {
@@ -107,12 +92,12 @@
                     sentreqs: {}
                 };
                 var _this = this;
-                var allowed_origins = opts[this.OPT_ALLOWED_ORIGINS] || {};
+                var allowed_origins = opts.allowedOrigins || {};
                 if (allowed_origins instanceof Array) {
                     allowed_origins = _zipObject(allowed_origins, allowed_origins);
                 }
                 this.allowed_origins = allowed_origins;
-                var connection_timeout = opts[this.OPT_CONNECT_TIMEOUT] || 600;
+                var connection_timeout = opts.connectTimeout || 600;
                 var connection_cleanup = function () {
                     var ctx_list = _this._contexts;
                     var remove_time = performance_now() - connection_timeout;
@@ -131,8 +116,10 @@
                 };
                 browser_window.addEventListener('message', this._event_listener);
             };
-            _extend(BrowserExecutor, BrowserExecutorConst);
-            var BrowserExecutorProto = {};
+            var BrowserExecutorProto = _clone(Executor.prototype);
+            BrowserExecutor.prototype = BrowserExecutorProto;
+            _extend(BrowserExecutor, BrowserExecutorConst, BrowserExecutorProto.Const);
+            _extend(BrowserExecutorProto, BrowserExecutorConst);
             BrowserExecutorProto.allowed_origins = null;
             BrowserExecutorProto.handleMessage = function (event) {
                 this._msg_sniffer(event, event.data, true);
@@ -173,8 +160,8 @@
                     context = new BrowserChannelContext(this, event);
                     ctx_list.push(context);
                 }
-                var source_addr = new request.SourceAddress('LOCAL', source, origin);
-                var reqinfo = new request.RequestInfo(this, ftnreq);
+                var source_addr = new SourceAddress('LOCAL', source, origin);
+                var reqinfo = new RequestInfo(this, ftnreq);
                 var reqinfo_info = reqinfo.info;
                 reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT] = context;
                 reqinfo_info[reqinfo.INFO_CLIENT_ADDR] = source_addr;
@@ -218,81 +205,161 @@
                     close_cb();
                 }
             };
-            exports = module.exports = BrowserExecutor;
+            module.exports = BrowserExecutor;
         },
         function (module, exports) {
             'use strict';
-            var _extend = _require(50);
-            var invoker = _require(22);
-            var FutoInError = invoker.FutoInError;
-            var request = _require(4);
-            var async_steps = _require(21);
-            var ee = _require(6);
-            var _clone = _require(44);
-            var ChannelContext = request.ChannelContext;
-            var CallbackChannelContext = function (executor) {
-                ChannelContext.call(this, executor);
-                _extend(this, CallbackChannelContextProto);
-            };
-            var CallbackChannelContextProto = {
-                    type: function () {
-                        return 'CALLBACK';
-                    },
-                    isStateful: function () {
-                        return true;
-                    }
+            var ChannelContext = function (executor) {
+                this._executor = executor;
+                this._ifaces = {};
+                this.state = function () {
+                    return this.state;
                 };
-            var InternalChannelContext = function (executor, invoker_executor) {
-                ChannelContext.call(this, executor);
-                _extend(this, InternalChannelContextProto);
-                this._invoker_executor = invoker_executor;
             };
-            var InternalChannelContextProto = {
+            var ChannelContextProto = {
+                    _user_info: null,
+                    _ifaces: null,
+                    state: null,
                     type: function () {
-                        return 'INTERNAL';
                     },
                     isStateful: function () {
-                        return true;
+                        return false;
+                    },
+                    onInvokerAbort: function (callable, user_data) {
+                        void callable;
+                        void user_data;
+                    },
+                    _openRawInput: function () {
+                        return null;
+                    },
+                    _openRawOutput: function () {
+                        return null;
+                    },
+                    register: function (as, ifacever, options) {
+                        if (!this.isStateful()) {
+                            as.error('InvokerError', 'Not stateful channel');
+                        }
+                        this._executor.ccm().register(as, null, ifacever, this._getPerformRequest(), null, options);
+                        var _this = this;
+                        as.add(function (as, info, impl) {
+                            info.secure_channel = _this._executor._is_secure_channel;
+                            _this._ifaces[ifacever] = impl;
+                        });
+                    },
+                    iface: function (ifacever) {
+                        return this._ifaces[ifacever];
                     },
                     _getPerformRequest: function () {
-                        var invoker_executor = this._invoker_executor;
-                        if (!invoker_executor) {
-                            return this._commError;
-                        }
-                        return function (as, ctx, ftnreq) {
-                            invoker_executor.onInternalRequest(as, ctx.info, ftnreq);
-                        };
+                        throw Error('NotImplemented');
                     },
-                    _commError: function (as) {
-                        as.error(FutoInError.CommError, 'No Invoker\'s Executor for internal call');
+                    _cleanup: function () {
+                        delete this._executor;
+                        delete this._ifaces;
+                        delete this.state;
                     }
                 };
-            var executor_const = {
+            ChannelContext.prototype = ChannelContextProto;
+            module.exports = ChannelContext;
+        },
+        function (module, exports) {
+            'use strict';
+            var DerivedKey = function (ccm, base_id, sequence_id) {
+                this._ccm = ccm;
+                this._base_id = base_id;
+                this._sequence_id = sequence_id;
+            };
+            var DerivedKeyProto = {
+                    baseID: function () {
+                        return this._base_id;
+                    },
+                    sequenceID: function () {
+                        return this._sequence_id;
+                    },
+                    encrypt: function (as, data) {
+                        void as;
+                        void data;
+                    },
+                    decrypt: function (as, data) {
+                        void as;
+                        void data;
+                    }
+                };
+            DerivedKey.prototype = DerivedKeyProto;
+            module.exports = DerivedKey;
+        },
+        function (module, exports) {
+            'use strict';
+            var _extend = _require(54);
+            var invoker = _require(26);
+            var FutoInError = invoker.FutoInError;
+            var async_steps = _require(25);
+            var ee = _require(10);
+            var _clone = _require(48);
+            var Executor = _require(3);
+            var ChannelContext = _require(1);
+            var SourceAddress = _require(5);
+            var RequestInfo = _require(4);
+            var UserInfo = _require(6);
+            var CallbackChannelContext = function (executor) {
+                ChannelContext.call(this, executor);
+            };
+            var CallbackChannelContextProto = _clone(ChannelContext.prototype);
+            CallbackChannelContext.prototype = CallbackChannelContextProto;
+            CallbackChannelContextProto.type = function () {
+                return 'CALLBACK';
+            };
+            CallbackChannelContextProto.isStateful = function () {
+                return true;
+            };
+            var InternalChannelContext = function (executor, invoker_executor) {
+                ChannelContext.call(this, executor);
+                this._invoker_executor = invoker_executor;
+            };
+            var InternalChannelContextProto = _clone(ChannelContext.prototype);
+            InternalChannelContext.prototype = InternalChannelContextProto;
+            InternalChannelContextProto.type = function () {
+                return 'INTERNAL';
+            };
+            InternalChannelContextProto.isStateful = function () {
+                return true;
+            };
+            InternalChannelContextProto._getPerformRequest = function () {
+                var invoker_executor = this._invoker_executor;
+                if (!invoker_executor) {
+                    return this._commError;
+                }
+                return function (as, ctx, ftnreq) {
+                    invoker_executor.onInternalRequest(as, ctx.info, ftnreq);
+                };
+            };
+            InternalChannelContextProto._commError = function (as) {
+                as.error(FutoInError.CommError, 'No Invoker\'s Executor for internal call');
+            };
+            var ExecutorConst = {
                     OPT_VAULT: 'vault',
                     OPT_SPEC_DIRS: invoker.AdvancedCCM.OPT_SPEC_DIRS,
                     OPT_PROD_MODE: invoker.AdvancedCCM.OPT_PROD_MODE,
                     OPT_MSG_SNIFFER: invoker.SimpleCCM.OPT_MSG_SNIFFER,
                     OPT_REQUEST_TIMEOT: 'reqTimeout',
-                    OPT_HEAVY_REQUEST_TIMEOT: 'heavyTimeout',
+                    OPT_HEAVY_REQUEST_TIMEOT: 'heavyReqTimeout',
                     DEFAULT_REQUEST_TIMEOUT: 5000,
                     DEFAULT_HEAVY_TIMEOUT: 60000,
                     SAFE_PAYLOAD_LIMIT: 65536
                 };
-            var executor = function (ccm, opts) {
+            var Executor = function (ccm, opts) {
                 ee(this);
-                _extend(this, executor_const, executor_proto);
                 this._ccm = ccm;
                 this._ifaces = {};
                 this._impls = {};
                 opts = opts || {};
-                var spec_dirs = opts[this.OPT_SPEC_DIRS];
+                var spec_dirs = opts.specDirs;
                 if (!(spec_dirs instanceof Array)) {
                     spec_dirs = [spec_dirs];
                 }
                 this._specdirs = spec_dirs;
-                this._dev_checks = !opts[this.OPT_PROD_MODE];
-                this._request_timeout = opts[this.OPT_REQUEST_TIMEOT] || this.DEFAULT_REQUEST_TIMEOUT;
-                this._heavy_timeout = opts[this.OPT_HEAVY_REQUEST_TIMEOT] || this.DEFAULT_HEAVY_TIMEOUT;
+                this._dev_checks = !opts.prodMode;
+                this._request_timeout = opts.reqTimeout || this.DEFAULT_REQUEST_TIMEOUT;
+                this._heavy_timeout = opts.heavyReqTimeout || this.DEFAULT_HEAVY_TIMEOUT;
                 if (typeof Buffer !== 'undefined' && Buffer.byteLength) {
                     this._byteLength = Buffer.byteLength;
                 } else {
@@ -301,7 +368,7 @@
                     };
                 }
             };
-            var executor_proto = {
+            var ExecutorProto = {
                     _ccm: null,
                     _ifaces: null,
                     _impls: null,
@@ -364,9 +431,9 @@
                     },
                     onEndpointRequest: function (info, ftnreq, send_executor_rsp) {
                         var _this = this;
-                        var reqinfo = new request.RequestInfo(this, ftnreq);
+                        var reqinfo = new RequestInfo(this, ftnreq);
                         var context = new CallbackChannelContext(this);
-                        var source_addr = new request.SourceAddress(context.type(), null, info.regname);
+                        var source_addr = new SourceAddress(context.type(), null, info.regname);
                         var reqinfo_info = reqinfo.info;
                         reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT] = context;
                         reqinfo_info[reqinfo.INFO_CLIENT_ADDR] = source_addr;
@@ -408,8 +475,8 @@
                             info._server_executor_context = context;
                         }
                         var _this = this;
-                        var reqinfo = new request.RequestInfo(this, ftnreq);
-                        var source_addr = new request.SourceAddress(context.type(), null, null);
+                        var reqinfo = new RequestInfo(this, ftnreq);
+                        var source_addr = new SourceAddress(context.type(), null, null);
                         var reqinfo_info = reqinfo.info;
                         reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT] = context;
                         reqinfo_info[reqinfo.INFO_CLIENT_ADDR] = source_addr;
@@ -588,8 +655,8 @@
                                 is_secure: reqinfo_info[reqinfo.INFO_SECURE_CHANNEL]
                             });
                             as.add(function (as, rsp) {
-                                reqinfo_info[reqinfo.INFO_USER_INFO] = new request.UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
-                                reqinfo_info[reqinfo.INFO_SECURITY_LEVEL] = request.RequestInfo.SL_INFO;
+                                reqinfo_info[reqinfo.INFO_USER_INFO] = new UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
+                                reqinfo_info[reqinfo.INFO_SECURITY_LEVEL] = RequestInfo.SL_INFO;
                             });
                         }, function (as, err) {
                             void err;
@@ -612,8 +679,8 @@
                                 is_secure: reqinfo_info[reqinfo.INFO_SECURE_CHANNEL]
                             });
                             as.add(function (as, rsp) {
-                                reqinfo_info[reqinfo.INFO_USER_INFO] = new request.UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
-                                reqinfo_info[reqinfo.INFO_SECURITY_LEVEL] = request.RequestInfo.SL_INFO;
+                                reqinfo_info[reqinfo.INFO_USER_INFO] = new UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
+                                reqinfo_info[reqinfo.INFO_SECURITY_LEVEL] = RequestInfo.SL_INFO;
                                 reqinfo_info._hmac_algo = algo;
                                 reqinfo_info._hmac_user = user;
                             });
@@ -636,6 +703,8 @@
                         }
                         var context = reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT];
                         if ('BiDirectChannel' in constraints && (!context || !context.isStateful())) {
+                            console.dir(context);
+                            console.log(context.isStateful());
                             as.error(FutoInError.InvalidRequest, 'Bi-Direct Channel is required');
                         }
                     },
@@ -782,172 +851,17 @@
                         return rawmsg;
                     }
                 };
-            _extend(executor, executor_const);
-            exports.Executor = executor;
-            exports.ExecutorConst = executor_const;
+            Executor.prototype = ExecutorProto;
+            _extend(Executor, ExecutorConst);
+            _extend(ExecutorProto, ExecutorConst);
+            ExecutorProto.Const = ExecutorConst;
+            module.exports = Executor;
         },
         function (module, exports) {
             'use strict';
-            var isNode = _require(5);
-            var _extend = _require(50);
-            var request = _require(4);
-            _extend(exports, request);
-            var Executor = _require(2).Executor;
-            exports.Executor = Executor;
-            exports.ClientExecutor = Executor;
-            if (isNode) {
-                var hidreq = require;
-                exports.NodeExecutor = hidreq('./node_executor');
-            } else {
-                exports.BrowserExecutor = _require(1);
-            }
-        },
-        function (module, exports) {
-            'use strict';
-            var _extend = _require(50);
-            var performance_now = _require(57);
-            var async_steps = _require(21);
-            var userinfo_const = {
-                    INFO_FirstName: 'FirstName',
-                    INFO_FullName: 'FullName',
-                    INFO_DateOfBirth: 'DateOfBirth',
-                    INFO_TimeOfBirth: 'TimeOfBirth',
-                    INFO_ContactEmail: 'ContactEmail',
-                    INFO_ContactPhone: 'ContactPhone',
-                    INFO_HomeAddress: 'HomeAddress',
-                    INFO_WorkAddress: 'WorkAddress',
-                    INFO_Citizenship: 'Citizenship',
-                    INFO_GovernmentRegID: 'GovernmentRegID',
-                    INFO_AvatarURL: 'AvatarURL'
-                };
-            exports.UserInfo = function (ccm, local_id, global_id, details) {
-                _extend(this, userinfo_const, UserInfoProto);
-                this._ccm = ccm;
-                this._local_id = local_id;
-                this._global_id = global_id;
-                this._details = details;
-            };
-            _extend(exports.UserInfo, userinfo_const);
-            var UserInfoProto = {
-                    localID: function () {
-                        return this._local_id;
-                    },
-                    globalID: function () {
-                        return this._global_id;
-                    },
-                    details: function (as, user_field_identifiers) {
-                        var user_details = this._details;
-                        if (user_details) {
-                            as.add(function (as) {
-                                as.success(user_details);
-                            });
-                            return;
-                        }
-                        as.error('NotImplemented');
-                        void user_field_identifiers;
-                    }
-                };
-            exports.SourceAddress = function (type, host, port) {
-                _extend(this, SourceAddressProto);
-                if (type === null) {
-                    if (typeof host !== 'string') {
-                        type = 'LOCAL';
-                    } else if (host.match(/^([0-9]{1,3}\.){3}[0-9]{1,3}$/)) {
-                        type = 'IPv4';
-                    } else {
-                        type = 'IPv6';
-                    }
-                }
-                this.type = type;
-                this.host = host;
-                this.port = port;
-            };
-            var SourceAddressProto = {
-                    host: null,
-                    port: null,
-                    type: null,
-                    asString: function () {
-                        if (this.type === 'LOCAL') {
-                            return 'LOCAL:' + this.port;
-                        } else if (this.type === 'IPv6') {
-                            return 'IPv6:[' + this.host + ']:' + this.port;
-                        } else {
-                            return this.type + ':' + this.host + ':' + this.port;
-                        }
-                    }
-                };
-            exports.DerivedKey = function (ccm, base_id, sequence_id) {
-                _extend(this, DerivedKeyProto);
-                this._ccm = ccm;
-                this._base_id = base_id;
-                this._sequence_id = sequence_id;
-            };
-            var DerivedKeyProto = {
-                    baseID: function () {
-                        return this._base_id;
-                    },
-                    sequenceID: function () {
-                        return this._sequence_id;
-                    },
-                    encrypt: function (as, data) {
-                        void as;
-                        void data;
-                    },
-                    decrypt: function (as, data) {
-                        void as;
-                        void data;
-                    }
-                };
-            exports.ChannelContext = function (executor) {
-                _extend(this, ChannelContextProto);
-                this._executor = executor;
-                this._ifaces = {};
-                this.state = function () {
-                    return this.state;
-                };
-            };
-            var ChannelContextProto = {
-                    _user_info: null,
-                    _ifaces: null,
-                    state: null,
-                    type: function () {
-                    },
-                    isStateful: function () {
-                        return false;
-                    },
-                    onInvokerAbort: function (callable, user_data) {
-                        void callable;
-                        void user_data;
-                    },
-                    _openRawInput: function () {
-                        return null;
-                    },
-                    _openRawOutput: function () {
-                        return null;
-                    },
-                    register: function (as, ifacever, options) {
-                        if (!this.isStateful()) {
-                            as.error('InvokerError', 'Not stateful channel');
-                        }
-                        this._executor.ccm().register(as, null, ifacever, this._getPerformRequest(), null, options);
-                        var _this = this;
-                        as.add(function (as, info, impl) {
-                            info.secure_channel = _this._executor._is_secure_channel;
-                            _this._ifaces[ifacever] = impl;
-                        });
-                    },
-                    iface: function (ifacever) {
-                        return this._ifaces[ifacever];
-                    },
-                    _getPerformRequest: function () {
-                        throw Error('NotImplemented');
-                    },
-                    _cleanup: function () {
-                        delete this._executor;
-                        delete this._ifaces;
-                        delete this.state;
-                    }
-                };
+            var _extend = _require(54);
+            var performance_now = _require(61);
+            var async_steps = _require(25);
             var reqinfo_const = {
                     SL_ANONYMOUS: 'Anonymous',
                     SL_INFO: 'Info',
@@ -968,8 +882,7 @@
                     INFO_HAVE_RAW_RESULT: 'HAVE_RAW_RESULT',
                     INFO_CHANNEL_CONTEXT: 'CHANNEL_CONTEXT'
                 };
-            exports.RequestInfo = function (executor, rawreq) {
-                _extend(this, reqinfo_const, RequestInfoProto);
+            var RequestInfo = function (executor, rawreq) {
                 this._executor = executor;
                 if (typeof rawreq === 'string') {
                     rawreq = JSON.parse(rawreq);
@@ -998,64 +911,172 @@
                 info[this.INFO_CHANNEL_CONTEXT] = null;
                 info[this.INFO_REQUEST_TIME_FLOAT] = performance_now();
             };
-            _extend(exports.RequestInfo, reqinfo_const);
-            var RequestInfoProto = {
-                    _executor: null,
-                    _rawreq: null,
-                    _rawrsp: null,
-                    _rawinp: null,
-                    _rawout: null,
-                    params: function () {
-                        return this._rawreq.p;
-                    },
-                    result: function () {
-                        return this._rawrsp.r;
-                    },
-                    rawInput: function () {
-                        var rawinp = this._rawinp;
-                        if (!rawinp) {
-                            if (this.info[this.INFO_HAVE_RAW_UPLOAD] && this.info[this.INFO_CHANNEL_CONTEXT] !== null) {
-                                rawinp = this.info[this.INFO_CHANNEL_CONTEXT]._openRawInput();
-                                this._rawinp = rawinp;
-                            }
-                            if (!rawinp) {
-                                throw new Error('RawInputError');
-                            }
-                        }
-                        return rawinp;
-                    },
-                    rawOutput: function () {
-                        var rawout = this._rawout;
-                        if (!rawout) {
-                            if (this.info[this.INFO_HAVE_RAW_RESULT] && this.info[this.INFO_CHANNEL_CONTEXT] !== null) {
-                                rawout = this.info[this.INFO_CHANNEL_CONTEXT]._openRawOutput();
-                                this._rawout = rawout;
-                            }
-                            if (!rawout) {
-                                throw new Error('RawOutputError');
-                            }
-                        }
-                        return rawout;
-                    },
-                    executor: function () {
-                        return this._executor;
-                    },
-                    channel: function () {
-                        return this.info[this.INFO_CHANNEL_CONTEXT];
-                    },
-                    cancelAfter: function (time_ms) {
-                        if (this._cancelAfter) {
-                            async_steps.AsyncTool.cancelCall(this._cancelAfter);
-                            this._cancelAfter = null;
-                        }
-                        if (time_ms > 0 && this._as) {
-                            var _this = this;
-                            this._cancelAfter = async_steps.AsyncTool.callLater(function () {
-                                _this._as.cancel();
-                            }, time_ms);
-                        }
+            _extend(RequestInfo, reqinfo_const);
+            var RequestInfoProto = reqinfo_const;
+            RequestInfoProto._rawinp = null;
+            RequestInfoProto._rawout = null;
+            RequestInfoProto.params = function () {
+                return this._rawreq.p;
+            };
+            RequestInfoProto.result = function () {
+                return this._rawrsp.r;
+            };
+            RequestInfoProto.rawInput = function () {
+                var rawinp = this._rawinp;
+                if (!rawinp) {
+                    if (this.info[this.INFO_HAVE_RAW_UPLOAD] && this.info[this.INFO_CHANNEL_CONTEXT] !== null) {
+                        rawinp = this.info[this.INFO_CHANNEL_CONTEXT]._openRawInput();
+                        this._rawinp = rawinp;
                     }
+                    if (!rawinp) {
+                        throw new Error('RawInputError');
+                    }
+                }
+                return rawinp;
+            };
+            RequestInfoProto.rawOutput = function () {
+                var rawout = this._rawout;
+                if (!rawout) {
+                    if (this.info[this.INFO_HAVE_RAW_RESULT] && this.info[this.INFO_CHANNEL_CONTEXT] !== null) {
+                        rawout = this.info[this.INFO_CHANNEL_CONTEXT]._openRawOutput();
+                        this._rawout = rawout;
+                    }
+                    if (!rawout) {
+                        throw new Error('RawOutputError');
+                    }
+                }
+                return rawout;
+            };
+            RequestInfoProto.executor = function () {
+                return this._executor;
+            };
+            RequestInfoProto.channel = function () {
+                return this.info[this.INFO_CHANNEL_CONTEXT];
+            };
+            RequestInfoProto.cancelAfter = function (time_ms) {
+                if (this._cancelAfter) {
+                    async_steps.AsyncTool.cancelCall(this._cancelAfter);
+                    this._cancelAfter = null;
+                }
+                if (time_ms > 0 && this._as) {
+                    var _this = this;
+                    this._cancelAfter = async_steps.AsyncTool.callLater(function () {
+                        _this._as.cancel();
+                    }, time_ms);
+                }
+            };
+            RequestInfo.prototype = RequestInfoProto;
+            module.exports = RequestInfo;
+        },
+        function (module, exports) {
+            'use strict';
+            var SourceAddress = function (type, host, port) {
+                if (type === null) {
+                    if (typeof host !== 'string') {
+                        type = 'LOCAL';
+                    } else if (host.match(/^([0-9]{1,3}\.){3}[0-9]{1,3}$/)) {
+                        type = 'IPv4';
+                    } else {
+                        type = 'IPv6';
+                    }
+                }
+                this.type = type;
+                this.host = host;
+                this.port = port;
+            };
+            SourceAddress.prototype = {
+                host: null,
+                port: null,
+                type: null,
+                asString: function () {
+                    if (this.type === 'LOCAL') {
+                        return 'LOCAL:' + this.port;
+                    } else if (this.type === 'IPv6') {
+                        return 'IPv6:[' + this.host + ']:' + this.port;
+                    } else {
+                        return this.type + ':' + this.host + ':' + this.port;
+                    }
+                }
+            };
+            module.exports = SourceAddress;
+        },
+        function (module, exports) {
+            'use strict';
+            var _extend = _require(54);
+            var userinfo_const = {
+                    INFO_FirstName: 'FirstName',
+                    INFO_FullName: 'FullName',
+                    INFO_DateOfBirth: 'DateOfBirth',
+                    INFO_TimeOfBirth: 'TimeOfBirth',
+                    INFO_ContactEmail: 'ContactEmail',
+                    INFO_ContactPhone: 'ContactPhone',
+                    INFO_HomeAddress: 'HomeAddress',
+                    INFO_WorkAddress: 'WorkAddress',
+                    INFO_Citizenship: 'Citizenship',
+                    INFO_GovernmentRegID: 'GovernmentRegID',
+                    INFO_AvatarURL: 'AvatarURL'
                 };
+            var UserInfo = function (ccm, local_id, global_id, details) {
+                this._ccm = ccm;
+                this._local_id = local_id;
+                this._global_id = global_id;
+                this._details = details;
+            };
+            _extend(UserInfo, userinfo_const);
+            var UserInfoProto = userinfo_const;
+            UserInfoProto.localID = function () {
+                return this._local_id;
+            };
+            UserInfoProto.globalID = function () {
+                return this._global_id;
+            };
+            UserInfoProto.details = function (as, user_field_identifiers) {
+                var user_details = this._details;
+                if (user_details) {
+                    as.add(function (as) {
+                        as.success(user_details);
+                    });
+                    return;
+                }
+                as.error('NotImplemented');
+                void user_field_identifiers;
+            };
+            UserInfo.prototype = UserInfoProto;
+            module.exports = UserInfo;
+        },
+        function (module, exports) {
+            (function (window) {
+                'use strict';
+                var futoin = window.FutoIn || {};
+                if (typeof futoin.Executor === 'undefined') {
+                    var executor_module = _require(8);
+                    window.FutoInExecutor = executor_module;
+                    futoin.Executor = executor_module;
+                    window.FutoIn = futoin;
+                    window.BrowserExecutor = executor_module.BrowserExecutor;
+                    if (module) {
+                        module.exports = executor_module;
+                    }
+                }
+            }(window));
+        },
+        function (module, exports) {
+            'use strict';
+            var isNode = _require(9);
+            exports.ChannelContext = _require(1);
+            exports.DerivedKey = _require(2);
+            exports.RequestInfo = _require(4);
+            exports.SourceAddress = _require(5);
+            exports.UserInfo = _require(6);
+            var Executor = _require(3);
+            exports.Executor = Executor;
+            exports.ClientExecutor = Executor;
+            if (isNode) {
+                var hidreq = require;
+                exports.NodeExecutor = hidreq('../NodeExecutor');
+            } else {
+                exports.BrowserExecutor = _require(0);
+            }
         },
         function (module, exports) {
             module.exports = false;
@@ -1066,7 +1087,7 @@
         },
         function (module, exports) {
             'use strict';
-            var d = _require(7), callable = _require(16), apply = Function.prototype.apply, call = Function.prototype.call, create = Object.create, defineProperty = Object.defineProperty, defineProperties = Object.defineProperties, hasOwnProperty = Object.prototype.hasOwnProperty, descriptor = {
+            var d = _require(11), callable = _require(20), apply = Function.prototype.apply, call = Function.prototype.call, create = Object.create, defineProperty = Object.defineProperty, defineProperties = Object.defineProperties, hasOwnProperty = Object.prototype.hasOwnProperty, descriptor = {
                     configurable: true,
                     enumerable: false,
                     writable: true
@@ -1185,7 +1206,7 @@
         },
         function (module, exports) {
             'use strict';
-            var assign = _require(8), normalizeOpts = _require(15), isCallable = _require(11), contains = _require(18), d;
+            var assign = _require(12), normalizeOpts = _require(19), isCallable = _require(15), contains = _require(22), d;
             d = module.exports = function (dscr, value) {
                 var c, e, w, options, desc;
                 if (arguments.length < 2 || typeof dscr !== 'string') {
@@ -1250,7 +1271,7 @@
         },
         function (module, exports) {
             'use strict';
-            module.exports = _require(9)() ? Object.assign : _require(10);
+            module.exports = _require(13)() ? Object.assign : _require(14);
         },
         function (module, exports) {
             'use strict';
@@ -1265,7 +1286,7 @@
         },
         function (module, exports) {
             'use strict';
-            var keys = _require(12), value = _require(17), max = Math.max;
+            var keys = _require(16), value = _require(21), max = Math.max;
             module.exports = function (dest, src) {
                 var error, i, l = max(arguments.length, 2), assign;
                 dest = Object(value(dest));
@@ -1294,7 +1315,7 @@
         },
         function (module, exports) {
             'use strict';
-            module.exports = _require(13)() ? Object.keys : _require(14);
+            module.exports = _require(17)() ? Object.keys : _require(18);
         },
         function (module, exports) {
             'use strict';
@@ -1350,7 +1371,7 @@
         },
         function (module, exports) {
             'use strict';
-            module.exports = _require(19)() ? String.prototype.contains : _require(20);
+            module.exports = _require(23)() ? String.prototype.contains : _require(24);
         },
         function (module, exports) {
             'use strict';
@@ -1375,7 +1396,7 @@
             module.exports = __external_FutoInInvoker;
         },
         function (module, exports) {
-            var isArray = _require(46);
+            var isArray = _require(50);
             function zipObject(props, values) {
                 var index = -1, length = props ? props.length : 0, result = {};
                 if (length && !values && !isArray(props[0])) {
@@ -1417,7 +1438,7 @@
             module.exports = arrayEach;
         },
         function (module, exports) {
-            var baseCopy = _require(28), keys = _require(51);
+            var baseCopy = _require(32), keys = _require(55);
             function baseAssign(object, source, customizer) {
                 var props = keys(source);
                 if (!customizer) {
@@ -1435,7 +1456,7 @@
             module.exports = baseAssign;
         },
         function (module, exports) {
-            var arrayCopy = _require(24), arrayEach = _require(25), baseCopy = _require(28), baseForOwn = _require(30), initCloneArray = _require(35), initCloneByTag = _require(36), initCloneObject = _require(37), isArray = _require(46), isObject = _require(48), keys = _require(51);
+            var arrayCopy = _require(28), arrayEach = _require(29), baseCopy = _require(32), baseForOwn = _require(34), initCloneArray = _require(39), initCloneByTag = _require(40), initCloneObject = _require(41), isArray = _require(50), isObject = _require(52), keys = _require(55);
             var argsTag = '[object Arguments]', arrayTag = '[object Array]', boolTag = '[object Boolean]', dateTag = '[object Date]', errorTag = '[object Error]', funcTag = '[object Function]', mapTag = '[object Map]', numberTag = '[object Number]', objectTag = '[object Object]', regexpTag = '[object RegExp]', setTag = '[object Set]', stringTag = '[object String]', weakMapTag = '[object WeakMap]';
             var arrayBufferTag = '[object ArrayBuffer]', float32Tag = '[object Float32Array]', float64Tag = '[object Float64Array]', int8Tag = '[object Int8Array]', int16Tag = '[object Int16Array]', int32Tag = '[object Int32Array]', uint8Tag = '[object Uint8Array]', uint8ClampedTag = '[object Uint8ClampedArray]', uint16Tag = '[object Uint16Array]', uint32Tag = '[object Uint32Array]';
             var cloneableTags = {};
@@ -1504,7 +1525,7 @@
             module.exports = baseCopy;
         },
         function (module, exports) {
-            var toObject = _require(43);
+            var toObject = _require(47);
             function baseFor(object, iteratee, keysFunc) {
                 var index = -1, iterable = toObject(object), props = keysFunc(object), length = props.length;
                 while (++index < length) {
@@ -1518,7 +1539,7 @@
             module.exports = baseFor;
         },
         function (module, exports) {
-            var baseFor = _require(29), keys = _require(51);
+            var baseFor = _require(33), keys = _require(55);
             function baseForOwn(object, iteratee) {
                 return baseFor(object, iteratee, keys);
             }
@@ -1534,7 +1555,7 @@
             module.exports = baseToString;
         },
         function (module, exports) {
-            var identity = _require(56);
+            var identity = _require(60);
             function bindCallback(func, thisArg, argCount) {
                 if (typeof func != 'function') {
                     return identity;
@@ -1567,7 +1588,7 @@
             module.exports = bindCallback;
         },
         function (module, exports) {
-            var constant = _require(55), isNative = _require(47);
+            var constant = _require(59), isNative = _require(51);
             var ArrayBuffer = isNative(ArrayBuffer = global.ArrayBuffer) && ArrayBuffer, bufferSlice = isNative(bufferSlice = ArrayBuffer && new ArrayBuffer(0).slice) && bufferSlice, floor = Math.floor, Uint8Array = isNative(Uint8Array = global.Uint8Array) && Uint8Array;
             var Float64Array = function () {
                     try {
@@ -1597,7 +1618,7 @@
             module.exports = bufferClone;
         },
         function (module, exports) {
-            var bindCallback = _require(32), isIterateeCall = _require(39);
+            var bindCallback = _require(36), isIterateeCall = _require(43);
             function createAssigner(assigner) {
                 return function () {
                     var length = arguments.length, object = arguments[0];
@@ -1638,7 +1659,7 @@
             module.exports = initCloneArray;
         },
         function (module, exports) {
-            var bufferClone = _require(33);
+            var bufferClone = _require(37);
             var boolTag = '[object Boolean]', dateTag = '[object Date]', numberTag = '[object Number]', regexpTag = '[object RegExp]', stringTag = '[object String]';
             var arrayBufferTag = '[object ArrayBuffer]', float32Tag = '[object Float32Array]', float64Tag = '[object Float64Array]', int8Tag = '[object Int8Array]', int16Tag = '[object Int16Array]', int32Tag = '[object Int32Array]', uint8Tag = '[object Uint8Array]', uint8ClampedTag = '[object Uint8ClampedArray]', uint16Tag = '[object Uint16Array]', uint32Tag = '[object Uint32Array]';
             var reFlags = /\w*$/;
@@ -1692,7 +1713,7 @@
             module.exports = isIndex;
         },
         function (module, exports) {
-            var isIndex = _require(38), isLength = _require(40), isObject = _require(48);
+            var isIndex = _require(42), isLength = _require(44), isObject = _require(52);
             function isIterateeCall(value, index, object) {
                 if (!isObject(object)) {
                     return false;
@@ -1722,7 +1743,7 @@
             module.exports = isObjectLike;
         },
         function (module, exports) {
-            var isArguments = _require(45), isArray = _require(46), isIndex = _require(38), isLength = _require(40), keysIn = _require(52), support = _require(54);
+            var isArguments = _require(49), isArray = _require(50), isIndex = _require(42), isLength = _require(44), keysIn = _require(56), support = _require(58);
             var objectProto = Object.prototype;
             var hasOwnProperty = objectProto.hasOwnProperty;
             function shimKeys(object) {
@@ -1740,14 +1761,14 @@
             module.exports = shimKeys;
         },
         function (module, exports) {
-            var isObject = _require(48);
+            var isObject = _require(52);
             function toObject(value) {
                 return isObject(value) ? value : Object(value);
             }
             module.exports = toObject;
         },
         function (module, exports) {
-            var baseClone = _require(27), bindCallback = _require(32), isIterateeCall = _require(39);
+            var baseClone = _require(31), bindCallback = _require(36), isIterateeCall = _require(43);
             function clone(value, isDeep, customizer, thisArg) {
                 if (isDeep && typeof isDeep != 'boolean' && isIterateeCall(value, isDeep, customizer)) {
                     isDeep = false;
@@ -1762,7 +1783,7 @@
             module.exports = clone;
         },
         function (module, exports) {
-            var isLength = _require(40), isObjectLike = _require(41);
+            var isLength = _require(44), isObjectLike = _require(45);
             var argsTag = '[object Arguments]';
             var objectProto = Object.prototype;
             var objToString = objectProto.toString;
@@ -1773,7 +1794,7 @@
             module.exports = isArguments;
         },
         function (module, exports) {
-            var isLength = _require(40), isNative = _require(47), isObjectLike = _require(41);
+            var isLength = _require(44), isNative = _require(51), isObjectLike = _require(45);
             var arrayTag = '[object Array]';
             var objectProto = Object.prototype;
             var objToString = objectProto.toString;
@@ -1784,7 +1805,7 @@
             module.exports = isArray;
         },
         function (module, exports) {
-            var escapeRegExp = _require(53), isObjectLike = _require(41);
+            var escapeRegExp = _require(57), isObjectLike = _require(45);
             var funcTag = '[object Function]';
             var reHostCtor = /^\[object .+?Constructor\]$/;
             var objectProto = Object.prototype;
@@ -1810,15 +1831,15 @@
             module.exports = isObject;
         },
         function (module, exports) {
-            var baseAssign = _require(26), createAssigner = _require(34);
+            var baseAssign = _require(30), createAssigner = _require(38);
             var assign = createAssigner(baseAssign);
             module.exports = assign;
         },
         function (module, exports) {
-            module.exports = _require(49);
+            module.exports = _require(53);
         },
         function (module, exports) {
-            var isLength = _require(40), isNative = _require(47), isObject = _require(48), shimKeys = _require(42);
+            var isLength = _require(44), isNative = _require(51), isObject = _require(52), shimKeys = _require(46);
             var nativeKeys = isNative(nativeKeys = Object.keys) && nativeKeys;
             var keys = !nativeKeys ? shimKeys : function (object) {
                     if (object) {
@@ -1832,7 +1853,7 @@
             module.exports = keys;
         },
         function (module, exports) {
-            var isArguments = _require(45), isArray = _require(46), isIndex = _require(38), isLength = _require(40), isObject = _require(48), support = _require(54);
+            var isArguments = _require(49), isArray = _require(50), isIndex = _require(42), isLength = _require(44), isObject = _require(52), support = _require(58);
             var objectProto = Object.prototype;
             var hasOwnProperty = objectProto.hasOwnProperty;
             function keysIn(object) {
@@ -1858,7 +1879,7 @@
             module.exports = keysIn;
         },
         function (module, exports) {
-            var baseToString = _require(31);
+            var baseToString = _require(35);
             var reRegExpChars = /[.*+?^${}()|[\]\/\\]/g, reHasRegExpChars = RegExp(reRegExpChars.source);
             function escapeRegExp(string) {
                 string = baseToString(string);
@@ -1867,7 +1888,7 @@
             module.exports = escapeRegExp;
         },
         function (module, exports) {
-            var isNative = _require(47);
+            var isNative = _require(51);
             var reThis = /\bthis\b/;
             var objectProto = Object.prototype;
             var document = (document = global.window) && document.document;
@@ -1937,6 +1958,6 @@
             }.call(this));
         }
     ];
-    return _require(0);
+    return _require(7);
 }));
 //# sourceMappingURL=futoin-executor.js.map

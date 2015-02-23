@@ -1,3 +1,5 @@
+/* jshint ignore:start */
+
 module.exports = function (grunt) {
 
     grunt.initConfig({
@@ -105,6 +107,9 @@ module.exports = function (grunt) {
             all: {
                 options: {
                     sync: ['name', 'version','description','license','keywords','homepage','repository'],
+                    overrides: {
+                        main: "dist/futoin-executor.js"
+                    },
                     from: 'package.json',
                     to: 'bower.json'
                 }

@@ -1,6 +1,6 @@
 'use strict';
 
-var invoker = require( 'futoin-invoker' );
+var NativeIface = require( 'futoin-invoker/NativeIface' );
 
 /**
  * BasicAuth is not official spec - it is a temporary solution
@@ -8,7 +8,7 @@ var invoker = require( 'futoin-invoker' );
  */
 function BasicAuthFace()
 {
-    invoker.NativeIface.apply( this, arguments );
+    NativeIface.apply( this, arguments );
 }
 
 /**
@@ -33,6 +33,7 @@ BasicAuthFace.register = function( as, ccm, endpoint, credentials, options )
     );
 };
 
+BasicAuthFace.prototype = NativeIface.prototype;
 module.exports = BasicAuthFace;
 
 /**

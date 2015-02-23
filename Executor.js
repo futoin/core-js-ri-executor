@@ -3,74 +3,77 @@
 var _extend = require( 'lodash/object/extend' );
 var invoker = require( 'futoin-invoker' );
 var FutoInError = invoker.FutoInError;
-var request = require( './request' );
 var async_steps = require( 'futoin-asyncsteps' );
 var ee = require( 'event-emitter' );
 var _clone = require( 'lodash/lang/clone' );
 
-var ChannelContext = request.ChannelContext;
+var Executor = require( './Executor' );
+var ChannelContext = require( './ChannelContext' );
+var SourceAddress = require( './SourceAddress' );
+var RequestInfo = require( './RequestInfo' );
+var UserInfo = require( './UserInfo' );
 
 // ---
 var CallbackChannelContext = function( executor )
 {
     ChannelContext.call( this, executor );
-    _extend( this, CallbackChannelContextProto );
 };
 
-var CallbackChannelContextProto = {
-    type : function()
-    {
-        return "CALLBACK";
-    },
+var CallbackChannelContextProto = _clone( ChannelContext.prototype );
+CallbackChannelContext.prototype = CallbackChannelContextProto;
 
-    isStateful : function()
-    {
-        return true;
-    }
+CallbackChannelContextProto.type = function()
+{
+    return "CALLBACK";
+};
+
+CallbackChannelContextProto.isStateful = function()
+{
+    return true;
 };
 
 // ---
 var InternalChannelContext = function( executor, invoker_executor )
 {
     ChannelContext.call( this, executor );
-    _extend( this, InternalChannelContextProto );
     this._invoker_executor = invoker_executor;
 };
 
-var InternalChannelContextProto = {
-    type : function()
+var InternalChannelContextProto = _clone( ChannelContext.prototype );
+InternalChannelContext.prototype = InternalChannelContextProto;
+
+InternalChannelContextProto.type = function()
+{
+    return "INTERNAL";
+};
+
+InternalChannelContextProto.isStateful = function()
+{
+    return true;
+};
+
+InternalChannelContextProto._getPerformRequest = function()
+{
+    var invoker_executor = this._invoker_executor;
+
+    if ( !invoker_executor )
     {
-        return "INTERNAL";
-    },
-
-    isStateful : function()
-    {
-        return true;
-    },
-
-    _getPerformRequest : function()
-    {
-        var invoker_executor = this._invoker_executor;
-
-        if ( !invoker_executor )
-        {
-            return this._commError;
-        }
-
-        return function( as, ctx, ftnreq )
-        {
-            invoker_executor.onInternalRequest( as, ctx.info, ftnreq );
-        };
-    },
-
-    _commError : function( as )
-    {
-        as.error( FutoInError.CommError, "No Invoker's Executor for internal call" );
+        return this._commError;
     }
+
+    return function( as, ctx, ftnreq )
+    {
+        invoker_executor.onInternalRequest( as, ctx.info, ftnreq );
+    };
+};
+
+InternalChannelContextProto._commError = function( as )
+{
+    as.error( FutoInError.CommError, "No Invoker's Executor for internal call" );
 };
 
 // ---
-var executor_const =
+var ExecutorConst =
 {
     OPT_VAULT : "vault",
     OPT_SPEC_DIRS : invoker.AdvancedCCM.OPT_SPEC_DIRS,
@@ -84,7 +87,7 @@ var executor_const =
     OPT_MSG_SNIFFER : invoker.SimpleCCM.OPT_MSG_SNIFFER,
 
     OPT_REQUEST_TIMEOT : "reqTimeout",
-    OPT_HEAVY_REQUEST_TIMEOT : "heavyTimeout",
+    OPT_HEAVY_REQUEST_TIMEOT : "heavyReqTimeout",
 
     DEFAULT_REQUEST_TIMEOUT : 5e3,
     DEFAULT_HEAVY_TIMEOUT : 60e3,
@@ -92,10 +95,9 @@ var executor_const =
     SAFE_PAYLOAD_LIMIT : 65536,
 };
 
-var executor = function( ccm, opts )
+var Executor = function( ccm, opts )
 {
     ee( this );
-    _extend( this, executor_const, executor_proto );
 
     this._ccm = ccm;
     this._ifaces = {};
@@ -104,7 +106,7 @@ var executor = function( ccm, opts )
     opts = opts || {};
 
     //
-    var spec_dirs = opts[ this.OPT_SPEC_DIRS ];
+    var spec_dirs = opts.specDirs;
 
     if ( !( spec_dirs instanceof Array ) )
     {
@@ -114,11 +116,11 @@ var executor = function( ccm, opts )
     this._specdirs = spec_dirs;
 
     //
-    this._dev_checks = !opts[ this.OPT_PROD_MODE ];
+    this._dev_checks = !opts.prodMode;
 
     //
-    this._request_timeout = opts[ this.OPT_REQUEST_TIMEOT ] || this.DEFAULT_REQUEST_TIMEOUT;
-    this._heavy_timeout = opts[ this.OPT_HEAVY_REQUEST_TIMEOT ] || this.DEFAULT_HEAVY_TIMEOUT;
+    this._request_timeout = opts.reqTimeout || this.DEFAULT_REQUEST_TIMEOUT;
+    this._heavy_timeout = opts.heavyReqTimeout || this.DEFAULT_HEAVY_TIMEOUT;
 
     //
     if ( typeof Buffer !== 'undefined' && Buffer.byteLength )
@@ -134,7 +136,7 @@ var executor = function( ccm, opts )
     }
 };
 
-var executor_proto =
+var ExecutorProto =
 {
     _ccm : null,
     _ifaces : null,
@@ -231,10 +233,10 @@ var executor_proto =
     onEndpointRequest : function( info, ftnreq, send_executor_rsp )
     {
         var _this = this;
-        var reqinfo = new request.RequestInfo( this, ftnreq );
+        var reqinfo = new RequestInfo( this, ftnreq );
 
         var context = new CallbackChannelContext( this );
-        var source_addr = new request.SourceAddress( context.type(), null, info.regname );
+        var source_addr = new SourceAddress( context.type(), null, info.regname );
 
         var reqinfo_info = reqinfo.info;
         reqinfo_info[ reqinfo.INFO_CHANNEL_CONTEXT ] = context;
@@ -297,8 +299,8 @@ var executor_proto =
         }
 
         var _this = this;
-        var reqinfo = new request.RequestInfo( this, ftnreq );
-        var source_addr = new request.SourceAddress( context.type(), null, null );
+        var reqinfo = new RequestInfo( this, ftnreq );
+        var source_addr = new SourceAddress( context.type(), null, null );
 
         var reqinfo_info = reqinfo.info;
         reqinfo_info[ reqinfo.INFO_CHANNEL_CONTEXT ] = context;
@@ -616,18 +618,20 @@ var executor_proto =
                 as.add( function( as, rsp )
                 {
                     reqinfo_info[ reqinfo.INFO_USER_INFO ] =
-                            new request.UserInfo(
+                            new UserInfo(
                                 _this._ccm,
                                 rsp.local_id,
                                 rsp.global_id,
                                 rsp.details );
                     reqinfo_info[ reqinfo.INFO_SECURITY_LEVEL ] =
-                            request.RequestInfo.SL_INFO;
+                            RequestInfo.SL_INFO;
                 } );
             },
             function( as, err )
             {
                 void err;
+                // console.log( err, as.state.error_info );
+                // console.log( as.state.last_exception.stack );
                 as.success(); // check in constraints
             }
         );
@@ -661,13 +665,13 @@ var executor_proto =
                 as.add( function( as, rsp )
                 {
                     reqinfo_info[ reqinfo.INFO_USER_INFO ] =
-                            new request.UserInfo(
+                            new UserInfo(
                                 _this._ccm,
                                 rsp.local_id,
                                 rsp.global_id,
                                 rsp.details );
                     reqinfo_info[ reqinfo.INFO_SECURITY_LEVEL ] =
-                            request.RequestInfo.SL_INFO;
+                            RequestInfo.SL_INFO;
                     reqinfo_info._hmac_algo = algo;
                     reqinfo_info._hmac_user = user;
                 } );
@@ -710,6 +714,8 @@ var executor_proto =
              ( !context ||
                !context.isStateful() ) )
         {
+            console.dir( context );
+            console.log( context.isStateful() );
             as.error( FutoInError.InvalidRequest, "Bi-Direct Channel is required" );
         }
     },
@@ -977,6 +983,9 @@ var executor_proto =
     }
 };
 
-_extend( executor, executor_const );
-exports.Executor = executor;
-exports.ExecutorConst = executor_const;
+Executor.prototype = ExecutorProto;
+_extend( Executor, ExecutorConst );
+_extend( ExecutorProto, ExecutorConst );
+ExecutorProto.Const = ExecutorConst;
+
+module.exports = Executor;
