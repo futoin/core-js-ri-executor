@@ -27,11 +27,11 @@
     _require.modules = [
         function (module, exports) {
             'use strict';
-            var _clone = _require(48);
-            var _extend = _require(54);
+            var _clone = _require(49);
             var _zipObject = _require(27);
+            var _defaults = _require(55);
             var async_steps = _require(25);
-            var performance_now = _require(61);
+            var performance_now = _require(63);
             var browser_window = window;
             var Executor = _require(3);
             var ChannelContext = _require(1);
@@ -77,15 +77,15 @@
                     });
                 };
             };
-            var BrowserExecutorConst = {
-                    OPT_CONNECT_TIMEOUT: 'connectTimeout',
-                    OPT_ALLOWED_ORIGINS: 'allowedOrigins'
+            var BrowserExecutorOptions = {
+                    connectTimeout: 600,
+                    allowedOrigins: null
                 };
             var BrowserExecutor = function (ccm, opts) {
                 Executor.call(this, ccm, opts);
                 opts = opts || {};
-                this._msg_sniffer = opts.messageSniffer || function () {
-                };
+                _defaults(opts, BrowserExecutorOptions);
+                this._msg_sniffer = opts.messageSniffer;
                 this._contexts = [];
                 this._reverse_requests = {
                     rid: 1,
@@ -97,7 +97,7 @@
                     allowed_origins = _zipObject(allowed_origins, allowed_origins);
                 }
                 this.allowed_origins = allowed_origins;
-                var connection_timeout = opts.connectTimeout || 600;
+                var connection_timeout = opts.connectTimeout;
                 var connection_cleanup = function () {
                     var ctx_list = _this._contexts;
                     var remove_time = performance_now() - connection_timeout;
@@ -118,8 +118,6 @@
             };
             var BrowserExecutorProto = _clone(Executor.prototype);
             BrowserExecutor.prototype = BrowserExecutorProto;
-            _extend(BrowserExecutor, BrowserExecutorConst, BrowserExecutorProto.Const);
-            _extend(BrowserExecutorProto, BrowserExecutorConst);
             BrowserExecutorProto.allowed_origins = null;
             BrowserExecutorProto.handleMessage = function (event) {
                 this._msg_sniffer(event, event.data, true);
@@ -289,12 +287,13 @@
         },
         function (module, exports) {
             'use strict';
-            var _extend = _require(54);
+            var _extend = _require(56);
+            var _defaults = _require(55);
             var invoker = _require(26);
             var FutoInError = invoker.FutoInError;
             var async_steps = _require(25);
             var ee = _require(10);
-            var _clone = _require(48);
+            var _clone = _require(49);
             var Executor = _require(3);
             var ChannelContext = _require(1);
             var SourceAddress = _require(5);
@@ -335,16 +334,13 @@
             InternalChannelContextProto._commError = function (as) {
                 as.error(FutoInError.CommError, 'No Invoker\'s Executor for internal call');
             };
-            var ExecutorConst = {
-                    OPT_VAULT: 'vault',
-                    OPT_SPEC_DIRS: invoker.AdvancedCCM.OPT_SPEC_DIRS,
-                    OPT_PROD_MODE: invoker.AdvancedCCM.OPT_PROD_MODE,
-                    OPT_MSG_SNIFFER: invoker.SimpleCCM.OPT_MSG_SNIFFER,
-                    OPT_REQUEST_TIMEOT: 'reqTimeout',
-                    OPT_HEAVY_REQUEST_TIMEOT: 'heavyReqTimeout',
-                    DEFAULT_REQUEST_TIMEOUT: 5000,
-                    DEFAULT_HEAVY_TIMEOUT: 60000,
-                    SAFE_PAYLOAD_LIMIT: 65536
+            var ExecutorOptions = {
+                    messageSniffer: function () {
+                    },
+                    specDirs: [],
+                    prodMode: false,
+                    reqTimeout: 5000,
+                    heavyReqTimeout: 60000
                 };
             var Executor = function (ccm, opts) {
                 ee(this);
@@ -352,14 +348,15 @@
                 this._ifaces = {};
                 this._impls = {};
                 opts = opts || {};
+                _defaults(opts, ExecutorOptions);
                 var spec_dirs = opts.specDirs;
                 if (!(spec_dirs instanceof Array)) {
                     spec_dirs = [spec_dirs];
                 }
                 this._specdirs = spec_dirs;
                 this._dev_checks = !opts.prodMode;
-                this._request_timeout = opts.reqTimeout || this.DEFAULT_REQUEST_TIMEOUT;
-                this._heavy_timeout = opts.heavyReqTimeout || this.DEFAULT_HEAVY_TIMEOUT;
+                this._request_timeout = opts.reqTimeout;
+                this._heavy_timeout = opts.heavyReqTimeout;
                 if (typeof Buffer !== 'undefined' && Buffer.byteLength) {
                     this._byteLength = Buffer.byteLength;
                 } else {
@@ -369,6 +366,7 @@
                 }
             };
             var ExecutorProto = {
+                    SAFE_PAYLOAD_LIMIT: 65536,
                     _ccm: null,
                     _ifaces: null,
                     _impls: null,
@@ -852,15 +850,12 @@
                     }
                 };
             Executor.prototype = ExecutorProto;
-            _extend(Executor, ExecutorConst);
-            _extend(ExecutorProto, ExecutorConst);
-            ExecutorProto.Const = ExecutorConst;
             module.exports = Executor;
         },
         function (module, exports) {
             'use strict';
-            var _extend = _require(54);
-            var performance_now = _require(61);
+            var _extend = _require(56);
+            var performance_now = _require(63);
             var async_steps = _require(25);
             var reqinfo_const = {
                     SL_ANONYMOUS: 'Anonymous',
@@ -1002,7 +997,7 @@
         },
         function (module, exports) {
             'use strict';
-            var _extend = _require(54);
+            var _extend = _require(56);
             var userinfo_const = {
                     INFO_FirstName: 'FirstName',
                     INFO_FullName: 'FullName',
@@ -1396,7 +1391,7 @@
             module.exports = __external_FutoInInvoker;
         },
         function (module, exports) {
-            var isArray = _require(50);
+            var isArray = _require(51);
             function zipObject(props, values) {
                 var index = -1, length = props ? props.length : 0, result = {};
                 if (length && !values && !isArray(props[0])) {
@@ -1438,7 +1433,13 @@
             module.exports = arrayEach;
         },
         function (module, exports) {
-            var baseCopy = _require(32), keys = _require(55);
+            function assignDefaults(objectValue, sourceValue) {
+                return typeof objectValue == 'undefined' ? sourceValue : objectValue;
+            }
+            module.exports = assignDefaults;
+        },
+        function (module, exports) {
+            var baseCopy = _require(33), keys = _require(57);
             function baseAssign(object, source, customizer) {
                 var props = keys(source);
                 if (!customizer) {
@@ -1456,7 +1457,7 @@
             module.exports = baseAssign;
         },
         function (module, exports) {
-            var arrayCopy = _require(28), arrayEach = _require(29), baseCopy = _require(32), baseForOwn = _require(34), initCloneArray = _require(39), initCloneByTag = _require(40), initCloneObject = _require(41), isArray = _require(50), isObject = _require(52), keys = _require(55);
+            var arrayCopy = _require(28), arrayEach = _require(29), baseCopy = _require(33), baseForOwn = _require(35), initCloneArray = _require(40), initCloneByTag = _require(41), initCloneObject = _require(42), isArray = _require(51), isObject = _require(53), keys = _require(57);
             var argsTag = '[object Arguments]', arrayTag = '[object Array]', boolTag = '[object Boolean]', dateTag = '[object Date]', errorTag = '[object Error]', funcTag = '[object Function]', mapTag = '[object Map]', numberTag = '[object Number]', objectTag = '[object Object]', regexpTag = '[object RegExp]', setTag = '[object Set]', stringTag = '[object String]', weakMapTag = '[object WeakMap]';
             var arrayBufferTag = '[object ArrayBuffer]', float32Tag = '[object Float32Array]', float64Tag = '[object Float64Array]', int8Tag = '[object Int8Array]', int16Tag = '[object Int16Array]', int32Tag = '[object Int32Array]', uint8Tag = '[object Uint8Array]', uint8ClampedTag = '[object Uint8ClampedArray]', uint16Tag = '[object Uint16Array]', uint32Tag = '[object Uint32Array]';
             var cloneableTags = {};
@@ -1525,7 +1526,7 @@
             module.exports = baseCopy;
         },
         function (module, exports) {
-            var toObject = _require(47);
+            var toObject = _require(48);
             function baseFor(object, iteratee, keysFunc) {
                 var index = -1, iterable = toObject(object), props = keysFunc(object), length = props.length;
                 while (++index < length) {
@@ -1539,7 +1540,7 @@
             module.exports = baseFor;
         },
         function (module, exports) {
-            var baseFor = _require(33), keys = _require(55);
+            var baseFor = _require(34), keys = _require(57);
             function baseForOwn(object, iteratee) {
                 return baseFor(object, iteratee, keys);
             }
@@ -1555,7 +1556,7 @@
             module.exports = baseToString;
         },
         function (module, exports) {
-            var identity = _require(60);
+            var identity = _require(62);
             function bindCallback(func, thisArg, argCount) {
                 if (typeof func != 'function') {
                     return identity;
@@ -1588,7 +1589,7 @@
             module.exports = bindCallback;
         },
         function (module, exports) {
-            var constant = _require(59), isNative = _require(51);
+            var constant = _require(61), isNative = _require(52);
             var ArrayBuffer = isNative(ArrayBuffer = global.ArrayBuffer) && ArrayBuffer, bufferSlice = isNative(bufferSlice = ArrayBuffer && new ArrayBuffer(0).slice) && bufferSlice, floor = Math.floor, Uint8Array = isNative(Uint8Array = global.Uint8Array) && Uint8Array;
             var Float64Array = function () {
                     try {
@@ -1618,7 +1619,7 @@
             module.exports = bufferClone;
         },
         function (module, exports) {
-            var bindCallback = _require(36), isIterateeCall = _require(43);
+            var bindCallback = _require(37), isIterateeCall = _require(44);
             function createAssigner(assigner) {
                 return function () {
                     var length = arguments.length, object = arguments[0];
@@ -1659,7 +1660,7 @@
             module.exports = initCloneArray;
         },
         function (module, exports) {
-            var bufferClone = _require(37);
+            var bufferClone = _require(38);
             var boolTag = '[object Boolean]', dateTag = '[object Date]', numberTag = '[object Number]', regexpTag = '[object RegExp]', stringTag = '[object String]';
             var arrayBufferTag = '[object ArrayBuffer]', float32Tag = '[object Float32Array]', float64Tag = '[object Float64Array]', int8Tag = '[object Int8Array]', int16Tag = '[object Int16Array]', int32Tag = '[object Int32Array]', uint8Tag = '[object Uint8Array]', uint8ClampedTag = '[object Uint8ClampedArray]', uint16Tag = '[object Uint16Array]', uint32Tag = '[object Uint32Array]';
             var reFlags = /\w*$/;
@@ -1713,7 +1714,7 @@
             module.exports = isIndex;
         },
         function (module, exports) {
-            var isIndex = _require(42), isLength = _require(44), isObject = _require(52);
+            var isIndex = _require(43), isLength = _require(45), isObject = _require(53);
             function isIterateeCall(value, index, object) {
                 if (!isObject(object)) {
                     return false;
@@ -1743,7 +1744,7 @@
             module.exports = isObjectLike;
         },
         function (module, exports) {
-            var isArguments = _require(49), isArray = _require(50), isIndex = _require(42), isLength = _require(44), keysIn = _require(56), support = _require(58);
+            var isArguments = _require(50), isArray = _require(51), isIndex = _require(43), isLength = _require(45), keysIn = _require(58), support = _require(60);
             var objectProto = Object.prototype;
             var hasOwnProperty = objectProto.hasOwnProperty;
             function shimKeys(object) {
@@ -1761,14 +1762,14 @@
             module.exports = shimKeys;
         },
         function (module, exports) {
-            var isObject = _require(52);
+            var isObject = _require(53);
             function toObject(value) {
                 return isObject(value) ? value : Object(value);
             }
             module.exports = toObject;
         },
         function (module, exports) {
-            var baseClone = _require(31), bindCallback = _require(36), isIterateeCall = _require(43);
+            var baseClone = _require(32), bindCallback = _require(37), isIterateeCall = _require(44);
             function clone(value, isDeep, customizer, thisArg) {
                 if (isDeep && typeof isDeep != 'boolean' && isIterateeCall(value, isDeep, customizer)) {
                     isDeep = false;
@@ -1783,7 +1784,7 @@
             module.exports = clone;
         },
         function (module, exports) {
-            var isLength = _require(44), isObjectLike = _require(45);
+            var isLength = _require(45), isObjectLike = _require(46);
             var argsTag = '[object Arguments]';
             var objectProto = Object.prototype;
             var objToString = objectProto.toString;
@@ -1794,7 +1795,7 @@
             module.exports = isArguments;
         },
         function (module, exports) {
-            var isLength = _require(44), isNative = _require(51), isObjectLike = _require(45);
+            var isLength = _require(45), isNative = _require(52), isObjectLike = _require(46);
             var arrayTag = '[object Array]';
             var objectProto = Object.prototype;
             var objToString = objectProto.toString;
@@ -1805,7 +1806,7 @@
             module.exports = isArray;
         },
         function (module, exports) {
-            var escapeRegExp = _require(57), isObjectLike = _require(45);
+            var escapeRegExp = _require(59), isObjectLike = _require(46);
             var funcTag = '[object Function]';
             var reHostCtor = /^\[object .+?Constructor\]$/;
             var objectProto = Object.prototype;
@@ -1831,15 +1832,27 @@
             module.exports = isObject;
         },
         function (module, exports) {
-            var baseAssign = _require(30), createAssigner = _require(38);
+            var baseAssign = _require(31), createAssigner = _require(39);
             var assign = createAssigner(baseAssign);
             module.exports = assign;
         },
         function (module, exports) {
-            module.exports = _require(53);
+            var arrayCopy = _require(28), assign = _require(54), assignDefaults = _require(30);
+            function defaults(object) {
+                if (object == null) {
+                    return object;
+                }
+                var args = arrayCopy(arguments);
+                args.push(assignDefaults);
+                return assign.apply(undefined, args);
+            }
+            module.exports = defaults;
         },
         function (module, exports) {
-            var isLength = _require(44), isNative = _require(51), isObject = _require(52), shimKeys = _require(46);
+            module.exports = _require(54);
+        },
+        function (module, exports) {
+            var isLength = _require(45), isNative = _require(52), isObject = _require(53), shimKeys = _require(47);
             var nativeKeys = isNative(nativeKeys = Object.keys) && nativeKeys;
             var keys = !nativeKeys ? shimKeys : function (object) {
                     if (object) {
@@ -1853,7 +1866,7 @@
             module.exports = keys;
         },
         function (module, exports) {
-            var isArguments = _require(49), isArray = _require(50), isIndex = _require(42), isLength = _require(44), isObject = _require(52), support = _require(58);
+            var isArguments = _require(50), isArray = _require(51), isIndex = _require(43), isLength = _require(45), isObject = _require(53), support = _require(60);
             var objectProto = Object.prototype;
             var hasOwnProperty = objectProto.hasOwnProperty;
             function keysIn(object) {
@@ -1879,7 +1892,7 @@
             module.exports = keysIn;
         },
         function (module, exports) {
-            var baseToString = _require(35);
+            var baseToString = _require(36);
             var reRegExpChars = /[.*+?^${}()|[\]\/\\]/g, reHasRegExpChars = RegExp(reRegExpChars.source);
             function escapeRegExp(string) {
                 string = baseToString(string);
@@ -1888,7 +1901,7 @@
             module.exports = escapeRegExp;
         },
         function (module, exports) {
-            var isNative = _require(51);
+            var isNative = _require(52);
             var reThis = /\bthis\b/;
             var objectProto = Object.prototype;
             var document = (document = global.window) && document.document;

@@ -1,6 +1,7 @@
 "use strict";
 
 var _extend = require( 'lodash/object/extend' );
+var _defaults = require( 'lodash/object/defaults' );
 var invoker = require( 'futoin-invoker' );
 var FutoInError = invoker.FutoInError;
 var async_steps = require( 'futoin-asyncsteps' );
@@ -73,26 +74,42 @@ InternalChannelContextProto._commError = function( as )
 };
 
 // ---
-var ExecutorConst =
+var ExecutorOptions =
 {
-    OPT_VAULT : "vault",
-    OPT_SPEC_DIRS : invoker.AdvancedCCM.OPT_SPEC_DIRS,
-    OPT_PROD_MODE : invoker.AdvancedCCM.OPT_PROD_MODE,
+    /**
+     * Message sniffer callback( iface_info, msg, is_incomming ).
+     * Useful for audit logging.
+     * @default dummy
+     */
+    messageSniffer : function()
+    {},
 
     /**
-     * Message sniffer callback( source, msg, is_incomming )
-     * @alias Executor.OPT_MSG_SNIFFER
-     * @private
+     * Search dirs for spec definition or spec instance directly. It can
+     * be single value or array of values. Each value is either path/URL (string) or
+     * iface spec instance (object).
+     * @default
      */
-    OPT_MSG_SNIFFER : invoker.SimpleCCM.OPT_MSG_SNIFFER,
+    specDirs : [],
 
-    OPT_REQUEST_TIMEOT : "reqTimeout",
-    OPT_HEAVY_REQUEST_TIMEOT : "heavyReqTimeout",
+    /**
+     * Production mode - disables some checks without compomising security
+     * @default
+     */
+    prodMode : false,
 
-    DEFAULT_REQUEST_TIMEOUT : 5e3,
-    DEFAULT_HEAVY_TIMEOUT : 60e3,
+    /**
+     * Default request processing timeout
+     * @default
+     */
+    reqTimeout : 5e3,
 
-    SAFE_PAYLOAD_LIMIT : 65536,
+    /**
+     * Default request processing timeout for functions
+     * marked "heavy". See FTN3
+     * @default
+     */
+    heavyReqTimeout : 60e3
 };
 
 var Executor = function( ccm, opts )
@@ -104,6 +121,7 @@ var Executor = function( ccm, opts )
     this._impls = {};
 
     opts = opts || {};
+    _defaults( opts, ExecutorOptions );
 
     //
     var spec_dirs = opts.specDirs;
@@ -119,8 +137,8 @@ var Executor = function( ccm, opts )
     this._dev_checks = !opts.prodMode;
 
     //
-    this._request_timeout = opts.reqTimeout || this.DEFAULT_REQUEST_TIMEOUT;
-    this._heavy_timeout = opts.heavyReqTimeout || this.DEFAULT_HEAVY_TIMEOUT;
+    this._request_timeout = opts.reqTimeout;
+    this._heavy_timeout = opts.heavyReqTimeout;
 
     //
     if ( typeof Buffer !== 'undefined' && Buffer.byteLength )
@@ -138,6 +156,8 @@ var Executor = function( ccm, opts )
 
 var ExecutorProto =
 {
+    SAFE_PAYLOAD_LIMIT : 65536,
+
     _ccm : null,
     _ifaces : null,
     _impls : null,
@@ -984,8 +1004,5 @@ var ExecutorProto =
 };
 
 Executor.prototype = ExecutorProto;
-_extend( Executor, ExecutorConst );
-_extend( ExecutorProto, ExecutorConst );
-ExecutorProto.Const = ExecutorConst;
 
 module.exports = Executor;

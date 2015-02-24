@@ -49,8 +49,8 @@ model_as.add(
     function( as )
     {
         var opts = {};
-        opts[invoker_module.OPT_CALL_TIMEOUT_MS] = 1e3;
-        opts[executor_module.Executor.OPT_SPEC_DIRS] = [
+        opts.callTimeoutMS = 1e3;
+        opts.specDirs = [
             thisDir + '/specs',
             test_if_anon,
             test_if_anon_bidirect,
@@ -68,23 +68,23 @@ model_as.add(
         }
         else if ( node_test )
         {
-            opts[NodeExecutor.OPT_HTTP_ADDR] = 'localhost';
-            opts[NodeExecutor.OPT_HTTP_PORT] = '1080';
-            opts[NodeExecutor.OPT_HTTP_PATH] = '/ftn';
+            opts.httpAddr = 'localhost';
+            opts.httpPort = '1080';
+            opts.httpPath = '/ftn';
 
             var secopts = _.clone( opts );
 
             end_point = as.state.proto +
-                "://" + opts[NodeExecutor.OPT_HTTP_ADDR] +
-                ":" + opts[NodeExecutor.OPT_HTTP_PORT] +
-                opts[NodeExecutor.OPT_HTTP_PATH];
+                "://" + opts.httpAddr +
+                ":" + opts.httpPort +
+                opts.httpPath;
                 
-            secopts[NodeExecutor.OPT_HTTP_PORT] = '1081';
+            secopts.httpPort = '1081';
                 
             var secend_point = "secure+" + as.state.proto +
-                "://" + secopts[NodeExecutor.OPT_HTTP_ADDR] +
-                ":" + secopts[NodeExecutor.OPT_HTTP_PORT] +
-                secopts[NodeExecutor.OPT_HTTP_PATH];
+                "://" + secopts.httpAddr +
+                ":" + secopts.httpPort +
+                secopts.httpPath;
         }
         else
         {
@@ -96,7 +96,7 @@ model_as.add(
         state.ccm_msgs = [];
         state.exec_msgs = [];
         
-        opts[ executor_module.Executor.OPT_MSG_SNIFFER ] = function( info, msg ){
+        opts.messageSniffer = function( info, msg ){
             state.ccm_msgs.push( msg );
         };
 
@@ -109,14 +109,13 @@ model_as.add(
         var is_bidirect = internal_test || ( end_point.match( /^(ws|browser)/ ) !== null );
         
         var execopts = _.clone( opts );
-        execopts[ executor_module.Executor.OPT_MSG_SNIFFER ] = function( src, msg ){
+        execopts.messageSniffer = function( src, msg ){
             state.exec_msgs.push( msg );
         };
         
         if ( node_test )
         {
-            secopts[ executor_module.Executor.OPT_MSG_SNIFFER ] =
-                    execopts[ executor_module.Executor.OPT_MSG_SNIFFER ];
+            secopts.messageSniffer = execopts.messageSniffer;
         }
 
         function set_step( s )
@@ -135,7 +134,7 @@ model_as.add(
                 console.log( "NotExpected: " + err + " " + error_info );
             });*/
             
-            as.setTimeout( execopts[invoker_module.OPT_CALL_TIMEOUT_MS] );
+            as.setTimeout( execopts.callTimeoutMS );
             executor.on('ready', function(){
                 as.success();
             });
@@ -151,7 +150,7 @@ model_as.add(
                 console.log( "NotExpected: " + err + " " + error_info );
             });*/
  
-            as.setTimeout( execopts[invoker_module.OPT_CALL_TIMEOUT_MS] );
+            as.setTimeout( execopts.callTimeoutMS );
             secexecutor.on('ready', function(){
                 as.success();
             });

@@ -1,8 +1,8 @@
 "use strict";
 
 var _clone = require( 'lodash/lang/clone' );
-var _extend = require( 'lodash/object/extend' );
 var _zipObject = require( 'lodash/array/zipObject' );
+var _defaults = require( 'lodash/object/defaults' );
 var async_steps = require( 'futoin-asyncsteps' );
 var performance_now = require( "performance-now" );
 var browser_window = window; // jshint ignore:line
@@ -76,10 +76,10 @@ BrowserChannelContextProto._getPerformRequest = function()
 };
 
 // ---
-var BrowserExecutorConst =
+var BrowserExecutorOptions =
 {
-    OPT_CONNECT_TIMEOUT : 'connectTimeout',
-    OPT_ALLOWED_ORIGINS : 'allowedOrigins',
+    connectTimeout : 600,
+    allowedOrigins : null,
 };
 
 var BrowserExecutor = function( ccm, opts )
@@ -87,8 +87,9 @@ var BrowserExecutor = function( ccm, opts )
     Executor.call( this, ccm, opts );
 
     opts = opts || {};
-    this._msg_sniffer = opts.messageSniffer || function()
-            {};
+    _defaults( opts, BrowserExecutorOptions );
+
+    this._msg_sniffer = opts.messageSniffer;
     this._contexts = [];
     this._reverse_requests = {
         rid : 1,
@@ -108,7 +109,7 @@ var BrowserExecutor = function( ccm, opts )
     this.allowed_origins = allowed_origins;
 
     // --
-    var connection_timeout = opts.connectTimeout || 600;
+    var connection_timeout = opts.connectTimeout;
 
     var connection_cleanup = function()
     {
@@ -142,8 +143,6 @@ var BrowserExecutor = function( ccm, opts )
 
 var BrowserExecutorProto = _clone( Executor.prototype );
 BrowserExecutor.prototype = BrowserExecutorProto;
-_extend( BrowserExecutor, BrowserExecutorConst, BrowserExecutorProto.Const );
-_extend( BrowserExecutorProto, BrowserExecutorConst );
 
 BrowserExecutorProto.allowed_origins = null;
 

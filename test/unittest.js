@@ -47,7 +47,7 @@ var impl = {
 
 describe( 'Executor', function(){
     var opts = {};
-    opts[ invoker.AdvancedCCM.OPT_SPEC_DIRS ] = [
+    opts.specDirs = [
         thisDir + '/missing',
         thisDir + '/specs'
     ];
@@ -74,7 +74,7 @@ describe( 'Executor', function(){
 
         it('should register base interface', function( done ){
             var opts = {};
-            opts[ invoker.AdvancedCCM.OPT_SPEC_DIRS ] = thisDir + '/specs';
+            opts.specDirs = thisDir + '/specs';
             executor = new executor_module.Executor( ccm, opts );
 
             as.add(

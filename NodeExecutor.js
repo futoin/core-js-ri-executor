@@ -1,7 +1,7 @@
 "use strict";
 
 var _clone = require( 'lodash/lang/clone' );
-var _extend = require( 'lodash/object/extend' );
+var _defaults = require( 'lodash/object/defaults' );
 var WebSocket = require( 'faye-websocket' );
 var http = require( 'http' );
 var url = require( 'url' );
@@ -178,15 +178,15 @@ WSChannelContextProto._getPerformRequest = function()
 };
 
 // ---
-var NodeExecutorConst =
+var NodeExecutorOptions =
 {
-    OPT_HTTP_SERVER : 'httpServer',
-    OPT_HTTP_ADDR : 'httpAddr',
-    OPT_HTTP_PORT : 'httpPort',
-    OPT_HTTP_PATH : 'httpPath',
-    OPT_HTTP_BACKLOG : 'httpBacklog',
-    OPT_IS_SECURE_CHANNEL : 'secureChannel',
-    OPT_TRUST_PROXY : "trustProxy"
+    httpServer : null,
+    httpAddr : null,
+    httpPort : null,
+    httpPath : '/',
+    httpBacklog : null,
+    secureChannel : false,
+    trustProxy : false,
 };
 
 var NodeExecutor = function( ccm, opts )
@@ -194,15 +194,16 @@ var NodeExecutor = function( ccm, opts )
     Executor.call( this, ccm, opts );
 
     opts = opts || {};
-    this._msg_sniffer = opts.messageSniffer || function()
-            {};
+    _defaults( opts, NodeExecutorOptions );
+
+    this._msg_sniffer = opts.messageSniffer;
 
     var _this = this;
 
     // ---
     if ( !opts.httpPath )
     {
-        console.log( '[Executor] Missing OPT_HTTP_PATH option' );
+        console.log( '[Executor] Missing httpPath option' );
         throw Error( 'InternalError' );
     }
 
@@ -249,7 +250,7 @@ var NodeExecutor = function( ccm, opts )
     }
     else
     {
-        console.log( '[Executor] Neither OPT_HTTP_SERVER nor OPT_HTTP_ADDR & OPT_HTTP_PORT set' );
+        console.log( '[Executor] Neither httpServer nor httpAddr & httpPort set' );
         throw Error( 'InternalError' );
     }
 
@@ -313,8 +314,6 @@ var NodeExecutor = function( ccm, opts )
 
 var NodeExecutorProto = _clone( Executor.prototype );
 NodeExecutor.prototype = NodeExecutorProto;
-_extend( NodeExecutor, NodeExecutorConst, NodeExecutorProto.Const );
-_extend( NodeExecutorProto, NodeExecutorConst );
 
 NodeExecutorProto._http_server = null;
 NodeExecutorProto._http_path = null;
