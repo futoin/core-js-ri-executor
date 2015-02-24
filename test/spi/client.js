@@ -22,9 +22,32 @@ var argv = require('minimist')(
             default : {
                 time_limit : 60e3,
                 concurrency : 500,
+                proto : 'http',
             }            
         }
 );
+//---
+var url = argv.proto + '://127.0.0.1:34567/stress/';
+
+//---
+var creds = null;
+
+if ( argv.auth === 'basic' )
+{
+    creds = 'basicuser:basicpass';
+    console.log( 'BASIC AUTH' );
+}
+else if ( argv.auth === 'hmac' )
+{
+    creds = '-hmac:hmacuser';
+    opts.hmacKey = new Buffer( 'hmacpass' ).toString( 'base64' );
+    console.log( 'HMAC AUTH' );
+}
+else
+{
+    console.log( 'NO AUTH' );
+}
+
 //---
 var made_calls = 0;
 var success_calls = 0;
@@ -47,7 +70,7 @@ model_as.add(
         as.add(
             function( as )
             {
-                ccm.register( as, 'test', 'spi.test:0.1', 'http://127.0.0.1:34567/stress/' );
+                ccm.register( as, 'test', 'spi.test:0.1', url, creds );
             },
             function( as, err )
             {
@@ -105,6 +128,7 @@ model_as.add(
                     }
                     else
                     {
+                        console.log( err, as.state.error_info );
                         ++failed_calls;
                     }
                     

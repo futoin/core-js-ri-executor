@@ -3,6 +3,8 @@
 var async_steps = require( 'futoin-asyncsteps' );
 var invoker_module = require( 'futoin-invoker' );
 var executor_module = require( '../../lib/main' );
+var BasicAuthFace = require( '../../BasicAuthFace' );
+var BasicAuthService = require( '../../BasicAuthService' );
 var util = require('util');
 
 var opts = {
@@ -28,11 +30,17 @@ var ccm = new invoker_module.AdvancedCCM( opts );
 var executor = new executor_module.NodeExecutor( ccm, opts );
 var impl = {};
 
+var internal_executor = new executor_module.Executor( ccm, opts );
+
 executor.on('ready', function(){
     async_steps().add(
         function( as )
         {
             executor.register( as, 'spi.test:0.1', impl );
+            var authsrv = BasicAuthService.register( as, internal_executor );
+            authsrv.addUser( 'basicuser', 'basicpass' );
+            authsrv.addUser( 'hmacuser', 'hmacpass' );
+            BasicAuthFace.register( as, ccm, internal_executor );
         },
         function( as, err )
         {
