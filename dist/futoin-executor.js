@@ -46,6 +46,8 @@
             };
             var BrowserChannelContextProto = _clone(ChannelContext.prototype);
             BrowserChannelContext.prototype = BrowserChannelContextProto;
+            BrowserChannelContextProto._event_origin = null;
+            BrowserChannelContextProto._event_source = null;
             BrowserChannelContextProto.type = function () {
                 return 'BROWSER';
             };
@@ -78,8 +80,8 @@
                 };
             };
             var BrowserExecutorOptions = {
-                    connectTimeout: 600,
-                    allowedOrigins: null
+                    clientTimeoutMS: 600,
+                    allowedOrigins: []
                 };
             var BrowserExecutor = function (ccm, opts) {
                 Executor.call(this, ccm, opts);
@@ -97,10 +99,10 @@
                     allowed_origins = _zipObject(allowed_origins, allowed_origins);
                 }
                 this.allowed_origins = allowed_origins;
-                var connection_timeout = opts.connectTimeout;
+                var client_timeout = opts.clientTimeoutMS;
                 var connection_cleanup = function () {
                     var ctx_list = _this._contexts;
-                    var remove_time = performance_now() - connection_timeout;
+                    var remove_time = performance_now() - client_timeout;
                     for (var i = ctx_list.length - 1; i >= 0; --i) {
                         var ctx = ctx_list[i];
                         if (ctx._last_used < remove_time) {
@@ -108,7 +110,7 @@
                             ctx_list.splice(i, 1);
                         }
                     }
-                    setTimeout(connection_cleanup, connection_timeout * 1000);
+                    setTimeout(connection_cleanup, client_timeout * 1000);
                 };
                 connection_cleanup();
                 this._event_listener = function (event) {
@@ -161,17 +163,16 @@
                 var source_addr = new SourceAddress('LOCAL', source, origin);
                 var reqinfo = new RequestInfo(this, ftnreq);
                 var reqinfo_info = reqinfo.info;
-                reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT] = context;
-                reqinfo_info[reqinfo.INFO_CLIENT_ADDR] = source_addr;
-                reqinfo_info[reqinfo.INFO_SECURE_CHANNEL] = this._is_secure_channel;
+                reqinfo_info.CHANNEL_CONTEXT = context;
+                reqinfo_info.CLIENT_ADDR = source_addr;
+                reqinfo_info.SECURE_CHANNEL = this._is_secure_channel;
                 var _this = this;
                 var as = async_steps();
                 as.state.reqinfo = reqinfo;
                 reqinfo._as = as;
                 var cancel_req = function (as) {
                     void as;
-                    reqinfo.cancelAfter(0);
-                    reqinfo._as = null;
+                    reqinfo._cleanup();
                     var ftnrsp = {
                             e: 'InternalError',
                             rid: rid
@@ -184,9 +185,8 @@
                     _this.process(as);
                     as.add(function (as) {
                         void as;
-                        var ftnrsp = reqinfo_info[reqinfo.INFO_RAW_RESPONSE];
-                        reqinfo.cancelAfter(0);
-                        reqinfo._as = null;
+                        var ftnrsp = reqinfo_info.RAW_RESPONSE;
+                        reqinfo._cleanup();
                         if (ftnrsp !== null) {
                             _this._msg_sniffer(event, ftnrsp, false);
                             context._event_source.postMessage(ftnrsp, context._event_origin);
@@ -215,7 +215,7 @@
                 };
             };
             var ChannelContextProto = {
-                    _user_info: null,
+                    _executor: null,
                     _ifaces: null,
                     state: null,
                     type: function () {
@@ -251,9 +251,9 @@
                         throw Error('NotImplemented');
                     },
                     _cleanup: function () {
-                        delete this._executor;
-                        delete this._ifaces;
-                        delete this.state;
+                        this._executor = null;
+                        this._ifaces = null;
+                        this.state = null;
                     }
                 };
             ChannelContext.prototype = ChannelContextProto;
@@ -267,6 +267,9 @@
                 this._sequence_id = sequence_id;
             };
             var DerivedKeyProto = {
+                    _ccm: null,
+                    _base_id: null,
+                    _sequence_id: null,
                     baseID: function () {
                         return this._base_id;
                     },
@@ -276,10 +279,15 @@
                     encrypt: function (as, data) {
                         void as;
                         void data;
+                        as.error('NotImplemented', 'Derived key encryption is not supported yet');
                     },
                     decrypt: function (as, data) {
                         void as;
                         void data;
+                        as.error('NotImplemented', 'Derived key decryption is not supported yet');
+                    },
+                    _cleanup: function () {
+                        this._ccm = null;
                     }
                 };
             DerivedKey.prototype = DerivedKeyProto;
@@ -316,6 +324,7 @@
             };
             var InternalChannelContextProto = _clone(ChannelContext.prototype);
             InternalChannelContext.prototype = InternalChannelContextProto;
+            InternalChannelContextProto._invoker_executor = null;
             InternalChannelContextProto.type = function () {
                 return 'INTERNAL';
             };
@@ -372,6 +381,9 @@
                     _impls: null,
                     _specdirs: null,
                     _dev_checks: false,
+                    _request_timeout: null,
+                    _heavy_timeout: null,
+                    _byteLength: null,
                     ccm: function () {
                         return this._ccm;
                     },
@@ -433,9 +445,9 @@
                         var context = new CallbackChannelContext(this);
                         var source_addr = new SourceAddress(context.type(), null, info.regname);
                         var reqinfo_info = reqinfo.info;
-                        reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT] = context;
-                        reqinfo_info[reqinfo.INFO_CLIENT_ADDR] = source_addr;
-                        reqinfo_info[reqinfo.INFO_SECURE_CHANNEL] = info.secure_channel;
+                        reqinfo_info.CHANNEL_CONTEXT = context;
+                        reqinfo_info.CLIENT_ADDR = source_addr;
+                        reqinfo_info.SECURE_CHANNEL = info.secure_channel;
                         var as = async_steps();
                         reqinfo._as = as;
                         as.add(function (as) {
@@ -445,25 +457,22 @@
                                         rid: reqinfo._rawreq.rid,
                                         e: 'InternalError'
                                     };
-                                reqinfo.cancelAfter(0);
-                                reqinfo._as = null;
+                                reqinfo._cleanup();
                                 send_executor_rsp(ftnrsp);
                             });
                             as.state.reqinfo = reqinfo;
                             _this.process(as);
                             as.add(function (as) {
                                 void as;
-                                var ftnrsp = reqinfo_info[reqinfo.INFO_RAW_RESPONSE];
-                                reqinfo.cancelAfter(0);
-                                reqinfo._as = null;
+                                var ftnrsp = reqinfo_info.RAW_RESPONSE;
+                                reqinfo._cleanup();
                                 if (ftnrsp !== null) {
                                     send_executor_rsp(ftnrsp);
                                 }
                             });
                         }, function (as, err) {
                             _this.emit('notExpected', err, as.state.error_info);
-                            reqinfo.cancelAfter(0);
-                            reqinfo._as = null;
+                            reqinfo._cleanup();
                         }).execute();
                     },
                     onInternalRequest: function (as, info, ftnreq, upload_data, download_stream) {
@@ -476,11 +485,11 @@
                         var reqinfo = new RequestInfo(this, ftnreq);
                         var source_addr = new SourceAddress(context.type(), null, null);
                         var reqinfo_info = reqinfo.info;
-                        reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT] = context;
-                        reqinfo_info[reqinfo.INFO_CLIENT_ADDR] = source_addr;
-                        reqinfo_info[reqinfo.INFO_SECURE_CHANNEL] = true;
+                        reqinfo_info.CHANNEL_CONTEXT = context;
+                        reqinfo_info.CLIENT_ADDR = source_addr;
+                        reqinfo_info.SECURE_CHANNEL = true;
                         if (upload_data) {
-                            reqinfo_info[reqinfo.INFO_HAVE_RAW_UPLOAD] = true;
+                            reqinfo_info.HAVE_RAW_UPLOAD = true;
                             reqinfo._rawinp = upload_data;
                         }
                         if (download_stream) {
@@ -492,8 +501,7 @@
                             inner_as.add(function (as) {
                                 as.setCancel(function (as) {
                                     void as;
-                                    reqinfo.cancelAfter(0);
-                                    reqinfo._as = null;
+                                    reqinfo._cleanup();
                                     if (!as.state._orig_as_cancel) {
                                         try {
                                             orig_as.error(FutoInError.InternalError, 'Executor canceled');
@@ -505,17 +513,15 @@
                                 _this.process(as);
                                 as.add(function (as) {
                                     void as;
-                                    var ftnrsp = reqinfo_info[reqinfo.INFO_RAW_RESPONSE];
-                                    reqinfo.cancelAfter(0);
-                                    reqinfo._as = null;
+                                    var ftnrsp = reqinfo_info.RAW_RESPONSE;
+                                    reqinfo._cleanup();
                                     if (ftnrsp !== null) {
                                         orig_as.success(ftnrsp, invoker.SimpleCCM.FUTOIN_CONTENT_TYPE);
                                     }
                                 });
                             }, function (as, err) {
                                 _this.emit('notExpected', err, as.state.error_info);
-                                reqinfo.cancelAfter(0);
-                                reqinfo._as = null;
+                                reqinfo._cleanup();
                             }).execute();
                             orig_as.setCancel(function (as) {
                                 void as;
@@ -532,7 +538,7 @@
                         var _this = this;
                         as.add(function (as) {
                             var reqinfo_info = reqinfo.info;
-                            var rawreq = reqinfo_info[reqinfo.INFO_RAW_REQUEST];
+                            var rawreq = reqinfo_info.RAW_REQUEST;
                             _this.emit('request', reqinfo, rawreq);
                             _this._getInfo(as, reqinfo);
                             if (reqinfo_info._func_info.heavy) {
@@ -578,7 +584,7 @@
                                 err = FutoInError.InternalError;
                                 error_info = 'Not expected error';
                             }
-                            var rawrsp = reqinfo.info[reqinfo.INFO_RAW_RESPONSE];
+                            var rawrsp = reqinfo.info.RAW_RESPONSE;
                             rawrsp.e = err;
                             delete rawrsp.r;
                             if (error_info) {
@@ -601,7 +607,7 @@
                     },
                     _getInfo: function (as, reqinfo) {
                         var reqinfo_info = reqinfo.info;
-                        var f = reqinfo_info[reqinfo.INFO_RAW_REQUEST].f;
+                        var f = reqinfo_info.RAW_REQUEST.f;
                         if (typeof f !== 'string') {
                             as.error(FutoInError.InvalidRequest, 'Missing req.f');
                         }
@@ -638,7 +644,7 @@
                         reqinfo_info._func = func;
                         reqinfo_info._func_info = finfo;
                         if (finfo.rawresult) {
-                            reqinfo_info[reqinfo.INFO_HAVE_RAW_RESULT] = true;
+                            reqinfo_info.HAVE_RAW_RESULT = true;
                         }
                     },
                     _checkBasicAuth: function (as, reqinfo, sec) {
@@ -649,12 +655,12 @@
                             basicauth.call(as, 'auth', {
                                 user: sec[0],
                                 pwd: sec[1],
-                                client_addr: reqinfo_info[reqinfo.INFO_CLIENT_ADDR].asString(),
-                                is_secure: reqinfo_info[reqinfo.INFO_SECURE_CHANNEL]
+                                client_addr: reqinfo_info.CLIENT_ADDR.asString(),
+                                is_secure: reqinfo_info.SECURE_CHANNEL
                             });
                             as.add(function (as, rsp) {
-                                reqinfo_info[reqinfo.INFO_USER_INFO] = new UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
-                                reqinfo_info[reqinfo.INFO_SECURITY_LEVEL] = RequestInfo.SL_INFO;
+                                reqinfo_info.USER_INFO = new UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
+                                reqinfo_info.SECURITY_LEVEL = RequestInfo.SL_INFO;
                             });
                         }, function (as, err) {
                             void err;
@@ -666,19 +672,19 @@
                         as.add(function (as) {
                             var basicauth = _this._ccm.iface('#basicauth');
                             var reqinfo_info = reqinfo.info;
-                            var req = _clone(reqinfo.info[reqinfo.INFO_RAW_REQUEST]);
+                            var req = _clone(reqinfo.info.RAW_REQUEST);
                             delete req.sec;
                             basicauth.call(as, 'checkHMAC', {
                                 msg: req,
                                 user: user,
                                 algo: algo,
                                 sig: sig,
-                                client_addr: reqinfo_info[reqinfo.INFO_CLIENT_ADDR].asString(),
-                                is_secure: reqinfo_info[reqinfo.INFO_SECURE_CHANNEL]
+                                client_addr: reqinfo_info.CLIENT_ADDR.asString(),
+                                is_secure: reqinfo_info.SECURE_CHANNEL
                             });
                             as.add(function (as, rsp) {
-                                reqinfo_info[reqinfo.INFO_USER_INFO] = new UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
-                                reqinfo_info[reqinfo.INFO_SECURITY_LEVEL] = RequestInfo.SL_INFO;
+                                reqinfo_info.USER_INFO = new UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
+                                reqinfo_info.SECURITY_LEVEL = RequestInfo.SL_INFO;
                                 reqinfo_info._hmac_algo = algo;
                                 reqinfo_info._hmac_user = user;
                             });
@@ -690,16 +696,16 @@
                     _checkConstraints: function (as, reqinfo) {
                         var reqinfo_info = reqinfo.info;
                         var constraints = reqinfo_info._iface_info.constraints;
-                        if ('SecureChannel' in constraints && !reqinfo_info[reqinfo.INFO_SECURE_CHANNEL]) {
+                        if ('SecureChannel' in constraints && !reqinfo_info.SECURE_CHANNEL) {
                             as.error(FutoInError.SecurityError, 'Insecure channel');
                         }
-                        if ('MessageSignature' in constraints && !reqinfo_info[reqinfo.INFO_DERIVED_KEY] && !reqinfo_info._hmac_user) {
+                        if ('MessageSignature' in constraints && !reqinfo_info.DERIVED_KEY && !reqinfo_info._hmac_user) {
                             as.error(FutoInError.SecurityError, 'Message Signature is required');
                         }
-                        if (!('AllowAnonymous' in constraints) && !reqinfo_info[reqinfo.INFO_USER_INFO]) {
+                        if (!('AllowAnonymous' in constraints) && !reqinfo_info.USER_INFO) {
                             as.error(FutoInError.SecurityError, 'Anonymous not allowed');
                         }
-                        var context = reqinfo_info[reqinfo.INFO_CHANNEL_CONTEXT];
+                        var context = reqinfo_info.CHANNEL_CONTEXT;
                         if ('BiDirectChannel' in constraints && (!context || !context.isStateful())) {
                             console.dir(context);
                             console.log(context.isStateful());
@@ -708,9 +714,9 @@
                     },
                     _checkParams: function (as, reqinfo) {
                         var reqinfo_info = reqinfo.info;
-                        var rawreq = reqinfo_info[reqinfo.INFO_RAW_REQUEST];
+                        var rawreq = reqinfo_info.RAW_REQUEST;
                         var finfo = reqinfo_info._func_info;
-                        if (reqinfo[reqinfo.INFO_HAVE_RAW_UPLOAD] && !finfo.rawupload) {
+                        if (reqinfo.HAVE_RAW_UPLOAD && !finfo.rawupload) {
                             as.error(FutoInError.InvalidRequest, 'Raw upload is not allowed');
                         }
                         if ('p' in rawreq) {
@@ -774,17 +780,17 @@
                             return;
                         }
                         var reqinfo_info = reqinfo.info;
-                        var rsp = reqinfo_info[reqinfo.INFO_RAW_RESPONSE];
+                        var rsp = reqinfo_info.RAW_RESPONSE;
                         var finfo = reqinfo_info._func_info;
                         if (finfo.rawresult) {
-                            reqinfo_info[reqinfo.INFO_RAW_RESPONSE] = null;
+                            reqinfo_info.RAW_RESPONSE = null;
                             if (Object.keys(rsp.r).length > 0) {
                                 as.error(FutoInError.InternalError, 'Raw result is expected');
                             }
                             return;
                         }
-                        if (!finfo.expect_result && reqinfo_info[reqinfo.INFO_RAW_REQUEST].forcersp !== true) {
-                            reqinfo_info[reqinfo.INFO_RAW_RESPONSE] = null;
+                        if (!finfo.expect_result && reqinfo_info.RAW_REQUEST.forcersp !== true) {
+                            reqinfo_info.RAW_RESPONSE = null;
                             return;
                         }
                         if (Object.keys(finfo.result).length > 0) {
@@ -807,12 +813,12 @@
                     },
                     _signResponse: function (as, reqinfo) {
                         var reqinfo_info = reqinfo.info;
-                        var rawrsp = reqinfo_info[reqinfo.INFO_RAW_RESPONSE];
+                        var rawrsp = reqinfo_info.RAW_RESPONSE;
                         if (!rawrsp) {
                             this.emit('response', reqinfo, rawrsp);
                             return;
                         }
-                        if (reqinfo_info[reqinfo.INFO_DERIVED_KEY]) {
+                        if (reqinfo_info.DERIVED_KEY) {
                             this.emit('response', reqinfo, rawrsp);
                             return;
                         }
@@ -857,7 +863,7 @@
             var _extend = _require(56);
             var performance_now = _require(63);
             var async_steps = _require(25);
-            var reqinfo_const = {
+            var RequestInfoConst = {
                     SL_ANONYMOUS: 'Anonymous',
                     SL_INFO: 'Info',
                     SL_SAFEOPS: 'SafeOps',
@@ -892,35 +898,38 @@
                     return this.info;
                 };
                 this.info = info;
-                info[this.INFO_X509_CN] = null;
-                info[this.INFO_PUBKEY] = null;
-                info[this.INFO_CLIENT_ADDR] = null;
-                info[this.INFO_SECURE_CHANNEL] = false;
-                info[this.INFO_SECURITY_LEVEL] = this.SL_ANONYMOUS;
-                info[this.INFO_USER_INFO] = null;
-                info[this.INFO_RAW_REQUEST] = rawreq;
-                info[this.INFO_RAW_RESPONSE] = rawrsp;
-                info[this.INFO_DERIVED_KEY] = null;
-                info[this.INFO_HAVE_RAW_UPLOAD] = false;
-                info[this.INFO_HAVE_RAW_RESULT] = false;
-                info[this.INFO_CHANNEL_CONTEXT] = null;
-                info[this.INFO_REQUEST_TIME_FLOAT] = performance_now();
+                info.X509_CN = null;
+                info.PUBKEY = null;
+                info.CLIENT_ADDR = null;
+                info.SECURE_CHANNEL = false;
+                info.SECURITY_LEVEL = this.SL_ANONYMOUS;
+                info.USER_INFO = null;
+                info.RAW_REQUEST = rawreq;
+                info.RAW_RESPONSE = rawrsp;
+                info.DERIVED_KEY = null;
+                info.HAVE_RAW_UPLOAD = false;
+                info.HAVE_RAW_RESULT = false;
+                info.CHANNEL_CONTEXT = null;
+                info.REQUEST_TIME_FLOAT = performance_now();
             };
-            _extend(RequestInfo, reqinfo_const);
-            var RequestInfoProto = reqinfo_const;
+            _extend(RequestInfo, RequestInfoConst);
+            var RequestInfoProto = RequestInfoConst;
+            RequestInfoProto._executor = null;
             RequestInfoProto._rawinp = null;
             RequestInfoProto._rawout = null;
+            RequestInfoProto._as = null;
             RequestInfoProto.params = function () {
                 return this._rawreq.p;
             };
             RequestInfoProto.result = function () {
                 return this._rawrsp.r;
             };
+            RequestInfoProto.info = null;
             RequestInfoProto.rawInput = function () {
                 var rawinp = this._rawinp;
                 if (!rawinp) {
-                    if (this.info[this.INFO_HAVE_RAW_UPLOAD] && this.info[this.INFO_CHANNEL_CONTEXT] !== null) {
-                        rawinp = this.info[this.INFO_CHANNEL_CONTEXT]._openRawInput();
+                    if (this.info.HAVE_RAW_UPLOAD && this.info.CHANNEL_CONTEXT !== null) {
+                        rawinp = this.info.CHANNEL_CONTEXT._openRawInput();
                         this._rawinp = rawinp;
                     }
                     if (!rawinp) {
@@ -932,8 +941,8 @@
             RequestInfoProto.rawOutput = function () {
                 var rawout = this._rawout;
                 if (!rawout) {
-                    if (this.info[this.INFO_HAVE_RAW_RESULT] && this.info[this.INFO_CHANNEL_CONTEXT] !== null) {
-                        rawout = this.info[this.INFO_CHANNEL_CONTEXT]._openRawOutput();
+                    if (this.info.HAVE_RAW_RESULT && this.info.CHANNEL_CONTEXT !== null) {
+                        rawout = this.info.CHANNEL_CONTEXT._openRawOutput();
                         this._rawout = rawout;
                     }
                     if (!rawout) {
@@ -946,7 +955,7 @@
                 return this._executor;
             };
             RequestInfoProto.channel = function () {
-                return this.info[this.INFO_CHANNEL_CONTEXT];
+                return this.info.CHANNEL_CONTEXT;
             };
             RequestInfoProto.cancelAfter = function (time_ms) {
                 if (this._cancelAfter) {
@@ -958,6 +967,20 @@
                     this._cancelAfter = async_steps.AsyncTool.callLater(function () {
                         _this._as.cancel();
                     }, time_ms);
+                }
+            };
+            RequestInfoProto._cleanup = function () {
+                var info = this.info;
+                this.cancelAfter(0);
+                this._as = null;
+                this.info = null;
+                var context = info.CHANNEL_CONTEXT;
+                if (context && !context.isStateful()) {
+                    context._cleanup();
+                }
+                var user = info.USER_INFO;
+                if (user) {
+                    user._cleanup();
                 }
             };
             RequestInfo.prototype = RequestInfoProto;
@@ -998,7 +1021,7 @@
         function (module, exports) {
             'use strict';
             var _extend = _require(56);
-            var userinfo_const = {
+            var UserInfoConst = {
                     INFO_FirstName: 'FirstName',
                     INFO_FullName: 'FullName',
                     INFO_DateOfBirth: 'DateOfBirth',
@@ -1017,8 +1040,12 @@
                 this._global_id = global_id;
                 this._details = details;
             };
-            _extend(UserInfo, userinfo_const);
-            var UserInfoProto = userinfo_const;
+            _extend(UserInfo, UserInfoConst);
+            var UserInfoProto = UserInfoConst;
+            UserInfoProto._ccm = null;
+            UserInfoProto._local_id = null;
+            UserInfoProto._global_id = null;
+            UserInfoProto._details = null;
             UserInfoProto.localID = function () {
                 return this._local_id;
             };
@@ -1035,6 +1062,9 @@
                 }
                 as.error('NotImplemented');
                 void user_field_identifiers;
+            };
+            UserInfoProto._cleanup = function () {
+                this._ccm = null;
             };
             UserInfo.prototype = UserInfoProto;
             module.exports = UserInfo;

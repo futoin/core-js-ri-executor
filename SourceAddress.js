@@ -1,6 +1,12 @@
 "use strict";
 
-// ---
+/**
+ * Source Address representation
+ * @param {string} type - Type of address
+ * @param {string=} host - machine address, if applicable
+ * @param {integer|string=} port - port or path, if applicable
+ * @class
+ */
 var SourceAddress = function( type, host, port )
 {
     if ( type === null )
@@ -26,10 +32,28 @@ var SourceAddress = function( type, host, port )
 
 SourceAddress.prototype =
 {
+    /**
+     * Host field
+     * @alias SourceAddress#host
+     */
     host : null,
+
+    /**
+     * Port field
+     * @alias SourceAddress#port
+     */
     port : null,
+
+    /**
+     * Type field
+     * @alias SourceAddress#type
+     */
     type : null,
 
+    /**
+     * Get a stable string representation
+     * @alias SourceAddress#asString
+     */
     asString : function()
     {
         if ( this.type === "LOCAL" )

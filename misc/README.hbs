@@ -75,7 +75,7 @@ $ bower install futoin-executor --save
 ```
 
 Please note that browser build is available under in dist/ folder in sources generated
-with [pure-sjc](https://github.com/RReverser/pure-cjs). It include modular parts of
+with [pure-sjc](https://github.com/RReverser/pure-cjs). It includes modular parts of
 [lodash](https://www.npmjs.com/package/lodash).
 
 *Note: there are the following globals available*:
@@ -83,6 +83,349 @@ with [pure-sjc](https://github.com/RReverser/pure-cjs). It include modular parts
 * SimpleCCM - global reference to futoin-invoker.SimpleCCM class
 * AdvancedCCM - global reference to futoin-invoker.AdvancedCCM class
 * futoin.Invoker - global reference to futoin-invoker module
+
+# Examples
+
+Please note that the examples expect interface definition files
+listed below. All sources are available under examples/ folder.
+
+## Server implementation example
+
+```javascript
+
+var AdvancedCCM = require( 'futoin-invoker/AdvancedCCM' );
+var NodeExecutor = require( 'futoin-executor/NodeExecutor' );
+var async_steps = require( 'futoin-asyncsteps' );
+
+// Initialize CCM
+var ccm = new AdvancedCCM( { specDirs : __dirname } );
+
+// Initialize Node.js Executor implementation
+var executor = new NodeExecutor(
+    ccm,
+    {
+        specDirs : __dirname,
+        httpAddr : 'localhost',
+        httpPort : 3000,
+        httpPath : '/api/'
+    }
+);
+executor.on( 'notExpected', function( err, error_info ){
+    console.log( 'Server: ' + err + ': ' + error_info );
+} );
+
+// Normally, you would want to define one in separate module
+var service_impl = {
+    getProgress : function( as, reqinfo )
+    {
+        var p = reqinfo.params();
+        
+        if ( reqinfo.params().resource === 'MyResource' )
+        {
+            as.success( { progress : 75 } )
+        }
+        else
+        {
+            as.error( 'InvalidResource' );
+        }
+    },
+
+    subscribeProgress : function( as, reqinfo )
+    {
+        var p = reqinfo.params();
+        
+        if ( reqinfo.params().resource !== 'MyResource' )
+        {
+            as.error( 'InvalidResource' );
+        }
+
+        var channel = reqinfo.channel();
+        channel.register( as, 'org.example.receiver:1.0' );
+        
+        as.add( function( as )
+        {
+            var iface = channel.iface( 'org.example.receiver:1.0' );
+            reqinfo.result().ok = true;
+
+            // Stupid simple scheduling of events to be sent
+            //---
+            var add_progress = function( progress, delay )
+            {
+                setTimeout( function(){
+                    async_steps().add( function( as ){
+                        iface.progressEvent( as, 'MyResource', progress );
+                    } )
+                    .execute();
+                }, delay );
+            };
+            
+            for ( var i = 0; i <= 10; ++i )
+            {
+                add_progress( i * 10, i * 100 );
+            }
+            //---
+        } );
+    }
+};
+
+// Register Service implementation
+async_steps()
+.add(
+    function( as )
+    {
+        executor.register( as, 'org.example.service:1.0', service_impl );
+    },
+    function( as, err )
+    {
+        console.log( err + ': ' + as.state.error_info );
+        console.log( as.state.last_exception.stack );
+    }
+)
+.execute();
+```
+
+## Polling client implementation example
+
+```javascript
+var async_steps = require( 'futoin-asyncsteps' );
+var AdvancedCCM = require( 'futoin-invoker/AdvancedCCM' );
+
+var ccm = new AdvancedCCM( { specDirs : [ __dirname ] } );
+
+async_steps()
+// Do it once for program's entire life time
+.add(
+    function( as )
+    {
+        // Register interface and endpoint
+        ccm.register( as, 'myservice',
+                      'org.example.service:1.0',
+                      'http://localhost:3000/api/' );
+    },
+    function( as, err )
+    {
+        console.log( err + ': ' + as.state.error_info );
+        console.log( as.state.last_exception.stack );
+    }
+)
+// Regular service call
+.add(
+    function( as )
+    {
+        var myservice = ccm.iface( 'myservice' );
+        
+        // equal to myservice.call( as, 'getProgress', { progress: 'MyResource' } );
+        myservice.getProgress( as, 'MyResource' );
+        
+        as.add( function( as, res ){
+            // Use result
+            console.log( 'Progress: ' + res.progress );
+        } );
+    },
+    function( as, err )
+    {
+        // Handle error
+        console.log( err + ': ' + as.state.error_info );
+    }
+)
+.execute();
+```
+
+## Event receiving client implementation example
+
+```javascript
+var async_steps = require( 'futoin-asyncsteps' );
+var AdvancedCCM = require( 'futoin-invoker/AdvancedCCM' );
+var Executor = require( 'futoin-executor/Executor' );
+
+var opts = { specDirs : __dirname };
+var ccm = new AdvancedCCM( opts );
+var client_executor = new Executor( ccm, opts );
+
+async_steps()
+// Do it once for program's entire life time
+.add(
+    function( as )
+    {
+        // Register interface and endpoint
+        ccm.register(
+                as,
+                'myservice',
+                'org.example.service:1.0',
+                'ws://localhost:3000/api/',
+                null,
+                {
+                    executor : client_executor
+                }
+        );
+
+        // Register client-side Executor Service
+        client_executor.register(
+                as,
+                'org.example.receiver:1.0',
+                {
+                    progressEvent: function( as, reqinfo )
+                    {
+                        var progress = reqinfo.params().progress;
+                        console.log( 'Progress: ' + progress );
+
+                        if ( progress >= 100 )
+                        {
+                            ccm.close();
+                        }
+                    }
+                }
+        );
+        
+        // Subscribe for events
+        as.add( function( as )
+        {
+            // Note: it is a sub-step as we need to wait for 
+            // registration to complete
+            var myservice = ccm.iface( 'myservice' );
+            
+            // equal to myservice.call( as, 'subscribeProgress',
+            // { progress: 'MyResource' } );
+            myservice.subscribeProgress( as, 'MyResource' );
+        } );
+    },
+    function( as, err )
+    {
+        console.log( err + ': ' + as.state.error_info );
+        console.log( as.state.last_exception.stack );
+    }
+)
+.execute();
+```
+
+## Example output of execution
+
+    Starting Example Server
+    Starting Example Client
+    Progress: 75
+    Starting Example Client with Callback
+    Progress: 0
+    Progress: 10
+    Progress: 20
+    Progress: 30
+    Progress: 40
+    Progress: 50
+    Progress: 60
+    Progress: 70
+    Progress: 80
+    Progress: 90
+    Progress: 100
+
+
+## FutoIn iface definitions
+
+Please see [FTN3: FutoIn Interface Definition v1.x](http://specs.futoin.org/final/preview/ftn3_iface_definition.html)
+for all advanced features.
+
+### org.example.types-1.0-iface.json
+
+This one is only used to share Type definitions. It does not
+participate in inheritance
+
+```javascript
+{
+    "iface" : "org.example.types",
+    "version" : "1.0",
+    "ftn3rev" : "1.1",
+    "types" : {
+        "Percent" : {
+            "type" : "integer",
+            "min" : 0,
+            "max" : 100
+        }
+    },
+    "desc" : "Shared interface to define common types"
+}
+```
+
+### org.example.service-1.0-iface.json
+
+Actual Server-side Service definition
+
+```javascript
+{
+    "iface" : "org.example.service",
+    "version" : "1.0",
+    "ftn3rev" : "1.1",
+    "imports" : [
+        "org.example.types:1.0"
+    ],
+    "funcs" : {
+        "getProgress" : {
+            "params" : {
+                "resource" : {
+                    "type" : "string"
+                }
+            },
+            "result" : {
+                "progress" : {
+                    "type" : "Percent"
+                }
+            },
+            "throws" : [
+                "InvalidResource"
+            ]
+        },
+        "subscribeProgress" : {
+            "params" : {
+                "resource" : {
+                    "type" : "string"
+                }
+            },
+            "result" : {
+                "ok" : {
+                    "type" : "boolean"
+                }
+            },
+            "throws" : [
+                "InvalidResource"
+            ]
+        }
+    },
+    "requires" : [
+        "AllowAnonymous"
+    ],
+    "desc" : "Service-side Service"
+}
+```
+
+### org.example.receiver-1.0-iface.json
+
+Client-side Service for bi-directional transport channels, like WebSockets.
+
+```javascript
+{
+    "iface" : "org.example.receiver",
+    "version" : "1.0",
+    "ftn3rev" : "1.1",
+    "imports" : [
+        "org.example.types:1.0"
+    ],
+    "funcs" : {
+        "progressEvent" : {
+            "params" : {
+                "resource" : {
+                    "type" : "string"
+                },
+                "progress" : {
+                    "type" : "Percent"
+                }
+            },
+            "desc" : "Progress receiving event callback"
+        }
+    },
+    "requires" : [
+        "AllowAnonymous"
+    ],
+    "desc" : "Client-side Service"
+}
+
+```
 
     
 # API documentation

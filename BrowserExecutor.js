@@ -12,7 +12,10 @@ var ChannelContext = require( './ChannelContext' );
 var SourceAddress = require( './SourceAddress' );
 var RequestInfo = require( './RequestInfo' );
 
-// ---
+/**
+ * Browser Channel Context
+ * @ignore
+ */
 var BrowserChannelContext = function( executor, event )
 {
     ChannelContext.call( this, executor );
@@ -25,6 +28,9 @@ var BrowserChannelContext = function( executor, event )
 
 var BrowserChannelContextProto = _clone( ChannelContext.prototype );
 BrowserChannelContext.prototype = BrowserChannelContextProto;
+
+BrowserChannelContextProto._event_origin = null;
+BrowserChannelContextProto._event_source = null;
 
 BrowserChannelContextProto.type = function()
 {
@@ -75,13 +81,39 @@ BrowserChannelContextProto._getPerformRequest = function()
     };
 };
 
-// ---
+/**
+ * Pseudo-class for BrowserExecutor options documentation
+ * @class
+ * @extends ExecutorOptions
+ */
 var BrowserExecutorOptions =
 {
-    connectTimeout : 600,
-    allowedOrigins : null,
+    /**
+     * Client timeout MS
+     * @default
+     */
+    clientTimeoutMS : 600,
+
+    /**
+     * List of allowed page origins for incoming connections.
+     * It is MANDATORY for security reasons.
+     *
+     * Example:
+     * * 'http://localhost:8000'
+     * * 'http://example.com'
+     * @default
+     */
+    allowedOrigins : [],
 };
 
+/**
+ * Browser Executor with HTML5 Web Messaging as incoming transport.
+ *
+ * It allows communication across open pages (frames/tabs/windows) inside client browser.
+ * @param {AdvancedCCM} ccm
+ * @param {object} opts - see BrowserExecutorOptions
+ * @class
+ */
 var BrowserExecutor = function( ccm, opts )
 {
     Executor.call( this, ccm, opts );
@@ -109,12 +141,12 @@ var BrowserExecutor = function( ccm, opts )
     this.allowed_origins = allowed_origins;
 
     // --
-    var connection_timeout = opts.connectTimeout;
+    var client_timeout = opts.clientTimeoutMS;
 
     var connection_cleanup = function()
     {
         var ctx_list = _this._contexts;
-        var remove_time = performance_now() - connection_timeout;
+        var remove_time = performance_now() - client_timeout;
 
         for ( var i = ctx_list.length - 1; i >= 0; --i )
         {
@@ -127,7 +159,7 @@ var BrowserExecutor = function( ccm, opts )
             }
         }
 
-        setTimeout( connection_cleanup, connection_timeout * 1e3 );
+        setTimeout( connection_cleanup, client_timeout * 1e3 );
     };
 
     connection_cleanup();
@@ -144,6 +176,12 @@ var BrowserExecutor = function( ccm, opts )
 var BrowserExecutorProto = _clone( Executor.prototype );
 BrowserExecutor.prototype = BrowserExecutorProto;
 
+/**
+ * Current list of allowed origins for modifications. Please note that
+ * it is an object, where field is actual origin and value must evaluate
+ * to true.
+ * @alias BrowserExecutor.allowed_origins
+ */
 BrowserExecutorProto.allowed_origins = null;
 
 BrowserExecutorProto.handleMessage = function( event )
@@ -232,9 +270,9 @@ BrowserExecutorProto.handleMessage = function( event )
     var reqinfo = new RequestInfo( this, ftnreq );
 
     var reqinfo_info = reqinfo.info;
-    reqinfo_info[ reqinfo.INFO_CHANNEL_CONTEXT ] = context;
-    reqinfo_info[ reqinfo.INFO_CLIENT_ADDR ] = source_addr;
-    reqinfo_info[ reqinfo.INFO_SECURE_CHANNEL ] = this._is_secure_channel;
+    reqinfo_info.CHANNEL_CONTEXT = context;
+    reqinfo_info.CLIENT_ADDR = source_addr;
+    reqinfo_info.SECURE_CHANNEL = this._is_secure_channel;
 
     var _this = this;
 
@@ -246,8 +284,7 @@ BrowserExecutorProto.handleMessage = function( event )
     var cancel_req = function( as )
     {
         void as;
-        reqinfo.cancelAfter( 0 );
-        reqinfo._as = null;
+        reqinfo._cleanup();
 
         var ftnrsp = {
             e : 'InternalError',
@@ -268,10 +305,9 @@ BrowserExecutorProto.handleMessage = function( event )
                 function( as )
                 {
                     void as;
-                    var ftnrsp = reqinfo_info[ reqinfo.INFO_RAW_RESPONSE ];
+                    var ftnrsp = reqinfo_info.RAW_RESPONSE;
 
-                    reqinfo.cancelAfter( 0 );
-                    reqinfo._as = null;
+                    reqinfo._cleanup();
 
                     if ( ftnrsp !== null )
                     {

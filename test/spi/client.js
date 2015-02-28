@@ -23,6 +23,7 @@ var argv = require('minimist')(
                 time_limit : 60e3,
                 concurrency : 500,
                 proto : 'http',
+                auth : null,
             }            
         }
 );

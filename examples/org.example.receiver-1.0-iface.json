@@ -1,0 +1,25 @@
+{
+    "iface" : "org.example.receiver",
+    "version" : "1.0",
+    "ftn3rev" : "1.1",
+    "imports" : [
+        "org.example.types:1.0"
+    ],
+    "funcs" : {
+        "progressEvent" : {
+            "params" : {
+                "resource" : {
+                    "type" : "string"
+                },
+                "progress" : {
+                    "type" : "Percent"
+                }
+            },
+            "desc" : "Progress receiving event callback"
+        }
+    },
+    "requires" : [
+        "AllowAnonymous"
+    ],
+    "desc" : "Client-side Service"
+}

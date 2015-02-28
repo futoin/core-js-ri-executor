@@ -43,6 +43,8 @@ var InternalChannelContext = function( executor, invoker_executor )
 var InternalChannelContextProto = _clone( ChannelContext.prototype );
 InternalChannelContext.prototype = InternalChannelContextProto;
 
+InternalChannelContextProto._invoker_executor = null;
+
 InternalChannelContextProto.type = function()
 {
     return "INTERNAL";
@@ -73,7 +75,10 @@ InternalChannelContextProto._commError = function( as )
     as.error( FutoInError.CommError, "No Invoker's Executor for internal call" );
 };
 
-// ---
+/**
+ * Pseudo-class for Executor options documentation
+ * @class
+ */
 var ExecutorOptions =
 {
     /**
@@ -112,6 +117,12 @@ var ExecutorOptions =
     heavyReqTimeout : 60e3
 };
 
+/**
+ * An abstract core implementing pure FTN6 Executor logic.
+ * @param {AdvancedCCM} ccm - instance of AdvancedCCM
+ * @param {objects} opts - see ExecutorOptions
+ * @class
+ */
 var Executor = function( ccm, opts )
 {
     ee( this );
@@ -165,11 +176,31 @@ var ExecutorProto =
     _specdirs : null,
     _dev_checks : false,
 
+    _request_timeout : null,
+    _heavy_timeout : null,
+
+    _byteLength : null,
+
+    /**
+     * Get reference to associated AdvancedCCM instance
+     * @alias Executor#ccm
+     * @returns {AdvancedCCM}
+     */
     ccm : function()
     {
         return this._ccm;
     },
 
+    /**
+     * Register implementation of specific interface
+     * @param {AsyncSteps} as
+     * @param {string} ifacever - standard iface:version notation of interface
+     *        to be implemented.
+     * @param {object|Function} impl - either iface implementation or func( impl, executor )
+     * @param {object|array=} specdirs - NOT STANDARD. Useful for direct passing
+     * of hardcoded spec definition.
+     * @alias Executor#register
+     */
     register : function( as, ifacever, impl, specdirs )
     {
         var m = ifacever.match( invoker.SpecTools._ifacever_pattern );
@@ -250,6 +281,15 @@ var ExecutorProto =
         } );
     },
 
+    /**
+     * Entry point for Server-originated requests when acting as ClientExecutor
+     * @param {object} info - raw Invoker interface info
+     * @param {object} ftnreq - FutoIn request object
+     * @param {Function} send_executor_rsp - callback( ftnrsp )
+     * @fires Executor#notExpected
+     * @fires Executor#request
+     * @fires Executor#response
+     */
     onEndpointRequest : function( info, ftnreq, send_executor_rsp )
     {
         var _this = this;
@@ -259,9 +299,9 @@ var ExecutorProto =
         var source_addr = new SourceAddress( context.type(), null, info.regname );
 
         var reqinfo_info = reqinfo.info;
-        reqinfo_info[ reqinfo.INFO_CHANNEL_CONTEXT ] = context;
-        reqinfo_info[ reqinfo.INFO_CLIENT_ADDR ] = source_addr;
-        reqinfo_info[ reqinfo.INFO_SECURE_CHANNEL ] = info.secure_channel;
+        reqinfo_info.CHANNEL_CONTEXT = context;
+        reqinfo_info.CLIENT_ADDR = source_addr;
+        reqinfo_info.SECURE_CHANNEL = info.secure_channel;
 
         var as = async_steps();
         reqinfo._as = as;
@@ -277,8 +317,7 @@ var ExecutorProto =
                         e : "InternalError"
                     };
 
-                    reqinfo.cancelAfter( 0 );
-                    reqinfo._as = null;
+                    reqinfo._cleanup();
                     send_executor_rsp( ftnrsp );
                 } );
 
@@ -288,10 +327,9 @@ var ExecutorProto =
                 as.add( function( as )
                 {
                     void as;
-                    var ftnrsp = reqinfo_info[ reqinfo.INFO_RAW_RESPONSE ];
+                    var ftnrsp = reqinfo_info.RAW_RESPONSE;
 
-                    reqinfo.cancelAfter( 0 );
-                    reqinfo._as = null;
+                    reqinfo._cleanup();
 
                     if ( ftnrsp !== null )
                     {
@@ -302,12 +340,23 @@ var ExecutorProto =
             function( as, err )
             {
                 _this.emit( 'notExpected', err, as.state.error_info );
-                reqinfo.cancelAfter( 0 );
-                reqinfo._as = null;
+                reqinfo._cleanup();
             }
         ).execute();
     },
 
+    /**
+     * Entry point for in-program originated requests. Process with maximum efficiency (not yet ;)
+     * @param {AsyncSteps} as
+     * @param {object} info - raw Invoker interface info
+     * @param {object} ftnreq - FutoIn request object
+     * @param {object=} upload_data - upload stream, if any
+     * @param {object=} download_stream - download stream, if any
+     * @returns ftnrsp, content-type
+     * @fires Executor#notExpected
+     * @fires Executor#request
+     * @fires Executor#response
+     */
     onInternalRequest : function( as, info, ftnreq, upload_data, download_stream )
     {
         var context = info._server_executor_context;
@@ -323,13 +372,13 @@ var ExecutorProto =
         var source_addr = new SourceAddress( context.type(), null, null );
 
         var reqinfo_info = reqinfo.info;
-        reqinfo_info[ reqinfo.INFO_CHANNEL_CONTEXT ] = context;
-        reqinfo_info[ reqinfo.INFO_CLIENT_ADDR ] = source_addr;
-        reqinfo_info[ reqinfo.INFO_SECURE_CHANNEL ] = true;
+        reqinfo_info.CHANNEL_CONTEXT = context;
+        reqinfo_info.CLIENT_ADDR = source_addr;
+        reqinfo_info.SECURE_CHANNEL = true;
 
         if ( upload_data )
         {
-            reqinfo_info[ reqinfo.INFO_HAVE_RAW_UPLOAD ] = true;
+            reqinfo_info.HAVE_RAW_UPLOAD = true;
             reqinfo._rawinp = upload_data;
         }
 
@@ -350,8 +399,7 @@ var ExecutorProto =
                     as.setCancel( function( as )
                     {
                         void as;
-                        reqinfo.cancelAfter( 0 );
-                        reqinfo._as = null;
+                        reqinfo._cleanup();
 
                         if ( !as.state._orig_as_cancel )
                         {
@@ -370,10 +418,9 @@ var ExecutorProto =
                     as.add( function( as )
                     {
                         void as;
-                        var ftnrsp = reqinfo_info[ reqinfo.INFO_RAW_RESPONSE ];
+                        var ftnrsp = reqinfo_info.RAW_RESPONSE;
 
-                        reqinfo.cancelAfter( 0 );
-                        reqinfo._as = null;
+                        reqinfo._cleanup();
 
                         if ( ftnrsp !== null )
                         {
@@ -384,8 +431,7 @@ var ExecutorProto =
                 function( as, err )
                 {
                     _this.emit( 'notExpected', err, as.state.error_info );
-                    reqinfo.cancelAfter( 0 );
-                    reqinfo._as = null;
+                    reqinfo._cleanup();
                 }
             ).execute();
 
@@ -398,6 +444,16 @@ var ExecutorProto =
         } );
     },
 
+    /**
+     * Standard entry point used by subclasses.
+     * Do full cycle of request processing, including all security checks
+     *
+     * NOTE: as.state.reqinfo must point to valid instance of RequestInfo
+     * @param {AsyncSteps} as
+     * @fires Executor#notExpected
+     * @fires Executor#request
+     * @fires Executor#response
+     */
     process : function( as )
     {
         var reqinfo = as.state.reqinfo;
@@ -414,7 +470,7 @@ var ExecutorProto =
             function( as )
             {
                 var reqinfo_info = reqinfo.info;
-                var rawreq = reqinfo_info[ reqinfo.INFO_RAW_REQUEST ];
+                var rawreq = reqinfo_info.RAW_REQUEST;
                 _this.emit( 'request', reqinfo, rawreq );
 
                 // Step 1. Parsing interface and function info
@@ -507,7 +563,7 @@ var ExecutorProto =
                     error_info = 'Not expected error';
                 }
 
-                var rawrsp = reqinfo.info[ reqinfo.INFO_RAW_RESPONSE ];
+                var rawrsp = reqinfo.info.RAW_RESPONSE;
                 rawrsp.e = err;
                 delete rawrsp.r;
 
@@ -526,17 +582,33 @@ var ExecutorProto =
         } );
     },
 
+    /**
+     * Shortcut to check access through #acl interface.
+     *
+     * NOTE: as.state.reqinfo must point to valid instance of RequestInfo
+     * @param {AsyncSteps} as
+     */
     checkAccess : function( as, acd )
     {
         void acd;
         as.error( FutoInError.NotImplemented, "Access Control is not supported yet" );
     },
 
+    /**
+     * NOT IMPLEMENTED, DO NOT USE. Just a compliance with the Executor interface
+     * from spec.
+     * @param {AsyncSteps} as
+     */
     initFromCache : function( as )
     {
         as.error( FutoInError.NotImplemented, "Caching is not supported yet" );
     },
 
+    /**
+     * NOT IMPLEMENTED, DO NOT USE. Just a compliance with the Executor interface
+     * from spec.
+     * @param {AsyncSteps} as
+     */
     cacheInit : function( as )
     {
         as.error( FutoInError.NotImplemented, "Caching is not supported yet" );
@@ -545,7 +617,7 @@ var ExecutorProto =
     _getInfo : function( as, reqinfo )
     {
         var reqinfo_info = reqinfo.info;
-        var f = reqinfo_info[ reqinfo.INFO_RAW_REQUEST ].f;
+        var f = reqinfo_info.RAW_REQUEST.f;
 
         if ( typeof f !== "string" )
         {
@@ -611,7 +683,7 @@ var ExecutorProto =
 
         if ( finfo.rawresult )
         {
-            reqinfo_info[ reqinfo.INFO_HAVE_RAW_RESULT ] = true;
+            reqinfo_info.HAVE_RAW_RESULT = true;
         }
     },
 
@@ -631,19 +703,19 @@ var ExecutorProto =
                 {
                     user : sec[ 0 ],
                     pwd : sec[ 1 ],
-                    client_addr : reqinfo_info[ reqinfo.INFO_CLIENT_ADDR ].asString(),
-                    is_secure : reqinfo_info[ reqinfo.INFO_SECURE_CHANNEL ]
+                    client_addr : reqinfo_info.CLIENT_ADDR.asString(),
+                    is_secure : reqinfo_info.SECURE_CHANNEL
                 } );
 
                 as.add( function( as, rsp )
                 {
-                    reqinfo_info[ reqinfo.INFO_USER_INFO ] =
+                    reqinfo_info.USER_INFO =
                             new UserInfo(
                                 _this._ccm,
                                 rsp.local_id,
                                 rsp.global_id,
                                 rsp.details );
-                    reqinfo_info[ reqinfo.INFO_SECURITY_LEVEL ] =
+                    reqinfo_info.SECURITY_LEVEL =
                             RequestInfo.SL_INFO;
                 } );
             },
@@ -669,7 +741,7 @@ var ExecutorProto =
             {
                 var basicauth = _this._ccm.iface( '#basicauth' );
                 var reqinfo_info = reqinfo.info;
-                var req = _clone( reqinfo.info[ reqinfo.INFO_RAW_REQUEST ] );
+                var req = _clone( reqinfo.info.RAW_REQUEST );
                 delete req.sec;
 
                 basicauth.call( as, 'checkHMAC',
@@ -678,19 +750,19 @@ var ExecutorProto =
                     user : user,
                     algo : algo,
                     sig : sig,
-                    client_addr : reqinfo_info[ reqinfo.INFO_CLIENT_ADDR ].asString(),
-                    is_secure : reqinfo_info[ reqinfo.INFO_SECURE_CHANNEL ]
+                    client_addr : reqinfo_info.CLIENT_ADDR.asString(),
+                    is_secure : reqinfo_info.SECURE_CHANNEL
                 } );
 
                 as.add( function( as, rsp )
                 {
-                    reqinfo_info[ reqinfo.INFO_USER_INFO ] =
+                    reqinfo_info.USER_INFO =
                             new UserInfo(
                                 _this._ccm,
                                 rsp.local_id,
                                 rsp.global_id,
                                 rsp.details );
-                    reqinfo_info[ reqinfo.INFO_SECURITY_LEVEL ] =
+                    reqinfo_info.SECURITY_LEVEL =
                             RequestInfo.SL_INFO;
                     reqinfo_info._hmac_algo = algo;
                     reqinfo_info._hmac_user = user;
@@ -710,25 +782,25 @@ var ExecutorProto =
         var constraints = reqinfo_info._iface_info.constraints;
 
         if ( ( 'SecureChannel' in constraints ) &&
-             !reqinfo_info[ reqinfo.INFO_SECURE_CHANNEL ] )
+             !reqinfo_info.SECURE_CHANNEL )
         {
             as.error( FutoInError.SecurityError, "Insecure channel" );
         }
 
         if ( ( 'MessageSignature' in constraints ) &&
-             !reqinfo_info[ reqinfo.INFO_DERIVED_KEY ] &&
+             !reqinfo_info.DERIVED_KEY &&
              !reqinfo_info._hmac_user )
         {
             as.error( FutoInError.SecurityError, "Message Signature is required" );
         }
 
         if ( !( 'AllowAnonymous' in constraints ) &&
-             !reqinfo_info[ reqinfo.INFO_USER_INFO ] )
+             !reqinfo_info.USER_INFO )
         {
             as.error( FutoInError.SecurityError, "Anonymous not allowed" );
         }
 
-        var context = reqinfo_info[ reqinfo.INFO_CHANNEL_CONTEXT ];
+        var context = reqinfo_info.CHANNEL_CONTEXT;
 
         if ( ( 'BiDirectChannel' in constraints ) &&
              ( !context ||
@@ -743,10 +815,10 @@ var ExecutorProto =
     _checkParams : function( as, reqinfo )
     {
         var reqinfo_info = reqinfo.info;
-        var rawreq = reqinfo_info[ reqinfo.INFO_RAW_REQUEST ];
+        var rawreq = reqinfo_info.RAW_REQUEST;
         var finfo = reqinfo_info._func_info;
 
-        if ( reqinfo[ reqinfo.INFO_HAVE_RAW_UPLOAD ] &&
+        if ( reqinfo.HAVE_RAW_UPLOAD &&
              !finfo.rawupload )
         {
             as.error( FutoInError.InvalidRequest, "Raw upload is not allowed" );
@@ -867,13 +939,13 @@ var ExecutorProto =
         }
 
         var reqinfo_info = reqinfo.info;
-        var rsp = reqinfo_info[ reqinfo.INFO_RAW_RESPONSE ];
+        var rsp = reqinfo_info.RAW_RESPONSE;
         var finfo = reqinfo_info._func_info;
 
         // Check raw result
         if ( finfo.rawresult )
         {
-            reqinfo_info[ reqinfo.INFO_RAW_RESPONSE ] = null;
+            reqinfo_info.RAW_RESPONSE = null;
 
             if ( Object.keys( rsp.r ).length > 0 )
             {
@@ -885,10 +957,10 @@ var ExecutorProto =
 
         // Check if response is needed at all
         if ( !finfo.expect_result &&
-            ( reqinfo_info[ reqinfo.INFO_RAW_REQUEST ].forcersp !== true )
+            ( reqinfo_info.RAW_REQUEST.forcersp !== true )
         )
         {
-            reqinfo_info[ reqinfo.INFO_RAW_RESPONSE ] = null;
+            reqinfo_info.RAW_RESPONSE = null;
             return;
         }
 
@@ -932,7 +1004,7 @@ var ExecutorProto =
     _signResponse : function( as, reqinfo )
     {
         var reqinfo_info = reqinfo.info;
-        var rawrsp = reqinfo_info[ reqinfo.INFO_RAW_RESPONSE ];
+        var rawrsp = reqinfo_info.RAW_RESPONSE;
 
         if ( !rawrsp )
         {
@@ -941,7 +1013,7 @@ var ExecutorProto =
             return;
         }
 
-        if ( reqinfo_info[ reqinfo.INFO_DERIVED_KEY ] )
+        if ( reqinfo_info.DERIVED_KEY )
         {
             // TODO: implement signing with Derived key
             this.emit( 'response', reqinfo, rawrsp );
@@ -986,10 +1058,21 @@ var ExecutorProto =
         this.emit( 'response', reqinfo, rawrsp );
     },
 
+    /**
+     * Shutdown Executor and stop whole processing
+     */
     close : function()
     {},
 
-    packPayloadJSON : function(  msg )
+    /**
+     * Not standard. Pack message object into JSON representation.
+     * If safe limit of 64K is exceeded  then error is raised.
+     *
+     * @param {object} msg - message to encode into JSON
+     * @returns {string} string representation of the message
+     * @fires Executor#notExpected
+     */
+    packPayloadJSON : function( msg )
     {
         var rawmsg = JSON.stringify( msg );
 
@@ -1006,3 +1089,21 @@ var ExecutorProto =
 Executor.prototype = ExecutorProto;
 
 module.exports = Executor;
+
+/**
+ * Fired when request processing is started.
+ * ( reqinfo, rawreq )
+ * @event Executor#request
+ */
+
+/**
+ * Fired when request processing is started.
+ * ( reqinfo, rawreq )
+ * @event Executor#response
+ */
+
+/**
+ * Fired when not expected error occurs
+ * ( errmsg, error_info )
+ * @event Executor#notExpected
+ */

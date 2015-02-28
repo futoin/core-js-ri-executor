@@ -12,12 +12,12 @@ function BasicAuthFace()
 }
 
 /**
- * BasicAuth ionterface registration helper
+ * BasicAuth interface registration helper
  * @alias BasicAuthFace.register
  */
 BasicAuthFace.register = function( as, ccm, endpoint, credentials, options )
 {
-    var iface = BasicAuthFace.ifacespec;
+    var iface = this.ifacespec;
 
     options = options || {};
     options.nativeImpl = this;

@@ -26,6 +26,10 @@ var HTTPChannelContext = function( executor, req, rsp )
 var HTTPChannelContextProto = _clone( ChannelContext.prototype );
 HTTPChannelContext.prototype = HTTPChannelContextProto;
 
+HTTPChannelContextProto._http_req = null;
+HTTPChannelContextProto._http_rsp = null;
+HTTPChannelContextProto._cookies = null;
+
 HTTPChannelContextProto.type = function()
 {
     return "HTTP";
@@ -123,6 +127,8 @@ var WSChannelContext = function( executor, conn )
 var WSChannelContextProto = _clone( ChannelContext.prototype );
 WSChannelContext.prototype = WSChannelContextProto;
 
+WSChannelContextProto._ws_conn = null;
+
 WSChannelContextProto.type = function()
 {
     return "WS";
@@ -177,18 +183,66 @@ WSChannelContextProto._getPerformRequest = function()
     };
 };
 
-// ---
+/**
+ * Pseudo-class for NodeExecutor options documentation
+ * @class
+ * @extends ExecutorOptions
+ */
 var NodeExecutorOptions =
 {
+    /**
+     * Provide a pre-configured HTTP server instance or
+     * use httpAddr & httpPort options
+     * @default
+     */
     httpServer : null,
+
+    /**
+     * Bind address for internally created HTTP server
+     * @default
+     */
     httpAddr : null,
+
+    /**
+     * Bind port for internally created HTTP server
+     * @default
+     */
     httpPort : null,
+
+    /**
+     * Path to server FutoIn request on.
+     *
+     * NOTE: if httpServer is provided than all not related
+     * requests are silently ignored. Otherwise, immediate
+     * error is raised if request path does not match httpPath.
+     * @default
+     */
     httpPath : '/',
+
+    /**
+     * Option to configure internally created server backlog
+     * @default
+     */
     httpBacklog : null,
+
+    /**
+     * If true, if incoming transport as seen is 'SecureChannel', see FTN3.
+     * Useful with reverse proxy and local connections.
+     * @default
+     */
     secureChannel : false,
+
+    /**
+     * If true, X-Forwarded-For will be used as Source Address, if present
+     * @default
+     */
     trustProxy : false,
 };
 
+/**
+ * Executor implementation for Node.js/io.js with HTTP and WebSockets transport
+ * @class
+ */
 var NodeExecutor = function( ccm, opts )
 {
     Executor.call( this, ccm, opts );
@@ -315,9 +369,17 @@ var NodeExecutor = function( ccm, opts )
 var NodeExecutorProto = _clone( Executor.prototype );
 NodeExecutor.prototype = NodeExecutorProto;
 
+NodeExecutorProto._msg_sniffer = null;
 NodeExecutorProto._http_server = null;
 NodeExecutorProto._http_path = null;
+NodeExecutorProto._is_secure_channel = null;
+NodeExecutorProto._trust_proxy = null;
 
+/**
+ * Entry point to process HTTP request
+ * @param {http.IncomingMessage} req - incoming HTTP request
+ * @param {http.ServerResponse} rsp - response object
+ */
 NodeExecutorProto.handleHTTPRequest = function( req, rsp )
 {
     var _this = this;
@@ -441,10 +503,10 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
 
     // ---
     var reqinfo_info = reqinfo.info;
-    reqinfo_info[ reqinfo.INFO_CHANNEL_CONTEXT ] = context;
-    reqinfo_info[ reqinfo.INFO_CLIENT_ADDR ] = source_address;
-    reqinfo_info[ reqinfo.INFO_SECURE_CHANNEL ] = this._is_secure_channel;
-    reqinfo_info[ reqinfo.INFO_HAVE_RAW_UPLOAD ] = raw_upload;
+    reqinfo_info.CHANNEL_CONTEXT = context;
+    reqinfo_info.CLIENT_ADDR = source_address;
+    reqinfo_info.SECURE_CHANNEL = this._is_secure_channel;
+    reqinfo_info.HAVE_RAW_UPLOAD = raw_upload;
     reqinfo_info._from_query_string = from_query;
 
     var as = async_steps();
@@ -464,8 +526,7 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
         void as;
         var ftnrsp = '{"e":"InternalError"}';
 
-        reqinfo.cancelAfter( 0 );
-        reqinfo._as = null;
+        reqinfo._cleanup();
         req.removeListener( 'close', close_req );
 
         _this._msg_sniffer( source_address, ftnrsp, false );
@@ -490,10 +551,9 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
             as.add( function( as )
             {
                 void as;
-                var ftnrsp = reqinfo_info[ reqinfo.INFO_RAW_RESPONSE ];
+                var ftnrsp = reqinfo_info.RAW_RESPONSE;
 
-                reqinfo.cancelAfter( 0 );
-                reqinfo._as = null;
+                reqinfo._cleanup();
                 req.removeListener( 'close', close_req );
 
                 if ( ftnrsp !== null )
@@ -513,7 +573,7 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
                 }
                 else
                 {
-                    if ( reqinfo_info[ reqinfo.INFO_HAVE_RAW_RESULT ] )
+                    if ( reqinfo_info.HAVE_RAW_RESULT )
                     {
                         _this._msg_sniffer( source_address, '%DATA%', false );
                     }
@@ -530,23 +590,28 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
     ).execute();
 };
 
-NodeExecutorProto.handleWSConnection = function( ugrade_req, ws )
+/**
+ * Entry point to process HTTP upgrade request with WebSocket
+ * @param {http.IncomingMessage} upgrade_req - original HTTP upgrade request
+ * @param {WebSocket} ws - WebSockets connection object
+ */
+NodeExecutorProto.handleWSConnection = function( upgrade_req, ws )
 {
     // ---
     var _this = this;
 
-    var source_addr = ugrade_req.connection.remoteAddress;
+    var source_addr = upgrade_req.connection.remoteAddress;
 
     if ( this._trust_proxy &&
-        ugrade_req.headers[ 'x-forwarded-for' ] )
+        upgrade_req.headers[ 'x-forwarded-for' ] )
     {
-        source_addr = ugrade_req.headers[ 'x-forwarded-for' ];
+        source_addr = upgrade_req.headers[ 'x-forwarded-for' ];
     }
 
     source_addr = new SourceAddress(
                 null,
                 source_addr,
-                ugrade_req.connection.remotePort
+                upgrade_req.connection.remotePort
     );
 
     var context = new WSChannelContext( this, ws );
@@ -605,9 +670,9 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
     var reqinfo = new RequestInfo( this, ftnreq );
 
     var reqinfo_info = reqinfo.info;
-    reqinfo_info[ reqinfo.INFO_CHANNEL_CONTEXT ] = context;
-    reqinfo_info[ reqinfo.INFO_CLIENT_ADDR ] = context._source_addr;
-    reqinfo_info[ reqinfo.INFO_SECURE_CHANNEL ] = this._is_secure_channel;
+    reqinfo_info.CHANNEL_CONTEXT = context;
+    reqinfo_info.CLIENT_ADDR = context._source_addr;
+    reqinfo_info.SECURE_CHANNEL = this._is_secure_channel;
 
     var _this = this;
 
@@ -632,8 +697,7 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
             e : "InternalError"
         };
 
-        reqinfo.cancelAfter( 0 );
-        reqinfo._as = null;
+        reqinfo._cleanup();
 
         try
         {
@@ -655,11 +719,10 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
             as.add( function( as )
             {
                 void as;
-                var ftnrsp = reqinfo_info[ reqinfo.INFO_RAW_RESPONSE ];
+                var ftnrsp = reqinfo_info.RAW_RESPONSE;
                 var ws_conn = context._ws_conn;
 
-                reqinfo.cancelAfter( 0 );
-                reqinfo._as = null;
+                reqinfo._cleanup();
                 ws_conn.removeListener( 'close', close_req );
 
                 if ( ftnrsp !== null )
