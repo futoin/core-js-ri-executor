@@ -40,7 +40,13 @@ var RequestInfoConst = {
      * @see RequestInfoConst.INFO_SECURITY_LEVEL
      * @default
      */
-    SL_SAFEOPS : "SafeOps",
+    SL_SAFE_OPS : "SafeOps",
+
+    /**
+     * @deprecated
+     * @ignore
+     */
+    SL_SAFEOPS :  "SafeOps",
 
     /**
      * Security Level - PrivilegedOps
@@ -52,7 +58,7 @@ var RequestInfoConst = {
      * @see RequestInfoConst.INFO_SECURITY_LEVEL
      * @default
      */
-    SL_PRIVLEGED_OPS : "PrivilegedOps",
+    SL_PRIVILEGED_OPS : "PrivilegedOps",
 
     /**
      * Security Level - ExceptionalOps
@@ -66,6 +72,19 @@ var RequestInfoConst = {
      * @default
      */
     SL_EXCEPTIONAL_OPS : "ExceptionalOps",
+
+    /**
+     * Security Level - System
+     *
+     * NOTE: it is level of user authentication, but
+     * not authorization. This one equals to
+     * internal system authorization. User never gets
+     * such security level.
+     * @const
+     * @see RequestInfoConst.INFO_SECURITY_LEVEL
+     * @default
+     */
+    SL_SYSTEM : "System",
 
     /**
      * CN field coming from validated client's x509 certificate, if any

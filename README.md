@@ -14,10 +14,10 @@
 Reference implementation of:
  
     FTN6: FutoIn Executor Concept
-    Version: 1.4
+    Version: 1.5
 
     FTN3: FutoIn Interface Definition
-    Version: 1.2
+    Version: 1.3
 
     FTN5: FutoIn HTTP integration
     Version: 1.2
@@ -494,9 +494,10 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
   * [RequestInfoConst.INFO_CHANNEL_CONTEXT](#RequestInfoConst.INFO_CHANNEL_CONTEXT)
   * [const: RequestInfoConst.SL_ANONYMOUS](#RequestInfoConst.SL_ANONYMOUS)
   * [const: RequestInfoConst.SL_INFO](#RequestInfoConst.SL_INFO)
-  * [const: RequestInfoConst.SL_SAFEOPS](#RequestInfoConst.SL_SAFEOPS)
-  * [const: RequestInfoConst.SL_PRIVLEGED_OPS](#RequestInfoConst.SL_PRIVLEGED_OPS)
+  * [const: RequestInfoConst.SL_SAFE_OPS](#RequestInfoConst.SL_SAFE_OPS)
+  * [const: RequestInfoConst.SL_PRIVILEGED_OPS](#RequestInfoConst.SL_PRIVILEGED_OPS)
   * [const: RequestInfoConst.SL_EXCEPTIONAL_OPS](#RequestInfoConst.SL_EXCEPTIONAL_OPS)
+  * [const: RequestInfoConst.SL_SYSTEM](#RequestInfoConst.SL_SYSTEM)
 * [class: RequestInfo](#RequestInfo)
   * [new RequestInfo()](#new_RequestInfo)
   * [requestInfo.info](#RequestInfo#info)
@@ -517,7 +518,7 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
   * [new UserInfo(ccm, local_id, global_id, details)](#new_UserInfo)
   * [userInfo.localID()](#UserInfo#localID)
   * [userInfo.globalID()](#UserInfo#globalID)
-  * [userInfo.details()](#UserInfo#details)
+  * [userInfo.details(as, [user_field_identifiers])](#UserInfo#details)
 
 **Functions**
 
@@ -526,8 +527,9 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
   * [BasicAuthFace.register()](#BasicAuthFace.register)
 * [BasicAuthService()](#BasicAuthService)
   * [BasicAuthService.register(as, executor)](#BasicAuthService.register)
-  * [basicAuthService.addUser(user, secret, details)](#BasicAuthService#addUser)
+  * [basicAuthService.addUser(user, secret, details, [system_user])](#BasicAuthService#addUser)
   * [basicAuthService._getUser(as, user)](#BasicAuthService#_getUser)
+  * [basicAuthService._getUserByID(as, local_id)](#BasicAuthService#_getUserByID)
 
 **Members**
 
@@ -845,9 +847,10 @@ Executor implementation for Node.js/io.js with HTTP and WebSockets transport
   * [RequestInfoConst.INFO_CHANNEL_CONTEXT](#RequestInfoConst.INFO_CHANNEL_CONTEXT)
   * [const: RequestInfoConst.SL_ANONYMOUS](#RequestInfoConst.SL_ANONYMOUS)
   * [const: RequestInfoConst.SL_INFO](#RequestInfoConst.SL_INFO)
-  * [const: RequestInfoConst.SL_SAFEOPS](#RequestInfoConst.SL_SAFEOPS)
-  * [const: RequestInfoConst.SL_PRIVLEGED_OPS](#RequestInfoConst.SL_PRIVLEGED_OPS)
+  * [const: RequestInfoConst.SL_SAFE_OPS](#RequestInfoConst.SL_SAFE_OPS)
+  * [const: RequestInfoConst.SL_PRIVILEGED_OPS](#RequestInfoConst.SL_PRIVILEGED_OPS)
   * [const: RequestInfoConst.SL_EXCEPTIONAL_OPS](#RequestInfoConst.SL_EXCEPTIONAL_OPS)
+  * [const: RequestInfoConst.SL_SYSTEM](#RequestInfoConst.SL_SYSTEM)
 
 <a name="new_RequestInfoConst"></a>
 ##new RequestInfoConst()
@@ -933,8 +936,8 @@ not authorization. This one is equal to
 HTTP cookie-based authentication.
 
 **Default**: `Info`  
-<a name="RequestInfoConst.SL_SAFEOPS"></a>
-##const: RequestInfoConst.SL_SAFEOPS
+<a name="RequestInfoConst.SL_SAFE_OPS"></a>
+##const: RequestInfoConst.SL_SAFE_OPS
 Security Level - SafeOps
 
 NOTE: it is level of user authentication, but
@@ -942,8 +945,8 @@ not authorization. This one is equal to
 HTTP Basic Auth.
 
 **Default**: `SafeOps`  
-<a name="RequestInfoConst.SL_PRIVLEGED_OPS"></a>
-##const: RequestInfoConst.SL_PRIVLEGED_OPS
+<a name="RequestInfoConst.SL_PRIVILEGED_OPS"></a>
+##const: RequestInfoConst.SL_PRIVILEGED_OPS
 Security Level - PrivilegedOps
 
 NOTE: it is level of user authentication, but
@@ -961,6 +964,16 @@ multi-factor authentication for each action and
 signed requests.
 
 **Default**: `ExceptionalOps`  
+<a name="RequestInfoConst.SL_SYSTEM"></a>
+##const: RequestInfoConst.SL_SYSTEM
+Security Level - System
+
+NOTE: it is level of user authentication, but
+not authorization. This one equals to
+internal system authorization. User never gets
+such security level.
+
+**Default**: `System`  
 <a name="RequestInfo"></a>
 #class: RequestInfo
 **Members**
@@ -1069,7 +1082,7 @@ Get a stable string representation
   * [new UserInfo(ccm, local_id, global_id, details)](#new_UserInfo)
   * [userInfo.localID()](#UserInfo#localID)
   * [userInfo.globalID()](#UserInfo#globalID)
-  * [userInfo.details()](#UserInfo#details)
+  * [userInfo.details(as, [user_field_identifiers])](#UserInfo#details)
 
 <a name="new_UserInfo"></a>
 ##new UserInfo(ccm, local_id, global_id, details)
@@ -1093,8 +1106,13 @@ Get local global ID
 
 **Returns**: `string`  
 <a name="UserInfo#details"></a>
-##userInfo.details()
+##userInfo.details(as, [user_field_identifiers])
 Get user info details
+
+**Params**
+
+- as `AsyncSteps`  
+- \[user_field_identifiers\] `object` - field list to get  
 
 **Returns**: `object`  
 <a name="BasicAuthFace"></a>

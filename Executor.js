@@ -687,6 +687,31 @@ var ExecutorProto =
         }
     },
 
+    _stepReqinfoUser : function( as, reqinfo_info, rsp )
+    {
+        var obf = reqinfo_info.RAW_REQUEST.obf;
+
+        if ( obf &&
+             ( rsp.seclvl === RequestInfo.SL_SYSTEM ) )
+        {
+            reqinfo_info.SECURITY_LEVEL = obf.slvl;
+            reqinfo_info.USER_INFO = new UserInfo(
+                    this._ccm,
+                    obf.lid,
+                    obf.gid,
+                    null );
+        }
+        else
+        {
+            reqinfo_info.SECURITY_LEVEL = rsp.seclvl;
+            reqinfo_info.USER_INFO = new UserInfo(
+                    this._ccm,
+                    rsp.local_id,
+                    rsp.global_id,
+                    rsp.details );
+        }
+    },
+
     _checkBasicAuth : function( as, reqinfo, sec )
     {
         // TODO: check for credentials auth
@@ -709,14 +734,7 @@ var ExecutorProto =
 
                 as.add( function( as, rsp )
                 {
-                    reqinfo_info.USER_INFO =
-                            new UserInfo(
-                                _this._ccm,
-                                rsp.local_id,
-                                rsp.global_id,
-                                rsp.details );
-                    reqinfo_info.SECURITY_LEVEL =
-                            RequestInfo.SL_INFO;
+                    _this._stepReqinfoUser( as, reqinfo_info, rsp );
                 } );
             },
             function( as, err )
@@ -756,14 +774,7 @@ var ExecutorProto =
 
                 as.add( function( as, rsp )
                 {
-                    reqinfo_info.USER_INFO =
-                            new UserInfo(
-                                _this._ccm,
-                                rsp.local_id,
-                                rsp.global_id,
-                                rsp.details );
-                    reqinfo_info.SECURITY_LEVEL =
-                            RequestInfo.SL_INFO;
+                    _this._stepReqinfoUser( as, reqinfo_info, rsp );
                     reqinfo_info._hmac_algo = algo;
                     reqinfo_info._hmac_user = user;
                 } );
@@ -771,6 +782,8 @@ var ExecutorProto =
             function( as, err )
             {
                 void err;
+                // console.log( err, as.state.error_info );
+                // console.log( as.state.last_exception.stack );
                 as.error( FutoInError.SecurityError, "Signature Verification Failed" );
             }
         );

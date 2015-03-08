@@ -242,7 +242,10 @@ exports.interface_impl = {
     {
         try
         {
-            reqinfo.info[ reqinfo.INFO_SECURITY_LEVEL ].should.equal( reqinfo.SL_INFO );
+            reqinfo.info[ reqinfo.INFO_SECURITY_LEVEL ].should.equal(
+                    reqinfo.info._hmac_user ?
+                            reqinfo.SL_PRIVILEGED_OPS :
+                            reqinfo.SL_SAFE_OPS );
             reqinfo.info[ reqinfo.INFO_USER_INFO ].should.not.be.null;
         }
         catch ( e )

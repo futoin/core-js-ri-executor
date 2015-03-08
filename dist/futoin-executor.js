@@ -647,6 +647,16 @@
                             reqinfo_info.HAVE_RAW_RESULT = true;
                         }
                     },
+                    _stepReqinfoUser: function (as, reqinfo_info, rsp) {
+                        var obf = reqinfo_info.RAW_REQUEST.obf;
+                        if (obf && rsp.seclvl === RequestInfo.SL_SYSTEM) {
+                            reqinfo_info.SECURITY_LEVEL = obf.slvl;
+                            reqinfo_info.USER_INFO = new UserInfo(this._ccm, obf.lid, obf.gid, null);
+                        } else {
+                            reqinfo_info.SECURITY_LEVEL = rsp.seclvl;
+                            reqinfo_info.USER_INFO = new UserInfo(this._ccm, rsp.local_id, rsp.global_id, rsp.details);
+                        }
+                    },
                     _checkBasicAuth: function (as, reqinfo, sec) {
                         var _this = this;
                         as.add(function (as) {
@@ -659,8 +669,7 @@
                                 is_secure: reqinfo_info.SECURE_CHANNEL
                             });
                             as.add(function (as, rsp) {
-                                reqinfo_info.USER_INFO = new UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
-                                reqinfo_info.SECURITY_LEVEL = RequestInfo.SL_INFO;
+                                _this._stepReqinfoUser(as, reqinfo_info, rsp);
                             });
                         }, function (as, err) {
                             void err;
@@ -683,8 +692,7 @@
                                 is_secure: reqinfo_info.SECURE_CHANNEL
                             });
                             as.add(function (as, rsp) {
-                                reqinfo_info.USER_INFO = new UserInfo(_this._ccm, rsp.local_id, rsp.global_id, rsp.details);
-                                reqinfo_info.SECURITY_LEVEL = RequestInfo.SL_INFO;
+                                _this._stepReqinfoUser(as, reqinfo_info, rsp);
                                 reqinfo_info._hmac_algo = algo;
                                 reqinfo_info._hmac_user = user;
                             });
@@ -866,9 +874,11 @@
             var RequestInfoConst = {
                     SL_ANONYMOUS: 'Anonymous',
                     SL_INFO: 'Info',
+                    SL_SAFE_OPS: 'SafeOps',
                     SL_SAFEOPS: 'SafeOps',
-                    SL_PRIVLEGED_OPS: 'PrivilegedOps',
+                    SL_PRIVILEGED_OPS: 'PrivilegedOps',
                     SL_EXCEPTIONAL_OPS: 'ExceptionalOps',
+                    SL_SYSTEM: 'System',
                     INFO_X509_CN: 'X509_CN',
                     INFO_PUBKEY: 'PUBKEY',
                     INFO_CLIENT_ADDR: 'CLIENT_ADDR',
@@ -1060,8 +1070,16 @@
                     });
                     return;
                 }
-                as.error('NotImplemented');
-                void user_field_identifiers;
+                var basic_auth = this._ccm.iface('#basicauth');
+                basic_auth.call(as, 'getUserDetails', {
+                    local_id: this._local_id,
+                    fields: user_field_identifiers
+                });
+                as.add(function (as, rsp) {
+                    var user_details = rsp.details;
+                    basic_auth._details = user_details;
+                    as.success(user_details);
+                });
             };
             UserInfoProto._cleanup = function () {
                 this._ccm = null;

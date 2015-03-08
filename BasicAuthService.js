@@ -10,6 +10,7 @@ var SpecTools = require( 'futoin-invoker/SpecTools' );
 function BasicAuthService()
 {
     this._user_list = {};
+    this._user_ids = {};
     this._next_id = 1;
 }
 
@@ -38,21 +39,26 @@ BasicAuthService.prototype =
      * @param {string} user - user name
      * @param {string} secret - user secret (either password or raw key for HMAC)
      * @param {object} details - user details the way as defined in FTN8
+     * @param {boolean=} system_user - is system user
      * @alias BasicAuthService#addUser
      */
-    addUser : function( user, secret, details )
+    addUser : function( user, secret, details, system_user )
     {
         var next_id = this._next_id++;
 
-        this._user_list[ user ] =
+        var user_reg =
         {
             secret : secret,
             info : {
                 local_id : next_id,
                 global_id : 'G' + next_id,
                 details : details || {}
-            }
+            },
+            system_user : system_user || false
         };
+
+        this._user_list[ user ] = user_reg;
+        this._user_ids[ next_id ] = user_reg;
     },
 
     /**
@@ -71,6 +77,22 @@ BasicAuthService.prototype =
         } );
     },
 
+    /**
+     * Get by ID. Override, if needed.
+     * @param {AsyncSteps} as
+     * @param {number} local_id - local ID
+     * @returns {object} user object or null (through as)
+     */
+    _getUserByID : function( as, local_id )
+    {
+        var u = this._user_ids[ local_id ];
+
+        as.add( function( as )
+        {
+            as.success( u );
+        } );
+    },
+
     auth : function( as, reqinfo )
     {
         var p = reqinfo.params();
@@ -82,6 +104,9 @@ BasicAuthService.prototype =
             if ( u &&
                  ( u.secret === p.pwd ) )
             {
+                reqinfo.result().seclvl = u.system_user ?
+                        reqinfo.SL_SYSTEM :
+                        reqinfo.SL_SAFE_OPS;
                 as.success( u.info );
             }
             else
@@ -106,6 +131,9 @@ BasicAuthService.prototype =
 
                 if ( SpecTools.checkHMAC( sig, msg_sig ) )
                 {
+                    reqinfo.result().seclvl = u.system_user ?
+                        reqinfo.SL_SYSTEM :
+                        reqinfo.SL_PRIVILEGED_OPS;
                     as.success( u.info );
                     return;
                 }
@@ -127,6 +155,23 @@ BasicAuthService.prototype =
                 var algo = SpecTools.getRawAlgo( as, p.algo );
                 var sig = SpecTools.genHMACRaw( algo, u.secret, p.msg );
                 reqinfo.result().sig = sig.toString( 'base64' );
+                return;
+            }
+
+            as.error( 'InvalidUser' );
+        } );
+    },
+
+    getUserDetails : function( as, reqinfo )
+    {
+        var p = reqinfo.params();
+        this._getUserByID( as, p.local_id );
+
+        as.add( function( as, u )
+        {
+            if ( u )
+            {
+                reqinfo.result().details = u.info.details;
                 return;
             }
 

@@ -133,6 +133,8 @@ UserInfoProto.globalID = function()
 
 /**
  * Get user info details
+ * @param {AsyncSteps} as
+ * @param {object=} user_field_identifiers - field list to get
  * @alias UserInfo#details
  * @returns {object}
  */
@@ -149,8 +151,19 @@ UserInfoProto.details = function( as, user_field_identifiers )
         return;
     }
 
-    as.error( 'NotImplemented' );
-    void user_field_identifiers;
+    var basic_auth = this._ccm.iface( '#basicauth' );
+
+    basic_auth.call( as, 'getUserDetails', {
+            local_id : this._local_id,
+            fields : user_field_identifiers
+    } );
+
+    as.add( function( as, rsp )
+    {
+        var user_details = rsp.details;
+        basic_auth._details = user_details;
+        as.success( user_details );
+    } );
 };
 
 UserInfoProto._cleanup = function()

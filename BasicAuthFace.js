@@ -77,6 +77,10 @@ BasicAuthFace.ifacespec =
                         "details" : {
                             "type" : "map",
                             "desc" : "User details"
+                        },
+                        "seclvl" : {
+                            "type" : "string",
+                            "desc" : "Security level"
                         }
                     },
                     "throws" : [
@@ -123,6 +127,10 @@ BasicAuthFace.ifacespec =
                         "details" : {
                             "type" : "map",
                             "desc" : "User details"
+                        },
+                        "seclvl" : {
+                            "type" : "string",
+                            "desc" : "Security level"
                         }
                     },
                     "throws" : [
@@ -149,6 +157,29 @@ BasicAuthFace.ifacespec =
                         "sig" : {
                             "type" : "string",
                             "desc" : "Global user ID"
+                        }
+                    },
+                    "throws" : [
+                        "InvalidUser"
+                    ],
+                    "desc" : "Try to authenticate user with provided credentials"
+                },
+                "getUserDetails" : {
+                    "params" : {
+                        "local_id" : {
+                            "type" : "integer",
+                            "desc" : "Local user ID"
+                        },
+                        "fields" : {
+                            "type" : "map",
+                            "default" : {},
+                            "desc" : "List of field to retrieve, default - all"
+                        }
+                    },
+                    "result" : {
+                        "details" : {
+                            "type" : "map",
+                            "desc" : "User details"
                         }
                     },
                     "throws" : [
