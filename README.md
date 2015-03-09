@@ -534,6 +534,8 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
 **Members**
 
 * [UserInfoConst](#UserInfoConst)
+  * [const: UserInfoConst.INFO_Login](#UserInfoConst.INFO_Login)
+  * [const: UserInfoConst.INFO_Nick](#UserInfoConst.INFO_Nick)
   * [const: UserInfoConst.INFO_FirstName](#UserInfoConst.INFO_FirstName)
   * [const: UserInfoConst.INFO_FullName](#UserInfoConst.INFO_FullName)
   * [const: UserInfoConst.INFO_DateOfBirth](#UserInfoConst.INFO_DateOfBirth)
@@ -1114,7 +1116,7 @@ Get user info details
 - as `AsyncSteps`  
 - \[user_field_identifiers\] `object` - field list to get  
 
-**Returns**: `object`  
+**Returns**: `AsyncSteps` - for easy chaining. {object} with details through as.success()  
 <a name="BasicAuthFace"></a>
 #BasicAuthFace()
 BasicAuth is not official spec - it is a temporary solution

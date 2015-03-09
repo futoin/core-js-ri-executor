@@ -237,6 +237,10 @@
                         if (!this.isStateful()) {
                             as.error('InvokerError', 'Not stateful channel');
                         }
+                        options = options || {};
+                        if (!('sendOnBehalfOf' in options)) {
+                            options.sendOnBehalfOf = false;
+                        }
                         this._executor.ccm().register(as, null, ifacever, this._getPerformRequest(), null, options);
                         var _this = this;
                         as.add(function (as, info, impl) {
@@ -1032,6 +1036,8 @@
             'use strict';
             var _extend = _require(56);
             var UserInfoConst = {
+                    INFO_Login: 'Login',
+                    INFO_Nick: 'Nick',
                     INFO_FirstName: 'FirstName',
                     INFO_FullName: 'FullName',
                     INFO_DateOfBirth: 'DateOfBirth',
@@ -1073,13 +1079,14 @@
                 var basic_auth = this._ccm.iface('#basicauth');
                 basic_auth.call(as, 'getUserDetails', {
                     local_id: this._local_id,
-                    fields: user_field_identifiers
+                    fields: user_field_identifiers || {}
                 });
                 as.add(function (as, rsp) {
                     var user_details = rsp.details;
                     basic_auth._details = user_details;
                     as.success(user_details);
                 });
+                return as;
             };
             UserInfoProto._cleanup = function () {
                 this._ccm = null;

@@ -45,6 +45,8 @@ BasicAuthService.prototype =
     addUser : function( user, secret, details, system_user )
     {
         var next_id = this._next_id++;
+        details = details || {};
+        details.Login = user; // yes, side-effect
 
         var user_reg =
         {
@@ -52,7 +54,7 @@ BasicAuthService.prototype =
             info : {
                 local_id : next_id,
                 global_id : 'G' + next_id,
-                details : details || {}
+                details : details
             },
             system_user : system_user || false
         };

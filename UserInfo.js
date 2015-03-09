@@ -9,6 +9,20 @@ var _extend = require( 'lodash/object/extend' );
 var UserInfoConst =
 {
     /**
+     * Login Name
+     * @const
+     * @default
+     */
+    INFO_Login : "Login",
+
+    /**
+     * Nick Name
+     * @const
+     * @default
+     */
+    INFO_Nick : "Nick",
+
+    /**
      * First Name
      * @const
      * @default
@@ -136,7 +150,7 @@ UserInfoProto.globalID = function()
  * @param {AsyncSteps} as
  * @param {object=} user_field_identifiers - field list to get
  * @alias UserInfo#details
- * @returns {object}
+ * @returns {AsyncSteps} for easy chaining. {object} with details through as.success()
  */
 UserInfoProto.details = function( as, user_field_identifiers )
 {
@@ -155,7 +169,7 @@ UserInfoProto.details = function( as, user_field_identifiers )
 
     basic_auth.call( as, 'getUserDetails', {
             local_id : this._local_id,
-            fields : user_field_identifiers
+            fields : user_field_identifiers || {}
     } );
 
     as.add( function( as, rsp )
@@ -164,6 +178,8 @@ UserInfoProto.details = function( as, user_field_identifiers )
         basic_auth._details = user_details;
         as.success( user_details );
     } );
+
+    return as;
 };
 
 UserInfoProto._cleanup = function()

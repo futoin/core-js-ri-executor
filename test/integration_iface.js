@@ -150,6 +150,22 @@ exports.test_if_anon = {
                     'type' : 'string'
                 }
             }
+        },
+
+        testOnBehalfOf : {
+            'result' : {
+                'r' : {
+                    'type' : 'string'
+                }
+            }
+        },
+        
+        testOnBehalfOfSub : {
+            'result' : {
+                'r' : {
+                    'type' : 'string'
+                }
+            }
         }
     },
     requires : [
@@ -379,5 +395,63 @@ exports.interface_impl = {
         {
             as.error( 'InternalError', e.message );
         }
-    }
+    },
+    
+    testOnBehalfOf : function( as, reqinfo )
+    {
+        if ( reqinfo.channel().type() === 'BROWSER' )
+        {
+            return { r: 'OK' };
+        }
+
+        try
+        {
+            reqinfo.executor().ccm()
+                .iface( 'subcall' )
+                .call( as, 'testOnBehalfOfSub' );
+        }
+        catch ( e )
+        {
+            console.log( e.stack );
+            as.error( 'InternalError', e.message );
+        }
+    },
+
+    testOnBehalfOfSub : function( as, reqinfo )
+    {
+        try
+        {
+            reqinfo.info.RAW_REQUEST.sec.should.equal( 'system:pass' );
+
+            reqinfo.info.USER_INFO
+                .details( as )
+                .add(
+                    function( as, user_details )
+                    {
+                        try
+                        {
+                            var login = user_details.Login;
+                            
+                            ( login === 'user' || login === 'hmacuser' ).should.be.true;
+                        }
+                        catch ( e )
+                        {
+                            console.log( e.stack );
+                            as.error( 'InternalError', e.message );
+                        }
+
+                        as.success( { r: 'OK' } );
+                    },
+                    function( as, err )
+                    {
+                        as.error( 'InternalError', as.state.error_info );
+                    }
+                );
+        }
+        catch ( e )
+        {
+            console.log( e.stack );
+            as.error( 'InternalError', e.message );
+        }
+    },
 };

@@ -182,6 +182,7 @@ model_as.add(
             var basic_auth_service = BasicAuthService.register( as, basicAuthExecutor );
             basic_auth_service.addUser( 'user', 'pass' );
             basic_auth_service.addUser( 'hmacuser', 'MyLongLongSecretKey' );
+            basic_auth_service.addUser( 'system', 'pass', {}, true );
             
             var clientExecutor = new ClientExecutor( ccm, opts ); 
             as.state.clientExecutor = clientExecutor;
@@ -194,7 +195,15 @@ model_as.add(
             p.add( function( as ){
                 clientExecutor.register( as, 'test.int.bidirect:1.0', {
                     clientCallback : function( as, reqinfo ){
-                        return { a: 'ClientResult' };
+                        try
+                        {
+                            reqinfo.info.RAW_REQUEST.should.not.have.property( 'sec' );
+                            return { a: 'ClientResult' };
+                        }
+                        catch ( e )
+                        {
+                            as.error( 'InternalError', e.message );
+                        }
                     }
                 } );
             } ).add( function( as ){
@@ -205,6 +214,13 @@ model_as.add(
                         end_point,
                         as.state.creds || 'user:pass',
                         { hmacKey: 'TXlMb25nTG9uZ1NlY3JldEtleQ==' }
+                );
+                executor_ccm.register(
+                        as,
+                        'subcall',
+                        'test.int.anon:1.0',
+                        end_point,
+                        'system:pass'
                 );
                 BasicAuthFace.register( as, executor_ccm, basicAuthExecutor );
             } ).add( function( as ){
@@ -478,6 +494,16 @@ model_as.add(
         ).add(
             function( as, res ){
                 res.r.should.equal( as.state.proto.match( /^http/ ) ? 'OK' : 'IGNORE' );
+            }
+        // --
+        ).add(
+            function( as ){
+                set_step( 'testOnBehalfOf' );
+                anon_iface.call( as, 'testOnBehalfOf' );
+            }
+        ).add(
+            function( as, res ){
+                res.r.should.equal( 'OK' );
             }
         // --
         ).add(

@@ -99,6 +99,13 @@ var ChannelContextProto =
             as.error( "InvokerError", 'Not stateful channel' );
         }
 
+        options = options || {};
+
+        if ( !( 'sendOnBehalfOf' in options ) )
+        {
+            options.sendOnBehalfOf = false;
+        }
+
         this._executor.ccm().register( as, null, ifacever, this._getPerformRequest(), null, options );
         var _this = this;
 
