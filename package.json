@@ -1,6 +1,6 @@
 {
   "name": "futoin-executor",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "FutoIn Executor - Reference Implementation. FutoIn Service implementation base with strict API definition for Node and Browser",
   "main": "lib/executor.js",
   "browser": "dist/executor-amd.js",
