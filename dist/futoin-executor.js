@@ -705,9 +705,19 @@
                             as.error(FutoInError.SecurityError, 'Signature Verification Failed');
                         });
                     },
+                    _seclvl_list: [
+                        'Anonymous',
+                        'Info',
+                        'SafeOps',
+                        'PrivilegedOps',
+                        'ExceptionalOps',
+                        'ExceptionalOps',
+                        'System'
+                    ],
                     _checkConstraints: function (as, reqinfo) {
                         var reqinfo_info = reqinfo.info;
                         var constraints = reqinfo_info._iface_info.constraints;
+                        var finfo = reqinfo_info._func_info;
                         if ('SecureChannel' in constraints && !reqinfo_info.SECURE_CHANNEL) {
                             as.error(FutoInError.SecurityError, 'Insecure channel');
                         }
@@ -722,6 +732,13 @@
                             console.dir(context);
                             console.log(context.isStateful());
                             as.error(FutoInError.InvalidRequest, 'Bi-Direct Channel is required');
+                        }
+                        if (finfo.seclvl) {
+                            var finfo_index = this._seclvl_list.indexOf(finfo.seclvl);
+                            var current_index = this._seclvl_list.indexOf(reqinfo_info.SECURITY_LEVEL);
+                            if (finfo_index < 0 || current_index < finfo_index) {
+                                as.error(FutoInError.PleaseReauth, finfo.seclvl);
+                            }
                         }
                     },
                     _checkParams: function (as, reqinfo) {

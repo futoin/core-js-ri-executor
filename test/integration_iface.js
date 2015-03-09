@@ -10,6 +10,7 @@ if ( typeof exports === 'undefined' )
 exports.test_if_anon = {
     iface : 'test.int.anon',
     version : '1.0',
+    ftn3rev : '1.3',
     funcs : {
         'regular' : {
             'params' : {
@@ -165,8 +166,19 @@ exports.test_if_anon = {
                 'r' : {
                     'type' : 'string'
                 }
-            }
+            },
+            seclvl : 'Info'
+        },
+        
+        testSecLevel : {
+            'result' : {
+                'r' : {
+                    'type' : 'string'
+                }
+            },
+            seclvl : 'ExceptionalOps'
         }
+
     },
     requires : [
         'AllowAnonymous'

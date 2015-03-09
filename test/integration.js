@@ -507,6 +507,22 @@ model_as.add(
             }
         // --
         ).add(
+            function( as ){
+                set_step( 'testSecLevel' );
+                anon_iface.call( as, 'testSecLevel' );
+            },
+            function( as, err )
+            {
+                err.should.equal( 'PleaseReauth' );
+                as.state.error_info.split( ' ' )[0].should.equal( 'ExceptionalOps' );
+                as.success( 'ReauthOK' );
+            }
+        ).add(
+            function( as, res ){
+                res.should.equal( 'ReauthOK' );
+            }
+        // --
+        ).add(
             function( as, ok ){
                 set_step( 'clientTimeout' );
                 anon_iface.call( as, 'clientTimeout', null, null, null, 1 );
