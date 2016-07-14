@@ -432,155 +432,103 @@ Client-side Service for bi-directional transport channels, like WebSockets.
 
 The concept is described in FutoIn specification: [FTN6: Interface Executor Concept v1.x](http://specs.futoin.org/final/preview/ftn6_iface_executor_concept-1.html)
 
-#Index
+## Modules
 
-**Modules**
+<dl>
+<dt><a href="#module_futoin-executor">futoin-executor</a></dt>
+<dd></dd>
+</dl>
 
-* [futoin-executor](#module_futoin-executor)
+## Classes
 
-**Classes**
+<dl>
+<dt><a href="#BrowserExecutorOptions">BrowserExecutorOptions</a> ⇐ <code><a href="#ExecutorOptions">ExecutorOptions</a></code></dt>
+<dd></dd>
+<dt><a href="#BrowserExecutor">BrowserExecutor</a></dt>
+<dd></dd>
+<dt><a href="#ChannelContext">ChannelContext</a></dt>
+<dd></dd>
+<dt><a href="#DerivedKey">DerivedKey</a></dt>
+<dd></dd>
+<dt><a href="#ExecutorOptions">ExecutorOptions</a></dt>
+<dd></dd>
+<dt><a href="#Executor">Executor</a></dt>
+<dd></dd>
+<dt><a href="#NodeExecutorOptions">NodeExecutorOptions</a> ⇐ <code><a href="#ExecutorOptions">ExecutorOptions</a></code></dt>
+<dd></dd>
+<dt><a href="#NodeExecutor">NodeExecutor</a></dt>
+<dd></dd>
+<dt><a href="#RequestInfoConst">RequestInfoConst</a></dt>
+<dd></dd>
+<dt><a href="#RequestInfo">RequestInfo</a></dt>
+<dd></dd>
+<dt><a href="#SourceAddress">SourceAddress</a></dt>
+<dd></dd>
+<dt><a href="#UserInfo">UserInfo</a></dt>
+<dd></dd>
+</dl>
 
-* [class: BrowserExecutorOptions](#BrowserExecutorOptions)
-  * [new BrowserExecutorOptions()](#new_BrowserExecutorOptions)
-  * [BrowserExecutorOptions.clientTimeoutMS](#BrowserExecutorOptions.clientTimeoutMS)
-  * [BrowserExecutorOptions.allowedOrigins](#BrowserExecutorOptions.allowedOrigins)
-* [class: BrowserExecutor](#BrowserExecutor)
-  * [new BrowserExecutor(ccm, opts)](#new_BrowserExecutor)
-  * [BrowserExecutor.allowed_origins](#BrowserExecutor.allowed_origins)
-* [class: ChannelContext](#ChannelContext)
-  * [new ChannelContext(executor)](#new_ChannelContext)
-  * [ChannelContext.state](#ChannelContext.state)
-* [class: DerivedKey](#DerivedKey)
-  * [new DerivedKey(ccm, base_id, sequence_id)](#new_DerivedKey)
-* [class: ExecutorOptions](#ExecutorOptions)
-  * [new ExecutorOptions()](#new_ExecutorOptions)
-  * [ExecutorOptions.specDirs](#ExecutorOptions.specDirs)
-  * [ExecutorOptions.prodMode](#ExecutorOptions.prodMode)
-  * [ExecutorOptions.reqTimeout](#ExecutorOptions.reqTimeout)
-  * [ExecutorOptions.heavyReqTimeout](#ExecutorOptions.heavyReqTimeout)
-  * [ExecutorOptions.messageSniffer()](#ExecutorOptions.messageSniffer)
-* [class: Executor](#Executor)
-  * [new Executor(ccm, opts)](#new_Executor)
-  * [executor.ccm()](#Executor#ccm)
-  * [executor.register(as, ifacever, impl, specdirs)](#Executor#register)
-  * [event: "request"](#Executor#event_request)
-  * [event: "response"](#Executor#event_response)
-  * [event: "notExpected"](#Executor#event_notExpected)
-* [class: NodeExecutorOptions](#NodeExecutorOptions)
-  * [new NodeExecutorOptions()](#new_NodeExecutorOptions)
-  * [NodeExecutorOptions.httpServer](#NodeExecutorOptions.httpServer)
-  * [NodeExecutorOptions.httpAddr](#NodeExecutorOptions.httpAddr)
-  * [NodeExecutorOptions.httpPort](#NodeExecutorOptions.httpPort)
-  * [NodeExecutorOptions.httpPath](#NodeExecutorOptions.httpPath)
-  * [NodeExecutorOptions.httpBacklog](#NodeExecutorOptions.httpBacklog)
-  * [NodeExecutorOptions.secureChannel](#NodeExecutorOptions.secureChannel)
-  * [NodeExecutorOptions.trustProxy](#NodeExecutorOptions.trustProxy)
-* [class: NodeExecutor](#NodeExecutor)
-  * [new NodeExecutor()](#new_NodeExecutor)
-* [class: RequestInfoConst](#RequestInfoConst)
-  * [new RequestInfoConst()](#new_RequestInfoConst)
-  * [RequestInfoConst.INFO_X509_CN](#RequestInfoConst.INFO_X509_CN)
-  * [RequestInfoConst.INFO_PUBKEY](#RequestInfoConst.INFO_PUBKEY)
-  * [RequestInfoConst.INFO_CLIENT_ADDR](#RequestInfoConst.INFO_CLIENT_ADDR)
-  * [RequestInfoConst.INFO_SECURE_CHANNEL](#RequestInfoConst.INFO_SECURE_CHANNEL)
-  * [RequestInfoConst.INFO_REQUEST_TIME_FLOAT](#RequestInfoConst.INFO_REQUEST_TIME_FLOAT)
-  * [RequestInfoConst.INFO_SECURITY_LEVEL](#RequestInfoConst.INFO_SECURITY_LEVEL)
-  * [RequestInfoConst.INFO_USER_INFO](#RequestInfoConst.INFO_USER_INFO)
-  * [RequestInfoConst.INFO_RAW_REQUEST](#RequestInfoConst.INFO_RAW_REQUEST)
-  * [RequestInfoConst.INFO_RAW_RESPONSE](#RequestInfoConst.INFO_RAW_RESPONSE)
-  * [RequestInfoConst.INFO_DERIVED_KEY](#RequestInfoConst.INFO_DERIVED_KEY)
-  * [RequestInfoConst.INFO_HAVE_RAW_UPLOAD](#RequestInfoConst.INFO_HAVE_RAW_UPLOAD)
-  * [RequestInfoConst.INFO_HAVE_RAW_RESULT](#RequestInfoConst.INFO_HAVE_RAW_RESULT)
-  * [RequestInfoConst.INFO_CHANNEL_CONTEXT](#RequestInfoConst.INFO_CHANNEL_CONTEXT)
-  * [const: RequestInfoConst.SL_ANONYMOUS](#RequestInfoConst.SL_ANONYMOUS)
-  * [const: RequestInfoConst.SL_INFO](#RequestInfoConst.SL_INFO)
-  * [const: RequestInfoConst.SL_SAFE_OPS](#RequestInfoConst.SL_SAFE_OPS)
-  * [const: RequestInfoConst.SL_PRIVILEGED_OPS](#RequestInfoConst.SL_PRIVILEGED_OPS)
-  * [const: RequestInfoConst.SL_EXCEPTIONAL_OPS](#RequestInfoConst.SL_EXCEPTIONAL_OPS)
-  * [const: RequestInfoConst.SL_SYSTEM](#RequestInfoConst.SL_SYSTEM)
-* [class: RequestInfo](#RequestInfo)
-  * [new RequestInfo()](#new_RequestInfo)
-  * [requestInfo.info](#RequestInfo#info)
-  * [requestInfo.params()](#RequestInfo#params)
-  * [requestInfo.result()](#RequestInfo#result)
-  * [requestInfo.rawInput()](#RequestInfo#rawInput)
-  * [requestInfo.rawOutput()](#RequestInfo#rawOutput)
-  * [requestInfo.executor()](#RequestInfo#executor)
-  * [requestInfo.channel()](#RequestInfo#channel)
-  * [requestInfo.cancelAfter(time_ms)](#RequestInfo#cancelAfter)
-* [class: SourceAddress](#SourceAddress)
-  * [new SourceAddress(type, [host], port)](#new_SourceAddress)
-  * [sourceAddress.host](#SourceAddress#host)
-  * [sourceAddress.port](#SourceAddress#port)
-  * [sourceAddress.type](#SourceAddress#type)
-  * [sourceAddress.asString()](#SourceAddress#asString)
-* [class: UserInfo](#UserInfo)
-  * [new UserInfo(ccm, local_id, global_id, details)](#new_UserInfo)
-  * [userInfo.localID()](#UserInfo#localID)
-  * [userInfo.globalID()](#UserInfo#globalID)
-  * [userInfo.details(as, [user_field_identifiers])](#UserInfo#details)
+## Members
 
-**Functions**
+<dl>
+<dt><a href="#UserInfoConst">UserInfoConst</a></dt>
+<dd><p>Pseudo-class for documenting UserInfo detail fields as
+defined in FTN8 spec</p>
+</dd>
+<dt><a href="#FutoInExecutor">FutoInExecutor</a></dt>
+<dd><p><strong>window.FutoInExecutor</strong> - Browser-only reference to futoin-executor</p>
+</dd>
+<dt><a href="#Executor">Executor</a></dt>
+<dd><p><strong>window.futoin.Executor</strong> - Browser-only reference to futoin-executor</p>
+</dd>
+<dt><a href="#BrowserExecutor">BrowserExecutor</a></dt>
+<dd><p><strong>window.BrowserExecutor</strong> - Browser-only reference to
+futoin-executor.BrowserExecutor</p>
+</dd>
+</dl>
 
-* [BasicAuthFace()](#BasicAuthFace)
-  * [BasicAuthFace.ifacespec](#BasicAuthFace.ifacespec)
-  * [BasicAuthFace.register()](#BasicAuthFace.register)
-* [BasicAuthService()](#BasicAuthService)
-  * [BasicAuthService.register(as, executor)](#BasicAuthService.register)
-  * [basicAuthService.addUser(user, secret, details, [system_user])](#BasicAuthService#addUser)
-  * [basicAuthService._getUser(as, user)](#BasicAuthService#_getUser)
-  * [basicAuthService._getUserByID(as, local_id)](#BasicAuthService#_getUserByID)
+## Functions
 
-**Members**
+<dl>
+<dt><a href="#BasicAuthFace">BasicAuthFace()</a></dt>
+<dd><p>BasicAuth is not official spec - it is a temporary solution
+until FTN8 Security Concept is finalized</p>
+</dd>
+<dt><a href="#BasicAuthService">BasicAuthService()</a></dt>
+<dd><p>BasicService is not official spec - it is a temporary solution
+until FTN8 Security Concept is finalized</p>
+</dd>
+</dl>
 
-* [UserInfoConst](#UserInfoConst)
-  * [const: UserInfoConst.INFO_Login](#UserInfoConst.INFO_Login)
-  * [const: UserInfoConst.INFO_Nick](#UserInfoConst.INFO_Nick)
-  * [const: UserInfoConst.INFO_FirstName](#UserInfoConst.INFO_FirstName)
-  * [const: UserInfoConst.INFO_FullName](#UserInfoConst.INFO_FullName)
-  * [const: UserInfoConst.INFO_DateOfBirth](#UserInfoConst.INFO_DateOfBirth)
-  * [const: UserInfoConst.INFO_TimeOfBirth](#UserInfoConst.INFO_TimeOfBirth)
-  * [const: UserInfoConst.INFO_ContactEmail](#UserInfoConst.INFO_ContactEmail)
-  * [const: UserInfoConst.INFO_ContactPhone](#UserInfoConst.INFO_ContactPhone)
-  * [const: UserInfoConst.INFO_HomeAddress](#UserInfoConst.INFO_HomeAddress)
-  * [const: UserInfoConst.INFO_WorkAddress](#UserInfoConst.INFO_WorkAddress)
-  * [const: UserInfoConst.INFO_Citizenship](#UserInfoConst.INFO_Citizenship)
-  * [const: UserInfoConst.INFO_GovernmentRegID](#UserInfoConst.INFO_GovernmentRegID)
-  * [const: UserInfoConst.INFO_AvatarURL](#UserInfoConst.INFO_AvatarURL)
-* [FutoInExecutor](#FutoInExecutor)
-* [Executor](#Executor)
-  * [executor.ccm()](#Executor#ccm)
-  * [executor.register(as, ifacever, impl, specdirs)](#Executor#register)
-  * [event: "request"](#Executor#event_request)
-  * [event: "response"](#Executor#event_response)
-  * [event: "notExpected"](#Executor#event_notExpected)
-* [BrowserExecutor](#BrowserExecutor)
-  * [BrowserExecutor.allowed_origins](#BrowserExecutor.allowed_origins)
- 
 <a name="module_futoin-executor"></a>
-#futoin-executor
+
+## futoin-executor
 <a name="BrowserExecutorOptions"></a>
-#class: BrowserExecutorOptions
-**Extends**: `ExecutorOptions`  
-**Members**
 
-* [class: BrowserExecutorOptions](#BrowserExecutorOptions)
-  * [new BrowserExecutorOptions()](#new_BrowserExecutorOptions)
-  * [BrowserExecutorOptions.clientTimeoutMS](#BrowserExecutorOptions.clientTimeoutMS)
-  * [BrowserExecutorOptions.allowedOrigins](#BrowserExecutorOptions.allowedOrigins)
+## BrowserExecutorOptions ⇐ <code>[ExecutorOptions](#ExecutorOptions)</code>
+**Kind**: global class  
+**Extends:** <code>[ExecutorOptions](#ExecutorOptions)</code>  
 
-<a name="new_BrowserExecutorOptions"></a>
-##new BrowserExecutorOptions()
+* [BrowserExecutorOptions](#BrowserExecutorOptions) ⇐ <code>[ExecutorOptions](#ExecutorOptions)</code>
+    * [new BrowserExecutorOptions()](#new_BrowserExecutorOptions_new)
+    * [.clientTimeoutMS](#BrowserExecutorOptions.clientTimeoutMS)
+    * [.allowedOrigins](#BrowserExecutorOptions.allowedOrigins)
+
+<a name="new_BrowserExecutorOptions_new"></a>
+
+### new BrowserExecutorOptions()
 Pseudo-class for BrowserExecutor options documentation
 
-**Extends**: `ExecutorOptions`  
 <a name="BrowserExecutorOptions.clientTimeoutMS"></a>
-##BrowserExecutorOptions.clientTimeoutMS
+
+### BrowserExecutorOptions.clientTimeoutMS
 Client timeout MS
 
-**Default**: `600`  
+**Kind**: static property of <code>[BrowserExecutorOptions](#BrowserExecutorOptions)</code>  
+**Default**: <code>600</code>  
 <a name="BrowserExecutorOptions.allowedOrigins"></a>
-##BrowserExecutorOptions.allowedOrigins
+
+### BrowserExecutorOptions.allowedOrigins
 List of allowed page origins for incoming connections.
 It is MANDATORY for security reasons.
 
@@ -588,376 +536,469 @@ Example:
 * 'http://localhost:8000'
 * 'http://example.com'
 
-**Default**: `[]`  
+**Kind**: static property of <code>[BrowserExecutorOptions](#BrowserExecutorOptions)</code>  
+**Default**: <code>[]</code>  
 <a name="BrowserExecutor"></a>
-#class: BrowserExecutor
-**Members**
 
-* [class: BrowserExecutor](#BrowserExecutor)
-  * [new BrowserExecutor(ccm, opts)](#new_BrowserExecutor)
-  * [BrowserExecutor.allowed_origins](#BrowserExecutor.allowed_origins)
+## BrowserExecutor
+**Kind**: global class  
 
-<a name="new_BrowserExecutor"></a>
-##new BrowserExecutor(ccm, opts)
+* [BrowserExecutor](#BrowserExecutor)
+    * [new BrowserExecutor(ccm, opts)](#new_BrowserExecutor_new)
+    * [.allowed_origins](#BrowserExecutor.allowed_origins)
+
+<a name="new_BrowserExecutor_new"></a>
+
+### new BrowserExecutor(ccm, opts)
 Browser Executor with HTML5 Web Messaging as incoming transport.
 
 It allows communication across open pages (frames/tabs/windows) inside client browser.
 
-**Params**
 
-- ccm `AdvancedCCM`  
-- opts `object` - see BrowserExecutorOptions  
+| Param | Type | Description |
+| --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> |  |
+| opts | <code>object</code> | see BrowserExecutorOptions |
 
 <a name="BrowserExecutor.allowed_origins"></a>
-##BrowserExecutor.allowed_origins
+
+### BrowserExecutor.allowed_origins
 Current list of allowed origins for modifications. Please note that
 it is an object, where field is actual origin and value must evaluate
 to true.
 
+**Kind**: static property of <code>[BrowserExecutor](#BrowserExecutor)</code>  
 <a name="ChannelContext"></a>
-#class: ChannelContext
-**Members**
 
-* [class: ChannelContext](#ChannelContext)
-  * [new ChannelContext(executor)](#new_ChannelContext)
-  * [ChannelContext.state](#ChannelContext.state)
+## ChannelContext
+**Kind**: global class  
 
-<a name="new_ChannelContext"></a>
-##new ChannelContext(executor)
+* [ChannelContext](#ChannelContext)
+    * [new ChannelContext(executor)](#new_ChannelContext_new)
+    * [.state](#ChannelContext.state) ⇒ <code>object</code>
+
+<a name="new_ChannelContext_new"></a>
+
+### new ChannelContext(executor)
 Channel Context normally accessible through RequestInfo object.
 
-**Params**
 
-- executor <code>[Executor](#Executor)</code> - reference to associated executor  
+| Param | Type | Description |
+| --- | --- | --- |
+| executor | <code>[Executor](#Executor)</code> | reference to associated executor |
 
 <a name="ChannelContext.state"></a>
-##ChannelContext.state
+
+### ChannelContext.state ⇒ <code>object</code>
 Persistent storage for arbitrary user variables.
 Please make sure variable names a prefixed.
 
 NOTE: context.state === context.state()
 
-**Returns**: `object` - this.state  
+**Kind**: static property of <code>[ChannelContext](#ChannelContext)</code>  
+**Returns**: <code>object</code> - this.state  
 <a name="DerivedKey"></a>
-#class: DerivedKey
-**Members**
 
-* [class: DerivedKey](#DerivedKey)
-  * [new DerivedKey(ccm, base_id, sequence_id)](#new_DerivedKey)
+## DerivedKey
+**Kind**: global class  
+<a name="new_DerivedKey_new"></a>
 
-<a name="new_DerivedKey"></a>
-##new DerivedKey(ccm, base_id, sequence_id)
+### new DerivedKey(ccm, base_id, sequence_id)
 Derived Key interface for planned FTN8 Master key management.
 
 A dummy so far.
 
-**Params**
 
-- ccm `AdvancedCCM` - reference to CCM  
-- base_id `integer` - master key ID  
-- sequence_id `integer` - sequence number of the derived key  
+| Param | Type | Description |
+| --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> | reference to CCM |
+| base_id | <code>integer</code> | master key ID |
+| sequence_id | <code>integer</code> | sequence number of the derived key |
 
 <a name="ExecutorOptions"></a>
-#class: ExecutorOptions
-**Members**
 
-* [class: ExecutorOptions](#ExecutorOptions)
-  * [new ExecutorOptions()](#new_ExecutorOptions)
-  * [ExecutorOptions.specDirs](#ExecutorOptions.specDirs)
-  * [ExecutorOptions.prodMode](#ExecutorOptions.prodMode)
-  * [ExecutorOptions.reqTimeout](#ExecutorOptions.reqTimeout)
-  * [ExecutorOptions.heavyReqTimeout](#ExecutorOptions.heavyReqTimeout)
-  * [ExecutorOptions.messageSniffer()](#ExecutorOptions.messageSniffer)
+## ExecutorOptions
+**Kind**: global class  
 
-<a name="new_ExecutorOptions"></a>
-##new ExecutorOptions()
+* [ExecutorOptions](#ExecutorOptions)
+    * [new ExecutorOptions()](#new_ExecutorOptions_new)
+    * [.specDirs](#ExecutorOptions.specDirs)
+    * [.prodMode](#ExecutorOptions.prodMode)
+    * [.reqTimeout](#ExecutorOptions.reqTimeout)
+    * [.heavyReqTimeout](#ExecutorOptions.heavyReqTimeout)
+    * [.messageSniffer()](#ExecutorOptions.messageSniffer)
+
+<a name="new_ExecutorOptions_new"></a>
+
+### new ExecutorOptions()
 Pseudo-class for Executor options documentation
 
 <a name="ExecutorOptions.specDirs"></a>
-##ExecutorOptions.specDirs
+
+### ExecutorOptions.specDirs
 Search dirs for spec definition or spec instance directly. It can
 be single value or array of values. Each value is either path/URL (string) or
 iface spec instance (object).
 
-**Default**: `[]`  
+**Kind**: static property of <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Default**: <code>[]</code>  
 <a name="ExecutorOptions.prodMode"></a>
-##ExecutorOptions.prodMode
+
+### ExecutorOptions.prodMode
 Production mode - disables some checks without compomising security
 
-**Default**: `false`  
+**Kind**: static property of <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Default**: <code>false</code>  
 <a name="ExecutorOptions.reqTimeout"></a>
-##ExecutorOptions.reqTimeout
+
+### ExecutorOptions.reqTimeout
 Default request processing timeout
 
-**Default**: `5000`  
+**Kind**: static property of <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Default**: <code>5000</code>  
 <a name="ExecutorOptions.heavyReqTimeout"></a>
-##ExecutorOptions.heavyReqTimeout
+
+### ExecutorOptions.heavyReqTimeout
 Default request processing timeout for functions
 marked "heavy". See FTN3
 
-**Default**: `60000`  
+**Kind**: static property of <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Default**: <code>60000</code>  
 <a name="ExecutorOptions.messageSniffer"></a>
-##ExecutorOptions.messageSniffer()
+
+### ExecutorOptions.messageSniffer()
 Message sniffer callback( iface_info, msg, is_incomming ).
 Useful for audit logging.
 
-**Default**: `dummy`  
+**Kind**: static method of <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Default**: <code>dummy</code>  
 <a name="Executor"></a>
-#class: Executor
-**Members**
 
-* [class: Executor](#Executor)
-  * [new Executor(ccm, opts)](#new_Executor)
-  * [executor.ccm()](#Executor#ccm)
-  * [executor.register(as, ifacever, impl, specdirs)](#Executor#register)
-  * [event: "request"](#Executor#event_request)
-  * [event: "response"](#Executor#event_response)
-  * [event: "notExpected"](#Executor#event_notExpected)
+## Executor
+**Kind**: global class  
 
-<a name="new_Executor"></a>
-##new Executor(ccm, opts)
+* [Executor](#Executor)
+    * [new Executor(ccm, opts)](#new_Executor_new)
+    * [.ccm()](#Executor+ccm) ⇒ <code>AdvancedCCM</code>
+    * [.register(as, ifacever, impl, specdirs)](#Executor+register)
+    * ["request"](#Executor+event_request)
+    * ["response"](#Executor+event_response)
+    * ["notExpected"](#Executor+event_notExpected)
+
+<a name="new_Executor_new"></a>
+
+### new Executor(ccm, opts)
 An abstract core implementing pure FTN6 Executor logic.
 
-**Params**
 
-- ccm `AdvancedCCM` - instance of AdvancedCCM  
-- opts `objects` - see ExecutorOptions  
+| Param | Type | Description |
+| --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> | instance of AdvancedCCM |
+| opts | <code>objects</code> | see ExecutorOptions |
 
-<a name="Executor#ccm"></a>
-##executor.ccm()
+<a name="Executor+ccm"></a>
+
+### executor.ccm() ⇒ <code>AdvancedCCM</code>
 Get reference to associated AdvancedCCM instance
 
-**Returns**: `AdvancedCCM`  
-<a name="Executor#register"></a>
-##executor.register(as, ifacever, impl, specdirs)
+**Kind**: instance method of <code>[Executor](#Executor)</code>  
+<a name="Executor+register"></a>
+
+### executor.register(as, ifacever, impl, specdirs)
 Register implementation of specific interface
 
-**Params**
+**Kind**: instance method of <code>[Executor](#Executor)</code>  
 
-- as `AsyncSteps`  
-- ifacever `string` - standard iface:version notation of interface
-       to be implemented.  
-- impl `object` | `function` - either iface implementation or func( impl, executor )  
-- specdirs `object` | `array` - NOT STANDARD. Useful for direct passing
-of hardcoded spec definition.  
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> |  |
+| ifacever | <code>string</code> | standard iface:version notation of interface        to be implemented. |
+| impl | <code>object</code> &#124; <code>function</code> | either iface implementation or func( impl, executor ) |
+| specdirs | <code>object</code> &#124; <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
 
-<a name="Executor#event_request"></a>
-##event: "request"
+<a name="Executor+event_request"></a>
+
+### "request"
 Fired when request processing is started.
 ( reqinfo, rawreq )
 
-<a name="Executor#event_response"></a>
-##event: "response"
+**Kind**: event emitted by <code>[Executor](#Executor)</code>  
+<a name="Executor+event_response"></a>
+
+### "response"
 Fired when request processing is started.
 ( reqinfo, rawreq )
 
-<a name="Executor#event_notExpected"></a>
-##event: "notExpected"
+**Kind**: event emitted by <code>[Executor](#Executor)</code>  
+<a name="Executor+event_notExpected"></a>
+
+### "notExpected"
 Fired when not expected error occurs
 ( errmsg, error_info )
 
+**Kind**: event emitted by <code>[Executor](#Executor)</code>  
 <a name="NodeExecutorOptions"></a>
-#class: NodeExecutorOptions
-**Extends**: `ExecutorOptions`  
-**Members**
 
-* [class: NodeExecutorOptions](#NodeExecutorOptions)
-  * [new NodeExecutorOptions()](#new_NodeExecutorOptions)
-  * [NodeExecutorOptions.httpServer](#NodeExecutorOptions.httpServer)
-  * [NodeExecutorOptions.httpAddr](#NodeExecutorOptions.httpAddr)
-  * [NodeExecutorOptions.httpPort](#NodeExecutorOptions.httpPort)
-  * [NodeExecutorOptions.httpPath](#NodeExecutorOptions.httpPath)
-  * [NodeExecutorOptions.httpBacklog](#NodeExecutorOptions.httpBacklog)
-  * [NodeExecutorOptions.secureChannel](#NodeExecutorOptions.secureChannel)
-  * [NodeExecutorOptions.trustProxy](#NodeExecutorOptions.trustProxy)
+## NodeExecutorOptions ⇐ <code>[ExecutorOptions](#ExecutorOptions)</code>
+**Kind**: global class  
+**Extends:** <code>[ExecutorOptions](#ExecutorOptions)</code>  
 
-<a name="new_NodeExecutorOptions"></a>
-##new NodeExecutorOptions()
+* [NodeExecutorOptions](#NodeExecutorOptions) ⇐ <code>[ExecutorOptions](#ExecutorOptions)</code>
+    * [new NodeExecutorOptions()](#new_NodeExecutorOptions_new)
+    * [.httpServer](#NodeExecutorOptions.httpServer)
+    * [.httpAddr](#NodeExecutorOptions.httpAddr)
+    * [.httpPort](#NodeExecutorOptions.httpPort)
+    * [.httpPath](#NodeExecutorOptions.httpPath)
+    * [.httpBacklog](#NodeExecutorOptions.httpBacklog)
+    * [.secureChannel](#NodeExecutorOptions.secureChannel)
+    * [.trustProxy](#NodeExecutorOptions.trustProxy)
+
+<a name="new_NodeExecutorOptions_new"></a>
+
+### new NodeExecutorOptions()
 Pseudo-class for NodeExecutor options documentation
 
-**Extends**: `ExecutorOptions`  
 <a name="NodeExecutorOptions.httpServer"></a>
-##NodeExecutorOptions.httpServer
+
+### NodeExecutorOptions.httpServer
 Provide a pre-configured HTTP server instance or
 use httpAddr & httpPort options
 
-**Default**: `null`  
+**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Default**: <code></code>  
 <a name="NodeExecutorOptions.httpAddr"></a>
-##NodeExecutorOptions.httpAddr
+
+### NodeExecutorOptions.httpAddr
 Bind address for internally created HTTP server
 
-**Default**: `null`  
+**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Default**: <code></code>  
 <a name="NodeExecutorOptions.httpPort"></a>
-##NodeExecutorOptions.httpPort
+
+### NodeExecutorOptions.httpPort
 Bind port for internally created HTTP server
 
-**Default**: `null`  
+**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Default**: <code></code>  
 <a name="NodeExecutorOptions.httpPath"></a>
-##NodeExecutorOptions.httpPath
+
+### NodeExecutorOptions.httpPath
 Path to server FutoIn request on.
 
 NOTE: if httpServer is provided than all not related
 requests are silently ignored. Otherwise, immediate
 error is raised if request path does not match httpPath.
 
-**Default**: `/`  
+**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Default**: <code>/</code>  
 <a name="NodeExecutorOptions.httpBacklog"></a>
-##NodeExecutorOptions.httpBacklog
+
+### NodeExecutorOptions.httpBacklog
 Option to configure internally created server backlog
 
-**Default**: `null`  
+**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Default**: <code></code>  
 <a name="NodeExecutorOptions.secureChannel"></a>
-##NodeExecutorOptions.secureChannel
+
+### NodeExecutorOptions.secureChannel
 If true, if incoming transport as seen is 'SecureChannel', see FTN3.
 Useful with reverse proxy and local connections.
 
-**Default**: `false`  
+**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Default**: <code>false</code>  
 <a name="NodeExecutorOptions.trustProxy"></a>
-##NodeExecutorOptions.trustProxy
+
+### NodeExecutorOptions.trustProxy
 If true, X-Forwarded-For will be used as Source Address, if present
 
-**Default**: `false`  
+**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Default**: <code>false</code>  
 <a name="NodeExecutor"></a>
-#class: NodeExecutor
-**Members**
 
-* [class: NodeExecutor](#NodeExecutor)
-  * [new NodeExecutor()](#new_NodeExecutor)
+## NodeExecutor
+**Kind**: global class  
+<a name="new_NodeExecutor_new"></a>
 
-<a name="new_NodeExecutor"></a>
-##new NodeExecutor()
+### new NodeExecutor()
 Executor implementation for Node.js/io.js with HTTP and WebSockets transport
 
 <a name="RequestInfoConst"></a>
-#class: RequestInfoConst
-**Members**
 
-* [class: RequestInfoConst](#RequestInfoConst)
-  * [new RequestInfoConst()](#new_RequestInfoConst)
-  * [RequestInfoConst.INFO_X509_CN](#RequestInfoConst.INFO_X509_CN)
-  * [RequestInfoConst.INFO_PUBKEY](#RequestInfoConst.INFO_PUBKEY)
-  * [RequestInfoConst.INFO_CLIENT_ADDR](#RequestInfoConst.INFO_CLIENT_ADDR)
-  * [RequestInfoConst.INFO_SECURE_CHANNEL](#RequestInfoConst.INFO_SECURE_CHANNEL)
-  * [RequestInfoConst.INFO_REQUEST_TIME_FLOAT](#RequestInfoConst.INFO_REQUEST_TIME_FLOAT)
-  * [RequestInfoConst.INFO_SECURITY_LEVEL](#RequestInfoConst.INFO_SECURITY_LEVEL)
-  * [RequestInfoConst.INFO_USER_INFO](#RequestInfoConst.INFO_USER_INFO)
-  * [RequestInfoConst.INFO_RAW_REQUEST](#RequestInfoConst.INFO_RAW_REQUEST)
-  * [RequestInfoConst.INFO_RAW_RESPONSE](#RequestInfoConst.INFO_RAW_RESPONSE)
-  * [RequestInfoConst.INFO_DERIVED_KEY](#RequestInfoConst.INFO_DERIVED_KEY)
-  * [RequestInfoConst.INFO_HAVE_RAW_UPLOAD](#RequestInfoConst.INFO_HAVE_RAW_UPLOAD)
-  * [RequestInfoConst.INFO_HAVE_RAW_RESULT](#RequestInfoConst.INFO_HAVE_RAW_RESULT)
-  * [RequestInfoConst.INFO_CHANNEL_CONTEXT](#RequestInfoConst.INFO_CHANNEL_CONTEXT)
-  * [const: RequestInfoConst.SL_ANONYMOUS](#RequestInfoConst.SL_ANONYMOUS)
-  * [const: RequestInfoConst.SL_INFO](#RequestInfoConst.SL_INFO)
-  * [const: RequestInfoConst.SL_SAFE_OPS](#RequestInfoConst.SL_SAFE_OPS)
-  * [const: RequestInfoConst.SL_PRIVILEGED_OPS](#RequestInfoConst.SL_PRIVILEGED_OPS)
-  * [const: RequestInfoConst.SL_EXCEPTIONAL_OPS](#RequestInfoConst.SL_EXCEPTIONAL_OPS)
-  * [const: RequestInfoConst.SL_SYSTEM](#RequestInfoConst.SL_SYSTEM)
+## RequestInfoConst
+**Kind**: global class  
+**See**: FTN6 spec  
 
-<a name="new_RequestInfoConst"></a>
-##new RequestInfoConst()
+* [RequestInfoConst](#RequestInfoConst)
+    * [new RequestInfoConst()](#new_RequestInfoConst_new)
+    * [.INFO_X509_CN](#RequestInfoConst.INFO_X509_CN)
+    * [.INFO_PUBKEY](#RequestInfoConst.INFO_PUBKEY)
+    * [.INFO_CLIENT_ADDR](#RequestInfoConst.INFO_CLIENT_ADDR)
+    * [.INFO_SECURE_CHANNEL](#RequestInfoConst.INFO_SECURE_CHANNEL)
+    * [.INFO_REQUEST_TIME_FLOAT](#RequestInfoConst.INFO_REQUEST_TIME_FLOAT)
+    * [.INFO_SECURITY_LEVEL](#RequestInfoConst.INFO_SECURITY_LEVEL)
+    * [.INFO_USER_INFO](#RequestInfoConst.INFO_USER_INFO)
+    * [.INFO_RAW_REQUEST](#RequestInfoConst.INFO_RAW_REQUEST)
+    * [.INFO_RAW_RESPONSE](#RequestInfoConst.INFO_RAW_RESPONSE)
+    * [.INFO_DERIVED_KEY](#RequestInfoConst.INFO_DERIVED_KEY)
+    * [.INFO_HAVE_RAW_UPLOAD](#RequestInfoConst.INFO_HAVE_RAW_UPLOAD)
+    * [.INFO_HAVE_RAW_RESULT](#RequestInfoConst.INFO_HAVE_RAW_RESULT)
+    * [.INFO_CHANNEL_CONTEXT](#RequestInfoConst.INFO_CHANNEL_CONTEXT)
+    * [.SL_ANONYMOUS](#RequestInfoConst.SL_ANONYMOUS)
+    * [.SL_INFO](#RequestInfoConst.SL_INFO)
+    * [.SL_SAFE_OPS](#RequestInfoConst.SL_SAFE_OPS)
+    * [.SL_PRIVILEGED_OPS](#RequestInfoConst.SL_PRIVILEGED_OPS)
+    * [.SL_EXCEPTIONAL_OPS](#RequestInfoConst.SL_EXCEPTIONAL_OPS)
+    * [.SL_SYSTEM](#RequestInfoConst.SL_SYSTEM)
+
+<a name="new_RequestInfoConst_new"></a>
+
+### new RequestInfoConst()
 Pseudo-class for RequestInfo.info field enumeration
 
 <a name="RequestInfoConst.INFO_X509_CN"></a>
-##RequestInfoConst.INFO_X509_CN
+
+### RequestInfoConst.INFO_X509_CN
 CN field coming from validated client's x509 certificate, if any
 
-**Default**: `X509_CN`  
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Default**: <code>X509_CN</code>  
 <a name="RequestInfoConst.INFO_PUBKEY"></a>
-##RequestInfoConst.INFO_PUBKEY
+
+### RequestInfoConst.INFO_PUBKEY
 Client provided public key, if any
 
-**Default**: `PUBKEY`  
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Default**: <code>PUBKEY</code>  
 <a name="RequestInfoConst.INFO_CLIENT_ADDR"></a>
-##RequestInfoConst.INFO_CLIENT_ADDR
+
+### RequestInfoConst.INFO_CLIENT_ADDR
 Client address
 
-**Default**: `CLIENT_ADDR`  
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Default**: <code>CLIENT_ADDR</code>  
+**See**: SourceAddress  
 <a name="RequestInfoConst.INFO_SECURE_CHANNEL"></a>
-##RequestInfoConst.INFO_SECURE_CHANNEL
+
+### RequestInfoConst.INFO_SECURE_CHANNEL
 Boolean, indicates if transport channel is secure
 
-**Default**: `SECURE_CHANNEL`  
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Default**: <code>SECURE_CHANNEL</code>  
 <a name="RequestInfoConst.INFO_REQUEST_TIME_FLOAT"></a>
-##RequestInfoConst.INFO_REQUEST_TIME_FLOAT
+
+### RequestInfoConst.INFO_REQUEST_TIME_FLOAT
 Implementation define timestamp of request start.
 
 NOTE:it may not be related to absolute time. Please
 see performance-now NPM module.
 
-**Default**: `REQUEST_TIME_FLOAT`  
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Default**: <code>REQUEST_TIME_FLOAT</code>  
 <a name="RequestInfoConst.INFO_SECURITY_LEVEL"></a>
-##RequestInfoConst.INFO_SECURITY_LEVEL
+
+### RequestInfoConst.INFO_SECURITY_LEVEL
 Authentication, but not authorization, security level.
 
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**See**: RequestInfoConst.SL_*  
 <a name="RequestInfoConst.INFO_USER_INFO"></a>
-##RequestInfoConst.INFO_USER_INFO
+
+### RequestInfoConst.INFO_USER_INFO
 User Info object
 
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**See**: UserInfo  
 <a name="RequestInfoConst.INFO_RAW_REQUEST"></a>
-##RequestInfoConst.INFO_RAW_REQUEST
+
+### RequestInfoConst.INFO_RAW_REQUEST
 Raw FutoIn request object
 
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
 <a name="RequestInfoConst.INFO_RAW_RESPONSE"></a>
-##RequestInfoConst.INFO_RAW_RESPONSE
+
+### RequestInfoConst.INFO_RAW_RESPONSE
 Raw FutoIn response object
 
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
 <a name="RequestInfoConst.INFO_DERIVED_KEY"></a>
-##RequestInfoConst.INFO_DERIVED_KEY
+
+### RequestInfoConst.INFO_DERIVED_KEY
 Associated Derived Key
 
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**See**: DerivedKey  
 <a name="RequestInfoConst.INFO_HAVE_RAW_UPLOAD"></a>
-##RequestInfoConst.INFO_HAVE_RAW_UPLOAD
+
+### RequestInfoConst.INFO_HAVE_RAW_UPLOAD
 Indicates that input transport provided raw upload stream.
 
 NOTE: service implementation should simply try to open
 RequestInfo.rawInput()
 
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
 <a name="RequestInfoConst.INFO_HAVE_RAW_RESULT"></a>
-##RequestInfoConst.INFO_HAVE_RAW_RESULT
+
+### RequestInfoConst.INFO_HAVE_RAW_RESULT
 Indicates that Executor must provide raw response
 
 NOTE: service implementation should simply try to open
 RequestInfo.rawOutput()
 
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
 <a name="RequestInfoConst.INFO_CHANNEL_CONTEXT"></a>
-##RequestInfoConst.INFO_CHANNEL_CONTEXT
+
+### RequestInfoConst.INFO_CHANNEL_CONTEXT
 Associated transport channel context
 
+**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**See**: ChannelContext  
 <a name="RequestInfoConst.SL_ANONYMOUS"></a>
-##const: RequestInfoConst.SL_ANONYMOUS
+
+### RequestInfoConst.SL_ANONYMOUS
 Security Level - Anonymous
 
-**Default**: `Anonymous`  
+**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Default**: <code>Anonymous</code>  
+**See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_INFO"></a>
-##const: RequestInfoConst.SL_INFO
+
+### RequestInfoConst.SL_INFO
 Security Level - Info
 
 NOTE: it is level of user authentication, but
 not authorization. This one is equal to
 HTTP cookie-based authentication.
 
-**Default**: `Info`  
+**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Default**: <code>Info</code>  
+**See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_SAFE_OPS"></a>
-##const: RequestInfoConst.SL_SAFE_OPS
+
+### RequestInfoConst.SL_SAFE_OPS
 Security Level - SafeOps
 
 NOTE: it is level of user authentication, but
 not authorization. This one is equal to
 HTTP Basic Auth.
 
-**Default**: `SafeOps`  
+**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Default**: <code>SafeOps</code>  
+**See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_PRIVILEGED_OPS"></a>
-##const: RequestInfoConst.SL_PRIVILEGED_OPS
+
+### RequestInfoConst.SL_PRIVILEGED_OPS
 Security Level - PrivilegedOps
 
 NOTE: it is level of user authentication, but
 not authorization. This one equals to
 multi-factor authentication and signed requests.
 
-**Default**: `PrivilegedOps`  
+**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Default**: <code>PrivilegedOps</code>  
+**See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_EXCEPTIONAL_OPS"></a>
-##const: RequestInfoConst.SL_EXCEPTIONAL_OPS
+
+### RequestInfoConst.SL_EXCEPTIONAL_OPS
 Security Level - ExceptionalOps
 
 NOTE: it is level of user authentication, but
@@ -965,9 +1006,12 @@ not authorization. This one equals to
 multi-factor authentication for each action and
 signed requests.
 
-**Default**: `ExceptionalOps`  
+**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Default**: <code>ExceptionalOps</code>  
+**See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_SYSTEM"></a>
-##const: RequestInfoConst.SL_SYSTEM
+
+### RequestInfoConst.SL_SYSTEM
 Security Level - System
 
 NOTE: it is level of user authentication, but
@@ -975,176 +1019,504 @@ not authorization. This one equals to
 internal system authorization. User never gets
 such security level.
 
-**Default**: `System`  
+**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Default**: <code>System</code>  
+**See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfo"></a>
-#class: RequestInfo
-**Members**
 
-* [class: RequestInfo](#RequestInfo)
-  * [new RequestInfo()](#new_RequestInfo)
-  * [requestInfo.info](#RequestInfo#info)
-  * [requestInfo.params()](#RequestInfo#params)
-  * [requestInfo.result()](#RequestInfo#result)
-  * [requestInfo.rawInput()](#RequestInfo#rawInput)
-  * [requestInfo.rawOutput()](#RequestInfo#rawOutput)
-  * [requestInfo.executor()](#RequestInfo#executor)
-  * [requestInfo.channel()](#RequestInfo#channel)
-  * [requestInfo.cancelAfter(time_ms)](#RequestInfo#cancelAfter)
+## RequestInfo
+**Kind**: global class  
 
-<a name="new_RequestInfo"></a>
-##new RequestInfo()
+* [RequestInfo](#RequestInfo)
+    * [new RequestInfo()](#new_RequestInfo_new)
+    * [.info](#RequestInfo+info) ⇒ <code>object</code>
+    * [.params()](#RequestInfo+params) ⇒ <code>object</code>
+    * [.result()](#RequestInfo+result) ⇒ <code>object</code>
+    * [.rawInput()](#RequestInfo+rawInput)
+    * [.rawOutput()](#RequestInfo+rawOutput)
+    * [.executor()](#RequestInfo+executor)
+    * [.channel()](#RequestInfo+channel)
+    * [.cancelAfter(time_ms)](#RequestInfo+cancelAfter)
+
+<a name="new_RequestInfo_new"></a>
+
+### new RequestInfo()
 RequestInfo object as defined in FTN6
 
-<a name="RequestInfo#info"></a>
-##requestInfo.info
+<a name="RequestInfo+info"></a>
+
+### requestInfo.info ⇒ <code>object</code>
 Get reference to info map object
 
 NOTE: reqInfo.info() === reqInfo.info
 
-**Returns**: `object`  
-<a name="RequestInfo#params"></a>
-##requestInfo.params()
+**Kind**: instance property of <code>[RequestInfo](#RequestInfo)</code>  
+<a name="RequestInfo+params"></a>
+
+### requestInfo.params() ⇒ <code>object</code>
 Get reference to input params
 
-**Returns**: `object`  
-<a name="RequestInfo#result"></a>
-##requestInfo.result()
+**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+<a name="RequestInfo+result"></a>
+
+### requestInfo.result() ⇒ <code>object</code>
 Get reference to output
 
-**Returns**: `object`  
-<a name="RequestInfo#rawInput"></a>
-##requestInfo.rawInput()
+**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+<a name="RequestInfo+rawInput"></a>
+
+### requestInfo.rawInput()
 Get reference to input stream
 
-<a name="RequestInfo#rawOutput"></a>
-##requestInfo.rawOutput()
+**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+**Throws**:
+
+- RawInputError
+
+<a name="RequestInfo+rawOutput"></a>
+
+### requestInfo.rawOutput()
 Get reference to output stream
 
-<a name="RequestInfo#executor"></a>
-##requestInfo.executor()
+**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+**Throws**:
+
+- RawOutputError
+
+<a name="RequestInfo+executor"></a>
+
+### requestInfo.executor()
 Get reference to associated Executor instance
 
-<a name="RequestInfo#channel"></a>
-##requestInfo.channel()
+**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+<a name="RequestInfo+channel"></a>
+
+### requestInfo.channel()
 Get reference to channel context
 
-<a name="RequestInfo#cancelAfter"></a>
-##requestInfo.cancelAfter(time_ms)
+**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+<a name="RequestInfo+cancelAfter"></a>
+
+### requestInfo.cancelAfter(time_ms)
 Set overall request processing timeout in microseconds.
 
 NOTE: repeat calls override previous value
 
-**Params**
+**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
 
-- time_ms `float` - set automatic request timeout after specified
-       value of microseconds. 0 - disables timeout  
+| Param | Type | Description |
+| --- | --- | --- |
+| time_ms | <code>float</code> | set automatic request timeout after specified        value of microseconds. 0 - disables timeout |
 
 <a name="SourceAddress"></a>
-#class: SourceAddress
-**Members**
 
-* [class: SourceAddress](#SourceAddress)
-  * [new SourceAddress(type, [host], port)](#new_SourceAddress)
-  * [sourceAddress.host](#SourceAddress#host)
-  * [sourceAddress.port](#SourceAddress#port)
-  * [sourceAddress.type](#SourceAddress#type)
-  * [sourceAddress.asString()](#SourceAddress#asString)
+## SourceAddress
+**Kind**: global class  
 
-<a name="new_SourceAddress"></a>
-##new SourceAddress(type, [host], port)
+* [SourceAddress](#SourceAddress)
+    * [new SourceAddress(type, [host], port)](#new_SourceAddress_new)
+    * [.host](#SourceAddress+host)
+    * [.port](#SourceAddress+port)
+    * [.type](#SourceAddress+type)
+    * [.asString()](#SourceAddress+asString)
+
+<a name="new_SourceAddress_new"></a>
+
+### new SourceAddress(type, [host], port)
 Source Address representation
 
-**Params**
 
-- type `string` - Type of address  
-- \[host\] `string` - machine address, if applicable  
-- port `integer` | `string` - port or path, if applicable  
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>string</code> | Type of address |
+| [host] | <code>string</code> | machine address, if applicable |
+| port | <code>integer</code> &#124; <code>string</code> | port or path, if applicable |
 
-<a name="SourceAddress#host"></a>
-##sourceAddress.host
+<a name="SourceAddress+host"></a>
+
+### sourceAddress.host
 Host field
 
-<a name="SourceAddress#port"></a>
-##sourceAddress.port
+**Kind**: instance property of <code>[SourceAddress](#SourceAddress)</code>  
+<a name="SourceAddress+port"></a>
+
+### sourceAddress.port
 Port field
 
-<a name="SourceAddress#type"></a>
-##sourceAddress.type
+**Kind**: instance property of <code>[SourceAddress](#SourceAddress)</code>  
+<a name="SourceAddress+type"></a>
+
+### sourceAddress.type
 Type field
 
-<a name="SourceAddress#asString"></a>
-##sourceAddress.asString()
+**Kind**: instance property of <code>[SourceAddress](#SourceAddress)</code>  
+<a name="SourceAddress+asString"></a>
+
+### sourceAddress.asString()
 Get a stable string representation
 
+**Kind**: instance method of <code>[SourceAddress](#SourceAddress)</code>  
 <a name="UserInfo"></a>
-#class: UserInfo
-**Members**
 
-* [class: UserInfo](#UserInfo)
-  * [new UserInfo(ccm, local_id, global_id, details)](#new_UserInfo)
-  * [userInfo.localID()](#UserInfo#localID)
-  * [userInfo.globalID()](#UserInfo#globalID)
-  * [userInfo.details(as, [user_field_identifiers])](#UserInfo#details)
+## UserInfo
+**Kind**: global class  
 
-<a name="new_UserInfo"></a>
-##new UserInfo(ccm, local_id, global_id, details)
+* [UserInfo](#UserInfo)
+    * [new UserInfo(ccm, local_id, global_id, details)](#new_UserInfo_new)
+    * [.localID()](#UserInfo+localID) ⇒ <code>integer</code>
+    * [.globalID()](#UserInfo+globalID) ⇒ <code>string</code>
+    * [.details(as, [user_field_identifiers])](#UserInfo+details) ⇒ <code>AsyncSteps</code>
+
+<a name="new_UserInfo_new"></a>
+
+### new UserInfo(ccm, local_id, global_id, details)
 Class representing user information
 
-**Params**
 
-- ccm `AdvancedCCM` - reference to CCM  
-- local_id `integer` - local unique ID  
-- global_id `string` - global unique ID  
-- details `object` - user info fields, see UserInfoConst  
+| Param | Type | Description |
+| --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> | reference to CCM |
+| local_id | <code>integer</code> | local unique ID |
+| global_id | <code>string</code> | global unique ID |
+| details | <code>object</code> | user info fields, see UserInfoConst |
 
-<a name="UserInfo#localID"></a>
-##userInfo.localID()
+<a name="UserInfo+localID"></a>
+
+### userInfo.localID() ⇒ <code>integer</code>
 Get local unique ID
 
-**Returns**: `integer`  
-<a name="UserInfo#globalID"></a>
-##userInfo.globalID()
+**Kind**: instance method of <code>[UserInfo](#UserInfo)</code>  
+<a name="UserInfo+globalID"></a>
+
+### userInfo.globalID() ⇒ <code>string</code>
 Get local global ID
 
-**Returns**: `string`  
-<a name="UserInfo#details"></a>
-##userInfo.details(as, [user_field_identifiers])
+**Kind**: instance method of <code>[UserInfo](#UserInfo)</code>  
+<a name="UserInfo+details"></a>
+
+### userInfo.details(as, [user_field_identifiers]) ⇒ <code>AsyncSteps</code>
 Get user info details
 
-**Params**
+**Kind**: instance method of <code>[UserInfo](#UserInfo)</code>  
+**Returns**: <code>AsyncSteps</code> - for easy chaining. {object} with details through as.success()  
 
-- as `AsyncSteps`  
-- \[user_field_identifiers\] `object` - field list to get  
-
-**Returns**: `AsyncSteps` - for easy chaining. {object} with details through as.success()  
-<a name="BasicAuthFace"></a>
-#BasicAuthFace()
-BasicAuth is not official spec - it is a temporary solution
-until FTN8 Security Concept is finalized
-
-<a name="BasicAuthService"></a>
-#BasicAuthService()
-BasicService is not official spec - it is a temporary solution
-until FTN8 Security Concept is finalized
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> |  |
+| [user_field_identifiers] | <code>object</code> | field list to get |
 
 <a name="UserInfoConst"></a>
-#UserInfoConst
+
+## UserInfoConst
 Pseudo-class for documenting UserInfo detail fields as
 defined in FTN8 spec
 
+**Kind**: global variable  
+
+* [UserInfoConst](#UserInfoConst)
+    * [.INFO_Login](#UserInfoConst.INFO_Login)
+    * [.INFO_Nick](#UserInfoConst.INFO_Nick)
+    * [.INFO_FirstName](#UserInfoConst.INFO_FirstName)
+    * [.INFO_FullName](#UserInfoConst.INFO_FullName)
+    * [.INFO_DateOfBirth](#UserInfoConst.INFO_DateOfBirth)
+    * [.INFO_TimeOfBirth](#UserInfoConst.INFO_TimeOfBirth)
+    * [.INFO_ContactEmail](#UserInfoConst.INFO_ContactEmail)
+    * [.INFO_ContactPhone](#UserInfoConst.INFO_ContactPhone)
+    * [.INFO_HomeAddress](#UserInfoConst.INFO_HomeAddress)
+    * [.INFO_WorkAddress](#UserInfoConst.INFO_WorkAddress)
+    * [.INFO_Citizenship](#UserInfoConst.INFO_Citizenship)
+    * [.INFO_GovernmentRegID](#UserInfoConst.INFO_GovernmentRegID)
+    * [.INFO_AvatarURL](#UserInfoConst.INFO_AvatarURL)
+
+<a name="UserInfoConst.INFO_Login"></a>
+
+### UserInfoConst.INFO_Login
+Login Name
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>Login</code>  
+<a name="UserInfoConst.INFO_Nick"></a>
+
+### UserInfoConst.INFO_Nick
+Nick Name
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>Nick</code>  
+<a name="UserInfoConst.INFO_FirstName"></a>
+
+### UserInfoConst.INFO_FirstName
+First Name
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>FirstName</code>  
+<a name="UserInfoConst.INFO_FullName"></a>
+
+### UserInfoConst.INFO_FullName
+Full Name
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>FullName</code>  
+<a name="UserInfoConst.INFO_DateOfBirth"></a>
+
+### UserInfoConst.INFO_DateOfBirth
+Date if birth in ISO "YYYY-MM-DD" format
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>DateOfBirth</code>  
+<a name="UserInfoConst.INFO_TimeOfBirth"></a>
+
+### UserInfoConst.INFO_TimeOfBirth
+Date if birth in ISO "HH:mm:ss" format, can be truncated to minutes
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>TimeOfBirth</code>  
+<a name="UserInfoConst.INFO_ContactEmail"></a>
+
+### UserInfoConst.INFO_ContactEmail
+E-mail for contacts
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>ContactEmail</code>  
+<a name="UserInfoConst.INFO_ContactPhone"></a>
+
+### UserInfoConst.INFO_ContactPhone
+Phone for contacts
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>ContactPhone</code>  
+<a name="UserInfoConst.INFO_HomeAddress"></a>
+
+### UserInfoConst.INFO_HomeAddress
+Home address
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>HomeAddress</code>  
+<a name="UserInfoConst.INFO_WorkAddress"></a>
+
+### UserInfoConst.INFO_WorkAddress
+Work address
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>WorkAddress</code>  
+<a name="UserInfoConst.INFO_Citizenship"></a>
+
+### UserInfoConst.INFO_Citizenship
+Citizenship
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>Citizenship</code>  
+<a name="UserInfoConst.INFO_GovernmentRegID"></a>
+
+### UserInfoConst.INFO_GovernmentRegID
+Country-specific unique registration ID, e,g, SSN, PersonalCode, etc.
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>GovernmentRegID</code>  
+<a name="UserInfoConst.INFO_AvatarURL"></a>
+
+### UserInfoConst.INFO_AvatarURL
+URL of avatar image
+
+**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Default**: <code>AvatarURL</code>  
 <a name="FutoInExecutor"></a>
-#FutoInExecutor
+
+## FutoInExecutor
 **window.FutoInExecutor** - Browser-only reference to futoin-executor
 
+**Kind**: global variable  
 <a name="Executor"></a>
-#Executor
+
+## Executor
 **window.futoin.Executor** - Browser-only reference to futoin-executor
 
+**Kind**: global variable  
+
+* [Executor](#Executor)
+    * [new Executor(ccm, opts)](#new_Executor_new)
+    * [.ccm()](#Executor+ccm) ⇒ <code>AdvancedCCM</code>
+    * [.register(as, ifacever, impl, specdirs)](#Executor+register)
+    * ["request"](#Executor+event_request)
+    * ["response"](#Executor+event_response)
+    * ["notExpected"](#Executor+event_notExpected)
+
+<a name="new_Executor_new"></a>
+
+### new Executor(ccm, opts)
+An abstract core implementing pure FTN6 Executor logic.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> | instance of AdvancedCCM |
+| opts | <code>objects</code> | see ExecutorOptions |
+
+<a name="Executor+ccm"></a>
+
+### executor.ccm() ⇒ <code>AdvancedCCM</code>
+Get reference to associated AdvancedCCM instance
+
+**Kind**: instance method of <code>[Executor](#Executor)</code>  
+<a name="Executor+register"></a>
+
+### executor.register(as, ifacever, impl, specdirs)
+Register implementation of specific interface
+
+**Kind**: instance method of <code>[Executor](#Executor)</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> |  |
+| ifacever | <code>string</code> | standard iface:version notation of interface        to be implemented. |
+| impl | <code>object</code> &#124; <code>function</code> | either iface implementation or func( impl, executor ) |
+| specdirs | <code>object</code> &#124; <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
+
+<a name="Executor+event_request"></a>
+
+### "request"
+Fired when request processing is started.
+( reqinfo, rawreq )
+
+**Kind**: event emitted by <code>[Executor](#Executor)</code>  
+<a name="Executor+event_response"></a>
+
+### "response"
+Fired when request processing is started.
+( reqinfo, rawreq )
+
+**Kind**: event emitted by <code>[Executor](#Executor)</code>  
+<a name="Executor+event_notExpected"></a>
+
+### "notExpected"
+Fired when not expected error occurs
+( errmsg, error_info )
+
+**Kind**: event emitted by <code>[Executor](#Executor)</code>  
 <a name="BrowserExecutor"></a>
-#BrowserExecutor
+
+## BrowserExecutor
 **window.BrowserExecutor** - Browser-only reference to
 futoin-executor.BrowserExecutor
 
+**Kind**: global variable  
+
+* [BrowserExecutor](#BrowserExecutor)
+    * [new BrowserExecutor(ccm, opts)](#new_BrowserExecutor_new)
+    * [.allowed_origins](#BrowserExecutor.allowed_origins)
+
+<a name="new_BrowserExecutor_new"></a>
+
+### new BrowserExecutor(ccm, opts)
+Browser Executor with HTML5 Web Messaging as incoming transport.
+
+It allows communication across open pages (frames/tabs/windows) inside client browser.
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> |  |
+| opts | <code>object</code> | see BrowserExecutorOptions |
+
+<a name="BrowserExecutor.allowed_origins"></a>
+
+### BrowserExecutor.allowed_origins
+Current list of allowed origins for modifications. Please note that
+it is an object, where field is actual origin and value must evaluate
+to true.
+
+**Kind**: static property of <code>[BrowserExecutor](#BrowserExecutor)</code>  
+<a name="BasicAuthFace"></a>
+
+## BasicAuthFace()
+BasicAuth is not official spec - it is a temporary solution
+until FTN8 Security Concept is finalized
+
+**Kind**: global function  
+
+* [BasicAuthFace()](#BasicAuthFace)
+    * [.ifacespec](#BasicAuthFace.ifacespec)
+    * [.register()](#BasicAuthFace.register)
+
+<a name="BasicAuthFace.ifacespec"></a>
+
+### BasicAuthFace.ifacespec
+Embedded spec for FutoIn BasicAuthFace
+
+**Kind**: static property of <code>[BasicAuthFace](#BasicAuthFace)</code>  
+<a name="BasicAuthFace.register"></a>
+
+### BasicAuthFace.register()
+BasicAuth interface registration helper
+
+**Kind**: static method of <code>[BasicAuthFace](#BasicAuthFace)</code>  
+<a name="BasicAuthService"></a>
+
+## BasicAuthService()
+BasicService is not official spec - it is a temporary solution
+until FTN8 Security Concept is finalized
+
+**Kind**: global function  
+
+* [BasicAuthService()](#BasicAuthService)
+    * _instance_
+        * [.addUser(user, secret, details, [system_user])](#BasicAuthService+addUser)
+        * [._getUser(as, user)](#BasicAuthService+_getUser) ⇒ <code>object</code>
+        * [._getUserByID(as, local_id)](#BasicAuthService+_getUserByID) ⇒ <code>object</code>
+    * _static_
+        * [.register(as, executor)](#BasicAuthService.register) ⇒ <code>[BasicAuthService](#BasicAuthService)</code>
+
+<a name="BasicAuthService+addUser"></a>
+
+### basicAuthService.addUser(user, secret, details, [system_user])
+Register users statically right after registration
+
+**Kind**: instance method of <code>[BasicAuthService](#BasicAuthService)</code>  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| user | <code>string</code> | user name |
+| secret | <code>string</code> | user secret (either password or raw key for HMAC) |
+| details | <code>object</code> | user details the way as defined in FTN8 |
+| [system_user] | <code>boolean</code> | is system user |
+
+<a name="BasicAuthService+_getUser"></a>
+
+### basicAuthService._getUser(as, user) ⇒ <code>object</code>
+Get by name. Override, if needed.
+
+**Kind**: instance method of <code>[BasicAuthService](#BasicAuthService)</code>  
+**Returns**: <code>object</code> - user object or null (through as)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> |  |
+| user | <code>string</code> | user name |
+
+<a name="BasicAuthService+_getUserByID"></a>
+
+### basicAuthService._getUserByID(as, local_id) ⇒ <code>object</code>
+Get by ID. Override, if needed.
+
+**Kind**: instance method of <code>[BasicAuthService](#BasicAuthService)</code>  
+**Returns**: <code>object</code> - user object or null (through as)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> |  |
+| local_id | <code>number</code> | local ID |
+
+<a name="BasicAuthService.register"></a>
+
+### BasicAuthService.register(as, executor) ⇒ <code>[BasicAuthService](#BasicAuthService)</code>
+BasicAuthService registration helper
+
+**Kind**: static method of <code>[BasicAuthService](#BasicAuthService)</code>  
+**Returns**: <code>[BasicAuthService](#BasicAuthService)</code> - reference to implementation instance (to register users)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> |  |
+| executor | <code>[Executor](#Executor)</code> | executor instance |
 
 
 

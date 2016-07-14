@@ -1,12 +1,12 @@
 "use strict";
 
-var _extend = require( 'lodash/object/extend' );
-var _defaults = require( 'lodash/object/defaults' );
+var _extend = require( 'lodash/extend' );
+var _defaults = require( 'lodash/defaults' );
 var invoker = require( 'futoin-invoker' );
 var FutoInError = invoker.FutoInError;
 var async_steps = require( 'futoin-asyncsteps' );
 var ee = require( 'event-emitter' );
-var _clone = require( 'lodash/lang/clone' );
+var _clone = require( 'lodash/clone' );
 
 var Executor = require( './Executor' );
 var ChannelContext = require( './ChannelContext' );

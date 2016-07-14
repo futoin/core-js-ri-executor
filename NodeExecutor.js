@@ -1,7 +1,7 @@
 "use strict";
 
-var _clone = require( 'lodash/lang/clone' );
-var _defaults = require( 'lodash/object/defaults' );
+var _clone = require( 'lodash/clone' );
+var _defaults = require( 'lodash/defaults' );
 var WebSocket = require( 'faye-websocket' );
 var http = require( 'http' );
 var url = require( 'url' );

@@ -1,8 +1,8 @@
 "use strict";
 
-var _clone = require( 'lodash/lang/clone' );
-var _zipObject = require( 'lodash/array/zipObject' );
-var _defaults = require( 'lodash/object/defaults' );
+var _clone = require( 'lodash/clone' );
+var _zipObject = require( 'lodash/zipObject' );
+var _defaults = require( 'lodash/defaults' );
 var async_steps = require( 'futoin-asyncsteps' );
 var performance_now = require( "performance-now" );
 var browser_window = window; // jshint ignore:line

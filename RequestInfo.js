@@ -1,6 +1,6 @@
 "use strict";
 
-var _extend = require( 'lodash/object/extend' );
+var _extend = require( 'lodash/extend' );
 var performance_now = require( "performance-now" );
 var async_steps = require( 'futoin-asyncsteps' );
 

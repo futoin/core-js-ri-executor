@@ -1,6 +1,6 @@
 "use strict";
 
-var _extend = require( 'lodash/object/extend' );
+var _extend = require( 'lodash/extend' );
 
 /**
  * Pseudo-class for documenting UserInfo detail fields as
