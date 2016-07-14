@@ -734,7 +734,7 @@ Fired when request processing is started.
 
 ### "notExpected"
 Fired when not expected error occurs
-( errmsg, error_info )
+( errmsg, error_info, last_exception )
 
 **Kind**: event emitted by <code>[Executor](#Executor)</code>  
 <a name="NodeExecutorOptions"></a>
@@ -1389,7 +1389,7 @@ Fired when request processing is started.
 
 ### "notExpected"
 Fired when not expected error occurs
-( errmsg, error_info )
+( errmsg, error_info, last_exception )
 
 **Kind**: event emitted by <code>[Executor](#Executor)</code>  
 <a name="BrowserExecutor"></a>

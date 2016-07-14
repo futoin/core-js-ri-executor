@@ -339,7 +339,7 @@ var ExecutorProto =
             },
             function( as, err )
             {
-                _this.emit( 'notExpected', err, as.state.error_info );
+                _this.emit( 'notExpected', err, as.state.error_info, as.state.last_exception );
                 reqinfo._cleanup();
             }
         ).execute();
@@ -430,7 +430,7 @@ var ExecutorProto =
                 },
                 function( as, err )
                 {
-                    _this.emit( 'notExpected', err, as.state.error_info );
+                    _this.emit( 'notExpected', err, as.state.error_info, as.state.last_exception );
                     reqinfo._cleanup();
                 }
             ).execute();
@@ -558,7 +558,7 @@ var ExecutorProto =
                       ( !reqinfo_info._func_info ||
                         !( err in reqinfo_info._func_info.throws ) ) )
                 {
-                    _this.emit( 'notExpected', err, error_info );
+                    _this.emit( 'notExpected', err, error_info, as.state.last_exception );
                     err = FutoInError.InternalError;
                     error_info = 'Not expected error';
                 }
@@ -1132,6 +1132,6 @@ module.exports = Executor;
 
 /**
  * Fired when not expected error occurs
- * ( errmsg, error_info )
+ * ( errmsg, error_info, last_exception )
  * @event Executor#notExpected
  */
