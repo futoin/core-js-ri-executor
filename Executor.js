@@ -687,12 +687,12 @@ var ExecutorProto =
         }
     },
 
-    _stepReqinfoUser : function( as, reqinfo_info, rsp )
+    _stepReqinfoUser : function( as, reqinfo_info, authrsp )
     {
         var obf = reqinfo_info.RAW_REQUEST.obf;
 
         if ( obf &&
-             ( rsp.seclvl === RequestInfo.SL_SYSTEM ) )
+             ( authrsp.seclvl === RequestInfo.SL_SYSTEM ) )
         {
             reqinfo_info.SECURITY_LEVEL = obf.slvl;
             reqinfo_info.USER_INFO = new UserInfo(
@@ -703,12 +703,12 @@ var ExecutorProto =
         }
         else
         {
-            reqinfo_info.SECURITY_LEVEL = rsp.seclvl;
+            reqinfo_info.SECURITY_LEVEL = authrsp.seclvl;
             reqinfo_info.USER_INFO = new UserInfo(
                     this._ccm,
-                    rsp.local_id,
-                    rsp.global_id,
-                    rsp.details );
+                    authrsp.local_id,
+                    authrsp.global_id,
+                    authrsp.details );
         }
     },
 
@@ -724,18 +724,28 @@ var ExecutorProto =
                 var basicauth = _this._ccm.iface( '#basicauth' );
                 var reqinfo_info = reqinfo.info;
 
-                basicauth.call( as, 'auth',
+                if ( reqinfo_info.RAW_REQUEST.obf &&
+                     ( reqinfo.info.CHANNEL_CONTEXT.type() === 'INTERNAL' ) )
                 {
-                    user : sec[ 0 ],
-                    pwd : sec[ 1 ],
-                    client_addr : reqinfo_info.CLIENT_ADDR.asString(),
-                    is_secure : reqinfo_info.SECURE_CHANNEL
-                } );
+                    _this._stepReqinfoUser( as, reqinfo_info, {
+                        seclvl : RequestInfo.SL_SYSTEM
+                    } );
+                }
+                else
+                {
+                    basicauth.call( as, 'auth',
+                    {
+                        user : sec[ 0 ],
+                        pwd : sec[ 1 ],
+                        client_addr : reqinfo_info.CLIENT_ADDR.asString(),
+                        is_secure : reqinfo_info.SECURE_CHANNEL
+                    } );
 
-                as.add( function( as, rsp )
-                {
-                    _this._stepReqinfoUser( as, reqinfo_info, rsp );
-                } );
+                    as.add( function( as, rsp )
+                    {
+                        _this._stepReqinfoUser( as, reqinfo_info, rsp );
+                    } );
+                }
             },
             function( as, err )
             {
