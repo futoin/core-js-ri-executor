@@ -475,7 +475,7 @@
                                 }
                             });
                         }, function (as, err) {
-                            _this.emit('notExpected', err, as.state.error_info);
+                            _this.emit('notExpected', err, as.state.error_info, as.state.last_exception);
                             reqinfo._cleanup();
                         }).execute();
                     },
@@ -524,7 +524,7 @@
                                     }
                                 });
                             }, function (as, err) {
-                                _this.emit('notExpected', err, as.state.error_info);
+                                _this.emit('notExpected', err, as.state.error_info, as.state.last_exception);
                                 reqinfo._cleanup();
                             }).execute();
                             orig_as.setCancel(function (as) {
@@ -584,7 +584,7 @@
                             var reqinfo_info = reqinfo.info;
                             var error_info = as.state.error_info;
                             if (!(err in invoker.SpecTools.standard_errors) && (!reqinfo_info._func_info || !(err in reqinfo_info._func_info.throws))) {
-                                _this.emit('notExpected', err, error_info);
+                                _this.emit('notExpected', err, error_info, as.state.last_exception);
                                 err = FutoInError.InternalError;
                                 error_info = 'Not expected error';
                             }
@@ -651,14 +651,14 @@
                             reqinfo_info.HAVE_RAW_RESULT = true;
                         }
                     },
-                    _stepReqinfoUser: function (as, reqinfo_info, rsp) {
+                    _stepReqinfoUser: function (as, reqinfo_info, authrsp) {
                         var obf = reqinfo_info.RAW_REQUEST.obf;
-                        if (obf && rsp.seclvl === RequestInfo.SL_SYSTEM) {
+                        if (obf && authrsp.seclvl === RequestInfo.SL_SYSTEM) {
                             reqinfo_info.SECURITY_LEVEL = obf.slvl;
                             reqinfo_info.USER_INFO = new UserInfo(this._ccm, obf.lid, obf.gid, null);
                         } else {
-                            reqinfo_info.SECURITY_LEVEL = rsp.seclvl;
-                            reqinfo_info.USER_INFO = new UserInfo(this._ccm, rsp.local_id, rsp.global_id, rsp.details);
+                            reqinfo_info.SECURITY_LEVEL = authrsp.seclvl;
+                            reqinfo_info.USER_INFO = new UserInfo(this._ccm, authrsp.local_id, authrsp.global_id, authrsp.details);
                         }
                     },
                     _checkBasicAuth: function (as, reqinfo, sec) {
@@ -666,15 +666,19 @@
                         as.add(function (as) {
                             var basicauth = _this._ccm.iface('#basicauth');
                             var reqinfo_info = reqinfo.info;
-                            basicauth.call(as, 'auth', {
-                                user: sec[0],
-                                pwd: sec[1],
-                                client_addr: reqinfo_info.CLIENT_ADDR.asString(),
-                                is_secure: reqinfo_info.SECURE_CHANNEL
-                            });
-                            as.add(function (as, rsp) {
-                                _this._stepReqinfoUser(as, reqinfo_info, rsp);
-                            });
+                            if (reqinfo_info.RAW_REQUEST.obf && reqinfo.info.CHANNEL_CONTEXT.type() === 'INTERNAL') {
+                                _this._stepReqinfoUser(as, reqinfo_info, { seclvl: RequestInfo.SL_SYSTEM });
+                            } else {
+                                basicauth.call(as, 'auth', {
+                                    user: sec[0],
+                                    pwd: sec[1],
+                                    client_addr: reqinfo_info.CLIENT_ADDR.asString(),
+                                    is_secure: reqinfo_info.SECURE_CHANNEL
+                                });
+                                as.add(function (as, rsp) {
+                                    _this._stepReqinfoUser(as, reqinfo_info, rsp);
+                                });
+                            }
                         }, function (as, err) {
                             void err;
                             as.success();
