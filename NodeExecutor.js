@@ -684,6 +684,10 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
         as.cancel();
     };
 
+    context._message_count = context._message_count || 10;
+    context._message_count += 1;
+
+    context._ws_conn.setMaxListeners( context._message_count << 1 );
     context._ws_conn.once( 'close', close_req );
 
     reqinfo._as = as;
@@ -724,6 +728,7 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
 
                 reqinfo._cleanup();
                 ws_conn.removeListener( 'close', close_req );
+                context._message_count -= 1;
 
                 if ( ftnrsp !== null )
                 {
@@ -736,7 +741,8 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
         function( as, err )
         {
             void err;
-            context._ws_conn.ws_conn.removeListener( 'close', close_req );
+            context._ws_conn.removeListener( 'close', close_req );
+            context._message_count -= 1;
             _this.emit( 'error', reqinfo, 'Internal Server Error' );
         }
     ).execute();
