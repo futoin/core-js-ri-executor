@@ -2,3 +2,4 @@
 === (next) ===
 CHANGED: to use FutoIn CID tool for development
 - Revised development tools
+CHANGED: upgraded to latest deps

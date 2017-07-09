@@ -2,10 +2,13 @@
   "name": "futoin-executor",
   "version": "0.8.3",
   "vcs": "git",
+  "rms": "npm",
+  "rmsRepo": "ignored",
   "plugins": {
     "release": "futoin.cid.misc.releasetool"
   },
   "actions": {
-    "check": "@cid tool exec grunt -- test"
+    "test": "@cid tool exec grunt -- test",
+    "upgrade-deps": "@cid tool exec yarn -- upgrade --latest"
   }
 }
