@@ -1,6 +1,5 @@
 {
   "name": "futoin-executor",
-  "version": "0.8.3",
   "main": "dist/futoin-executor.js",
   "moduleType": [
     "amd",
