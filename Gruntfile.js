@@ -23,7 +23,7 @@ module.exports = function (grunt) {
         },
         mocha_istanbul: {
             coverage: {
-                src: ['test/spectooltest.js', 'test/unittest.js'],
+                src: ['test/integration.js', 'test/unittest.js'],
             }
         },
         istanbul_check_coverage: {},

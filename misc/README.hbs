@@ -68,7 +68,7 @@ or included modular way, e.g.:
 ```javascript
 var Executor = require('futoin-executor/Executor');
 ```
-# Installation for Browser
+# Installation for Browser (deprecated)
 
 ```sh
 $ bower install futoin-executor --save
