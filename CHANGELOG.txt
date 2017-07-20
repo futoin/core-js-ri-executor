@@ -1,4 +1,7 @@
 
+=== (next) ===
+FIXED: readme file
+
 === 0.9.0 (2017-07-19) ===
 NEW: added FTN3 v1.4 support
 

@@ -17,7 +17,7 @@ Reference implementation of:
     Version: 1.5
 
     FTN3: FutoIn Interface Definition
-    Version: 1.3
+    Version: 1.4
 
     FTN5: FutoIn HTTP integration
     Version: 1.2
@@ -505,11 +505,11 @@ until FTN8 Security Concept is finalized</p>
 ## futoin-executor
 <a name="BrowserExecutorOptions"></a>
 
-## BrowserExecutorOptions ⇐ <code>[ExecutorOptions](#ExecutorOptions)</code>
+## BrowserExecutorOptions ⇐ [<code>ExecutorOptions</code>](#ExecutorOptions)
 **Kind**: global class  
-**Extends:** <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Extends**: [<code>ExecutorOptions</code>](#ExecutorOptions)  
 
-* [BrowserExecutorOptions](#BrowserExecutorOptions) ⇐ <code>[ExecutorOptions](#ExecutorOptions)</code>
+* [BrowserExecutorOptions](#BrowserExecutorOptions) ⇐ [<code>ExecutorOptions</code>](#ExecutorOptions)
     * [new BrowserExecutorOptions()](#new_BrowserExecutorOptions_new)
     * [.clientTimeoutMS](#BrowserExecutorOptions.clientTimeoutMS)
     * [.allowedOrigins](#BrowserExecutorOptions.allowedOrigins)
@@ -524,7 +524,7 @@ Pseudo-class for BrowserExecutor options documentation
 ### BrowserExecutorOptions.clientTimeoutMS
 Client timeout MS
 
-**Kind**: static property of <code>[BrowserExecutorOptions](#BrowserExecutorOptions)</code>  
+**Kind**: static property of [<code>BrowserExecutorOptions</code>](#BrowserExecutorOptions)  
 **Default**: <code>600</code>  
 <a name="BrowserExecutorOptions.allowedOrigins"></a>
 
@@ -536,7 +536,7 @@ Example:
 * 'http://localhost:8000'
 * 'http://example.com'
 
-**Kind**: static property of <code>[BrowserExecutorOptions](#BrowserExecutorOptions)</code>  
+**Kind**: static property of [<code>BrowserExecutorOptions</code>](#BrowserExecutorOptions)  
 **Default**: <code>[]</code>  
 <a name="BrowserExecutor"></a>
 
@@ -567,7 +567,7 @@ Current list of allowed origins for modifications. Please note that
 it is an object, where field is actual origin and value must evaluate
 to true.
 
-**Kind**: static property of <code>[BrowserExecutor](#BrowserExecutor)</code>  
+**Kind**: static property of [<code>BrowserExecutor</code>](#BrowserExecutor)  
 <a name="ChannelContext"></a>
 
 ## ChannelContext
@@ -585,7 +585,7 @@ Channel Context normally accessible through RequestInfo object.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| executor | <code>[Executor](#Executor)</code> | reference to associated executor |
+| executor | [<code>Executor</code>](#Executor) | reference to associated executor |
 
 <a name="ChannelContext.state"></a>
 
@@ -595,7 +595,7 @@ Please make sure variable names a prefixed.
 
 NOTE: context.state === context.state()
 
-**Kind**: static property of <code>[ChannelContext](#ChannelContext)</code>  
+**Kind**: static property of [<code>ChannelContext</code>](#ChannelContext)  
 **Returns**: <code>object</code> - this.state  
 <a name="DerivedKey"></a>
 
@@ -640,21 +640,21 @@ Search dirs for spec definition or spec instance directly. It can
 be single value or array of values. Each value is either path/URL (string) or
 iface spec instance (object).
 
-**Kind**: static property of <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Kind**: static property of [<code>ExecutorOptions</code>](#ExecutorOptions)  
 **Default**: <code>[]</code>  
 <a name="ExecutorOptions.prodMode"></a>
 
 ### ExecutorOptions.prodMode
 Production mode - disables some checks without compomising security
 
-**Kind**: static property of <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Kind**: static property of [<code>ExecutorOptions</code>](#ExecutorOptions)  
 **Default**: <code>false</code>  
 <a name="ExecutorOptions.reqTimeout"></a>
 
 ### ExecutorOptions.reqTimeout
 Default request processing timeout
 
-**Kind**: static property of <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Kind**: static property of [<code>ExecutorOptions</code>](#ExecutorOptions)  
 **Default**: <code>5000</code>  
 <a name="ExecutorOptions.heavyReqTimeout"></a>
 
@@ -662,7 +662,7 @@ Default request processing timeout
 Default request processing timeout for functions
 marked "heavy". See FTN3
 
-**Kind**: static property of <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Kind**: static property of [<code>ExecutorOptions</code>](#ExecutorOptions)  
 **Default**: <code>60000</code>  
 <a name="ExecutorOptions.messageSniffer"></a>
 
@@ -670,7 +670,7 @@ marked "heavy". See FTN3
 Message sniffer callback( iface_info, msg, is_incomming ).
 Useful for audit logging.
 
-**Kind**: static method of <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Kind**: static method of [<code>ExecutorOptions</code>](#ExecutorOptions)  
 **Default**: <code>dummy</code>  
 <a name="Executor"></a>
 
@@ -701,20 +701,20 @@ An abstract core implementing pure FTN6 Executor logic.
 ### executor.ccm() ⇒ <code>AdvancedCCM</code>
 Get reference to associated AdvancedCCM instance
 
-**Kind**: instance method of <code>[Executor](#Executor)</code>  
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
 <a name="Executor+register"></a>
 
 ### executor.register(as, ifacever, impl, specdirs)
 Register implementation of specific interface
 
-**Kind**: instance method of <code>[Executor](#Executor)</code>  
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | as | <code>AsyncSteps</code> |  |
 | ifacever | <code>string</code> | standard iface:version notation of interface        to be implemented. |
-| impl | <code>object</code> &#124; <code>function</code> | either iface implementation or func( impl, executor ) |
-| specdirs | <code>object</code> &#124; <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
+| impl | <code>object</code> \| <code>function</code> | either iface implementation or func( impl, executor ) |
+| specdirs | <code>object</code> \| <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
 
 <a name="Executor+event_request"></a>
 
@@ -722,28 +722,28 @@ Register implementation of specific interface
 Fired when request processing is started.
 ( reqinfo, rawreq )
 
-**Kind**: event emitted by <code>[Executor](#Executor)</code>  
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="Executor+event_response"></a>
 
 ### "response"
 Fired when request processing is started.
 ( reqinfo, rawreq )
 
-**Kind**: event emitted by <code>[Executor](#Executor)</code>  
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="Executor+event_notExpected"></a>
 
 ### "notExpected"
 Fired when not expected error occurs
 ( errmsg, error_info, last_exception )
 
-**Kind**: event emitted by <code>[Executor](#Executor)</code>  
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="NodeExecutorOptions"></a>
 
-## NodeExecutorOptions ⇐ <code>[ExecutorOptions](#ExecutorOptions)</code>
+## NodeExecutorOptions ⇐ [<code>ExecutorOptions</code>](#ExecutorOptions)
 **Kind**: global class  
-**Extends:** <code>[ExecutorOptions](#ExecutorOptions)</code>  
+**Extends**: [<code>ExecutorOptions</code>](#ExecutorOptions)  
 
-* [NodeExecutorOptions](#NodeExecutorOptions) ⇐ <code>[ExecutorOptions](#ExecutorOptions)</code>
+* [NodeExecutorOptions](#NodeExecutorOptions) ⇐ [<code>ExecutorOptions</code>](#ExecutorOptions)
     * [new NodeExecutorOptions()](#new_NodeExecutorOptions_new)
     * [.httpServer](#NodeExecutorOptions.httpServer)
     * [.httpAddr](#NodeExecutorOptions.httpAddr)
@@ -764,21 +764,21 @@ Pseudo-class for NodeExecutor options documentation
 Provide a pre-configured HTTP server instance or
 use httpAddr & httpPort options
 
-**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code></code>  
 <a name="NodeExecutorOptions.httpAddr"></a>
 
 ### NodeExecutorOptions.httpAddr
 Bind address for internally created HTTP server
 
-**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code></code>  
 <a name="NodeExecutorOptions.httpPort"></a>
 
 ### NodeExecutorOptions.httpPort
 Bind port for internally created HTTP server
 
-**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code></code>  
 <a name="NodeExecutorOptions.httpPath"></a>
 
@@ -789,14 +789,14 @@ NOTE: if httpServer is provided than all not related
 requests are silently ignored. Otherwise, immediate
 error is raised if request path does not match httpPath.
 
-**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code>/</code>  
 <a name="NodeExecutorOptions.httpBacklog"></a>
 
 ### NodeExecutorOptions.httpBacklog
 Option to configure internally created server backlog
 
-**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code></code>  
 <a name="NodeExecutorOptions.secureChannel"></a>
 
@@ -804,14 +804,14 @@ Option to configure internally created server backlog
 If true, if incoming transport as seen is 'SecureChannel', see FTN3.
 Useful with reverse proxy and local connections.
 
-**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code>false</code>  
 <a name="NodeExecutorOptions.trustProxy"></a>
 
 ### NodeExecutorOptions.trustProxy
 If true, X-Forwarded-For will be used as Source Address, if present
 
-**Kind**: static property of <code>[NodeExecutorOptions](#NodeExecutorOptions)</code>  
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code>false</code>  
 <a name="NodeExecutor"></a>
 
@@ -860,21 +860,21 @@ Pseudo-class for RequestInfo.info field enumeration
 ### RequestInfoConst.INFO_X509_CN
 CN field coming from validated client's x509 certificate, if any
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>X509_CN</code>  
 <a name="RequestInfoConst.INFO_PUBKEY"></a>
 
 ### RequestInfoConst.INFO_PUBKEY
 Client provided public key, if any
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>PUBKEY</code>  
 <a name="RequestInfoConst.INFO_CLIENT_ADDR"></a>
 
 ### RequestInfoConst.INFO_CLIENT_ADDR
 Client address
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>CLIENT_ADDR</code>  
 **See**: SourceAddress  
 <a name="RequestInfoConst.INFO_SECURE_CHANNEL"></a>
@@ -882,7 +882,7 @@ Client address
 ### RequestInfoConst.INFO_SECURE_CHANNEL
 Boolean, indicates if transport channel is secure
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>SECURE_CHANNEL</code>  
 <a name="RequestInfoConst.INFO_REQUEST_TIME_FLOAT"></a>
 
@@ -892,40 +892,40 @@ Implementation define timestamp of request start.
 NOTE:it may not be related to absolute time. Please
 see performance-now NPM module.
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>REQUEST_TIME_FLOAT</code>  
 <a name="RequestInfoConst.INFO_SECURITY_LEVEL"></a>
 
 ### RequestInfoConst.INFO_SECURITY_LEVEL
 Authentication, but not authorization, security level.
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **See**: RequestInfoConst.SL_*  
 <a name="RequestInfoConst.INFO_USER_INFO"></a>
 
 ### RequestInfoConst.INFO_USER_INFO
 User Info object
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **See**: UserInfo  
 <a name="RequestInfoConst.INFO_RAW_REQUEST"></a>
 
 ### RequestInfoConst.INFO_RAW_REQUEST
 Raw FutoIn request object
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 <a name="RequestInfoConst.INFO_RAW_RESPONSE"></a>
 
 ### RequestInfoConst.INFO_RAW_RESPONSE
 Raw FutoIn response object
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 <a name="RequestInfoConst.INFO_DERIVED_KEY"></a>
 
 ### RequestInfoConst.INFO_DERIVED_KEY
 Associated Derived Key
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **See**: DerivedKey  
 <a name="RequestInfoConst.INFO_HAVE_RAW_UPLOAD"></a>
 
@@ -935,7 +935,7 @@ Indicates that input transport provided raw upload stream.
 NOTE: service implementation should simply try to open
 RequestInfo.rawInput()
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 <a name="RequestInfoConst.INFO_HAVE_RAW_RESULT"></a>
 
 ### RequestInfoConst.INFO_HAVE_RAW_RESULT
@@ -944,20 +944,20 @@ Indicates that Executor must provide raw response
 NOTE: service implementation should simply try to open
 RequestInfo.rawOutput()
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 <a name="RequestInfoConst.INFO_CHANNEL_CONTEXT"></a>
 
 ### RequestInfoConst.INFO_CHANNEL_CONTEXT
 Associated transport channel context
 
-**Kind**: static property of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **See**: ChannelContext  
 <a name="RequestInfoConst.SL_ANONYMOUS"></a>
 
 ### RequestInfoConst.SL_ANONYMOUS
 Security Level - Anonymous
 
-**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static constant of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>Anonymous</code>  
 **See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_INFO"></a>
@@ -969,7 +969,7 @@ NOTE: it is level of user authentication, but
 not authorization. This one is equal to
 HTTP cookie-based authentication.
 
-**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static constant of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>Info</code>  
 **See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_SAFE_OPS"></a>
@@ -981,7 +981,7 @@ NOTE: it is level of user authentication, but
 not authorization. This one is equal to
 HTTP Basic Auth.
 
-**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static constant of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>SafeOps</code>  
 **See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_PRIVILEGED_OPS"></a>
@@ -993,7 +993,7 @@ NOTE: it is level of user authentication, but
 not authorization. This one equals to
 multi-factor authentication and signed requests.
 
-**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static constant of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>PrivilegedOps</code>  
 **See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_EXCEPTIONAL_OPS"></a>
@@ -1006,7 +1006,7 @@ not authorization. This one equals to
 multi-factor authentication for each action and
 signed requests.
 
-**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static constant of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>ExceptionalOps</code>  
 **See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_SYSTEM"></a>
@@ -1019,7 +1019,7 @@ not authorization. This one equals to
 internal system authorization. User never gets
 such security level.
 
-**Kind**: static constant of <code>[RequestInfoConst](#RequestInfoConst)</code>  
+**Kind**: static constant of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>System</code>  
 **See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfo"></a>
@@ -1050,25 +1050,25 @@ Get reference to info map object
 
 NOTE: reqInfo.info() === reqInfo.info
 
-**Kind**: instance property of <code>[RequestInfo](#RequestInfo)</code>  
+**Kind**: instance property of [<code>RequestInfo</code>](#RequestInfo)  
 <a name="RequestInfo+params"></a>
 
 ### requestInfo.params() ⇒ <code>object</code>
 Get reference to input params
 
-**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+**Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
 <a name="RequestInfo+result"></a>
 
 ### requestInfo.result() ⇒ <code>object</code>
 Get reference to output
 
-**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+**Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
 <a name="RequestInfo+rawInput"></a>
 
 ### requestInfo.rawInput()
 Get reference to input stream
 
-**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+**Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
 **Throws**:
 
 - RawInputError
@@ -1078,7 +1078,7 @@ Get reference to input stream
 ### requestInfo.rawOutput()
 Get reference to output stream
 
-**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+**Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
 **Throws**:
 
 - RawOutputError
@@ -1088,13 +1088,13 @@ Get reference to output stream
 ### requestInfo.executor()
 Get reference to associated Executor instance
 
-**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+**Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
 <a name="RequestInfo+channel"></a>
 
 ### requestInfo.channel()
 Get reference to channel context
 
-**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+**Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
 <a name="RequestInfo+cancelAfter"></a>
 
 ### requestInfo.cancelAfter(time_ms)
@@ -1102,7 +1102,7 @@ Set overall request processing timeout in microseconds.
 
 NOTE: repeat calls override previous value
 
-**Kind**: instance method of <code>[RequestInfo](#RequestInfo)</code>  
+**Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1130,32 +1130,32 @@ Source Address representation
 | --- | --- | --- |
 | type | <code>string</code> | Type of address |
 | [host] | <code>string</code> | machine address, if applicable |
-| port | <code>integer</code> &#124; <code>string</code> | port or path, if applicable |
+| port | <code>integer</code> \| <code>string</code> | port or path, if applicable |
 
 <a name="SourceAddress+host"></a>
 
 ### sourceAddress.host
 Host field
 
-**Kind**: instance property of <code>[SourceAddress](#SourceAddress)</code>  
+**Kind**: instance property of [<code>SourceAddress</code>](#SourceAddress)  
 <a name="SourceAddress+port"></a>
 
 ### sourceAddress.port
 Port field
 
-**Kind**: instance property of <code>[SourceAddress](#SourceAddress)</code>  
+**Kind**: instance property of [<code>SourceAddress</code>](#SourceAddress)  
 <a name="SourceAddress+type"></a>
 
 ### sourceAddress.type
 Type field
 
-**Kind**: instance property of <code>[SourceAddress](#SourceAddress)</code>  
+**Kind**: instance property of [<code>SourceAddress</code>](#SourceAddress)  
 <a name="SourceAddress+asString"></a>
 
 ### sourceAddress.asString()
 Get a stable string representation
 
-**Kind**: instance method of <code>[SourceAddress](#SourceAddress)</code>  
+**Kind**: instance method of [<code>SourceAddress</code>](#SourceAddress)  
 <a name="UserInfo"></a>
 
 ## UserInfo
@@ -1185,19 +1185,19 @@ Class representing user information
 ### userInfo.localID() ⇒ <code>integer</code>
 Get local unique ID
 
-**Kind**: instance method of <code>[UserInfo](#UserInfo)</code>  
+**Kind**: instance method of [<code>UserInfo</code>](#UserInfo)  
 <a name="UserInfo+globalID"></a>
 
 ### userInfo.globalID() ⇒ <code>string</code>
 Get local global ID
 
-**Kind**: instance method of <code>[UserInfo](#UserInfo)</code>  
+**Kind**: instance method of [<code>UserInfo</code>](#UserInfo)  
 <a name="UserInfo+details"></a>
 
 ### userInfo.details(as, [user_field_identifiers]) ⇒ <code>AsyncSteps</code>
 Get user info details
 
-**Kind**: instance method of <code>[UserInfo](#UserInfo)</code>  
+**Kind**: instance method of [<code>UserInfo</code>](#UserInfo)  
 **Returns**: <code>AsyncSteps</code> - for easy chaining. {object} with details through as.success()  
 
 | Param | Type | Description |
@@ -1233,91 +1233,91 @@ defined in FTN8 spec
 ### UserInfoConst.INFO_Login
 Login Name
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>Login</code>  
 <a name="UserInfoConst.INFO_Nick"></a>
 
 ### UserInfoConst.INFO_Nick
 Nick Name
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>Nick</code>  
 <a name="UserInfoConst.INFO_FirstName"></a>
 
 ### UserInfoConst.INFO_FirstName
 First Name
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>FirstName</code>  
 <a name="UserInfoConst.INFO_FullName"></a>
 
 ### UserInfoConst.INFO_FullName
 Full Name
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>FullName</code>  
 <a name="UserInfoConst.INFO_DateOfBirth"></a>
 
 ### UserInfoConst.INFO_DateOfBirth
 Date if birth in ISO "YYYY-MM-DD" format
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>DateOfBirth</code>  
 <a name="UserInfoConst.INFO_TimeOfBirth"></a>
 
 ### UserInfoConst.INFO_TimeOfBirth
 Date if birth in ISO "HH:mm:ss" format, can be truncated to minutes
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>TimeOfBirth</code>  
 <a name="UserInfoConst.INFO_ContactEmail"></a>
 
 ### UserInfoConst.INFO_ContactEmail
 E-mail for contacts
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>ContactEmail</code>  
 <a name="UserInfoConst.INFO_ContactPhone"></a>
 
 ### UserInfoConst.INFO_ContactPhone
 Phone for contacts
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>ContactPhone</code>  
 <a name="UserInfoConst.INFO_HomeAddress"></a>
 
 ### UserInfoConst.INFO_HomeAddress
 Home address
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>HomeAddress</code>  
 <a name="UserInfoConst.INFO_WorkAddress"></a>
 
 ### UserInfoConst.INFO_WorkAddress
 Work address
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>WorkAddress</code>  
 <a name="UserInfoConst.INFO_Citizenship"></a>
 
 ### UserInfoConst.INFO_Citizenship
 Citizenship
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>Citizenship</code>  
 <a name="UserInfoConst.INFO_GovernmentRegID"></a>
 
 ### UserInfoConst.INFO_GovernmentRegID
 Country-specific unique registration ID, e,g, SSN, PersonalCode, etc.
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>GovernmentRegID</code>  
 <a name="UserInfoConst.INFO_AvatarURL"></a>
 
 ### UserInfoConst.INFO_AvatarURL
 URL of avatar image
 
-**Kind**: static constant of <code>[UserInfoConst](#UserInfoConst)</code>  
+**Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>AvatarURL</code>  
 <a name="FutoInExecutor"></a>
 
@@ -1356,20 +1356,20 @@ An abstract core implementing pure FTN6 Executor logic.
 ### executor.ccm() ⇒ <code>AdvancedCCM</code>
 Get reference to associated AdvancedCCM instance
 
-**Kind**: instance method of <code>[Executor](#Executor)</code>  
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
 <a name="Executor+register"></a>
 
 ### executor.register(as, ifacever, impl, specdirs)
 Register implementation of specific interface
 
-**Kind**: instance method of <code>[Executor](#Executor)</code>  
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | as | <code>AsyncSteps</code> |  |
 | ifacever | <code>string</code> | standard iface:version notation of interface        to be implemented. |
-| impl | <code>object</code> &#124; <code>function</code> | either iface implementation or func( impl, executor ) |
-| specdirs | <code>object</code> &#124; <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
+| impl | <code>object</code> \| <code>function</code> | either iface implementation or func( impl, executor ) |
+| specdirs | <code>object</code> \| <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
 
 <a name="Executor+event_request"></a>
 
@@ -1377,21 +1377,21 @@ Register implementation of specific interface
 Fired when request processing is started.
 ( reqinfo, rawreq )
 
-**Kind**: event emitted by <code>[Executor](#Executor)</code>  
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="Executor+event_response"></a>
 
 ### "response"
 Fired when request processing is started.
 ( reqinfo, rawreq )
 
-**Kind**: event emitted by <code>[Executor](#Executor)</code>  
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="Executor+event_notExpected"></a>
 
 ### "notExpected"
 Fired when not expected error occurs
 ( errmsg, error_info, last_exception )
 
-**Kind**: event emitted by <code>[Executor](#Executor)</code>  
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="BrowserExecutor"></a>
 
 ## BrowserExecutor
@@ -1424,7 +1424,7 @@ Current list of allowed origins for modifications. Please note that
 it is an object, where field is actual origin and value must evaluate
 to true.
 
-**Kind**: static property of <code>[BrowserExecutor](#BrowserExecutor)</code>  
+**Kind**: static property of [<code>BrowserExecutor</code>](#BrowserExecutor)  
 <a name="BasicAuthFace"></a>
 
 ## BasicAuthFace()
@@ -1442,13 +1442,13 @@ until FTN8 Security Concept is finalized
 ### BasicAuthFace.ifacespec
 Embedded spec for FutoIn BasicAuthFace
 
-**Kind**: static property of <code>[BasicAuthFace](#BasicAuthFace)</code>  
+**Kind**: static property of [<code>BasicAuthFace</code>](#BasicAuthFace)  
 <a name="BasicAuthFace.register"></a>
 
 ### BasicAuthFace.register()
 BasicAuth interface registration helper
 
-**Kind**: static method of <code>[BasicAuthFace](#BasicAuthFace)</code>  
+**Kind**: static method of [<code>BasicAuthFace</code>](#BasicAuthFace)  
 <a name="BasicAuthService"></a>
 
 ## BasicAuthService()
@@ -1463,14 +1463,14 @@ until FTN8 Security Concept is finalized
         * [._getUser(as, user)](#BasicAuthService+_getUser) ⇒ <code>object</code>
         * [._getUserByID(as, local_id)](#BasicAuthService+_getUserByID) ⇒ <code>object</code>
     * _static_
-        * [.register(as, executor)](#BasicAuthService.register) ⇒ <code>[BasicAuthService](#BasicAuthService)</code>
+        * [.register(as, executor)](#BasicAuthService.register) ⇒ [<code>BasicAuthService</code>](#BasicAuthService)
 
 <a name="BasicAuthService+addUser"></a>
 
 ### basicAuthService.addUser(user, secret, details, [system_user])
 Register users statically right after registration
 
-**Kind**: instance method of <code>[BasicAuthService](#BasicAuthService)</code>  
+**Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1484,7 +1484,7 @@ Register users statically right after registration
 ### basicAuthService._getUser(as, user) ⇒ <code>object</code>
 Get by name. Override, if needed.
 
-**Kind**: instance method of <code>[BasicAuthService](#BasicAuthService)</code>  
+**Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
 **Returns**: <code>object</code> - user object or null (through as)  
 
 | Param | Type | Description |
@@ -1497,7 +1497,7 @@ Get by name. Override, if needed.
 ### basicAuthService._getUserByID(as, local_id) ⇒ <code>object</code>
 Get by ID. Override, if needed.
 
-**Kind**: instance method of <code>[BasicAuthService](#BasicAuthService)</code>  
+**Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
 **Returns**: <code>object</code> - user object or null (through as)  
 
 | Param | Type | Description |
@@ -1507,16 +1507,16 @@ Get by ID. Override, if needed.
 
 <a name="BasicAuthService.register"></a>
 
-### BasicAuthService.register(as, executor) ⇒ <code>[BasicAuthService](#BasicAuthService)</code>
+### BasicAuthService.register(as, executor) ⇒ [<code>BasicAuthService</code>](#BasicAuthService)
 BasicAuthService registration helper
 
-**Kind**: static method of <code>[BasicAuthService](#BasicAuthService)</code>  
-**Returns**: <code>[BasicAuthService](#BasicAuthService)</code> - reference to implementation instance (to register users)  
+**Kind**: static method of [<code>BasicAuthService</code>](#BasicAuthService)  
+**Returns**: [<code>BasicAuthService</code>](#BasicAuthService) - reference to implementation instance (to register users)  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | as | <code>AsyncSteps</code> |  |
-| executor | <code>[Executor](#Executor)</code> | executor instance |
+| executor | [<code>Executor</code>](#Executor) | executor instance |
 
 
 
