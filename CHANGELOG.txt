@@ -1,4 +1,8 @@
 
+=== (next) ===
+BREAKING: removed bower support
+NEW: FTN3 v1.5 support
+
 === 0.9.1 (2017-07-20) ===
 FIXED: readme file
 
