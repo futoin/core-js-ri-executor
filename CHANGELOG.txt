@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.0.0 (2017-08-03) ===
 BREAKING: removed bower support
 NEW: FTN3 v1.5 support
 
