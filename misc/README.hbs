@@ -68,21 +68,6 @@ or included modular way, e.g.:
 ```javascript
 var Executor = require('futoin-executor/Executor');
 ```
-# Installation for Browser (deprecated)
-
-```sh
-$ bower install futoin-executor --save
-```
-
-Please note that browser build is available under in dist/ folder in sources generated
-with [pure-sjc](https://github.com/RReverser/pure-cjs). It includes modular parts of
-[lodash](https://www.npmjs.com/package/lodash).
-
-*Note: there are the following globals available*:
-
-* SimpleCCM - global reference to futoin-invoker.SimpleCCM class
-* AdvancedCCM - global reference to futoin-invoker.AdvancedCCM class
-* futoin.Invoker - global reference to futoin-invoker module
 
 # Examples
 
