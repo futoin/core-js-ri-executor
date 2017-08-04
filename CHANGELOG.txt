@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.0.1 (2017-08-04) ===
 FIXED: to formally support FTN3 v1.5 for executor
 
 === 1.0.0 (2017-08-03) ===
