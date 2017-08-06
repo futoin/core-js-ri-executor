@@ -832,8 +832,6 @@ var ExecutorProto =
              ( !context ||
                !context.isStateful() ) )
         {
-            console.dir( context );
-            console.log( context.isStateful() );
             as.error( FutoInError.InvalidRequest, "Bi-Direct Channel is required" );
         }
 

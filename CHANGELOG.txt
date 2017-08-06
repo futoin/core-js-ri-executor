@@ -1,4 +1,8 @@
 
+=== (next) ===
+FIXED: removed console log when bi-directional interface
+       is used on uni-directional connection
+
 === 1.1.0 (2017-08-04) ===
 NEW: FTN3 v1.6 support
 
