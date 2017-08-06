@@ -5,7 +5,7 @@ var _zipObject = require( 'lodash/zipObject' );
 var _defaults = require( 'lodash/defaults' );
 var async_steps = require( 'futoin-asyncsteps' );
 var performance_now = require( "performance-now" );
-var browser_window = window; // jshint ignore:line
+var browser_window = window;
 
 var Executor = require( './Executor' );
 var ChannelContext = require( './ChannelContext' );
@@ -15,6 +15,8 @@ var RequestInfo = require( './RequestInfo' );
 /**
  * Browser Channel Context
  * @ignore
+ * @param {BrowserExecutor} executor - _
+ * @param {object} event - browser event
  */
 var BrowserChannelContext = function( executor, event )
 {
@@ -27,6 +29,7 @@ var BrowserChannelContext = function( executor, event )
 };
 
 var BrowserChannelContextProto = _clone( ChannelContext.prototype );
+
 BrowserChannelContext.prototype = BrowserChannelContextProto;
 
 BrowserChannelContextProto._event_origin = null;
@@ -54,16 +57,18 @@ BrowserChannelContextProto._getPerformRequest = function()
         as.add( function( as )
         {
             var rid = 'S' + revreq.rid++;
+
             ftnreq.rid = rid;
 
             //
             if ( ctx.expect_response )
             {
                 var sentreqs = revreq.sentreqs;
+
                 sentreqs[ rid ] = {
                     reqas : as,
                     evt_origin : evt_origin,
-                    evt_source : evt_source
+                    evt_source : evt_source,
                 };
 
                 as.setCancel(
@@ -110,8 +115,8 @@ var BrowserExecutorOptions =
  * Browser Executor with HTML5 Web Messaging as incoming transport.
  *
  * It allows communication across open pages (frames/tabs/windows) inside client browser.
- * @param {AdvancedCCM} ccm
- * @param {object} opts - see BrowserExecutorOptions
+ * @param {AdvancedCCM} ccm - CCM ref
+ * @param {BrowserExecutorOptions} opts - executor options
  * @class
  */
 var BrowserExecutor = function( ccm, opts )
@@ -125,7 +130,7 @@ var BrowserExecutor = function( ccm, opts )
     this._contexts = [];
     this._reverse_requests = {
         rid : 1,
-        sentreqs : {}
+        sentreqs : {},
     };
 
     var _this = this;
@@ -174,6 +179,7 @@ var BrowserExecutor = function( ccm, opts )
 };
 
 var BrowserExecutorProto = _clone( Executor.prototype );
+
 BrowserExecutor.prototype = BrowserExecutorProto;
 
 /**
@@ -222,6 +228,7 @@ BrowserExecutorProto.handleMessage = function( event )
         {
             event.stopPropagation();
         }
+
         return;
     }
 
@@ -237,7 +244,7 @@ BrowserExecutorProto.handleMessage = function( event )
     var context = null;
     var ctx_list = this._contexts;
 
-    for ( var i = 0, c = ctx_list.length; i  < c; ++i )
+    for ( var i = 0, c = ctx_list.length; i < c; ++i )
     {
         var ctx = ctx_list[ i ];
 
@@ -261,15 +268,16 @@ BrowserExecutorProto.handleMessage = function( event )
 
     // ---
     var source_addr = new SourceAddress(
-                'LOCAL',
-                source,
-                origin
+        'LOCAL',
+        source,
+        origin
     );
 
     // ---
     var reqinfo = new RequestInfo( this, ftnreq );
 
     var reqinfo_info = reqinfo.info;
+
     reqinfo_info.CHANNEL_CONTEXT = context;
     reqinfo_info.CLIENT_ADDR = source_addr;
     reqinfo_info.SECURE_CHANNEL = this._is_secure_channel;
@@ -277,6 +285,7 @@ BrowserExecutorProto.handleMessage = function( event )
     var _this = this;
 
     var as = async_steps();
+
     as.state.reqinfo = reqinfo;
 
     reqinfo._as = as;
@@ -288,7 +297,7 @@ BrowserExecutorProto.handleMessage = function( event )
 
         var ftnrsp = {
             e : 'InternalError',
-            rid : rid
+            rid : rid,
         };
 
         _this._msg_sniffer( event, ftnrsp, false );

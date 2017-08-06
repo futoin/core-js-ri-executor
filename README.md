@@ -21,11 +21,15 @@ Reference implementation of:
 
     FTN5: FutoIn HTTP integration
     Version: 1.2
+
+    FTN4: FutoIn Interface - Ping-Pong
+    Version: 1.0 (service)
+
     
 * Spec: [FTN6: Interface Executor Concept v1.x](http://specs.futoin.org/final/preview/ftn6_iface_executor_concept-1.html)
 * Spec: [FTN3: FutoIn Interface Definition v1.x](http://specs.futoin.org/final/preview/ftn3_iface_definition.html)
 * Spec: [FTN5: FutoIn HTTP integration v1.x](http://specs.futoin.org/final/preview/ftn5_iface_http_integration.html)
-
+* Spec: [FTN4: FutoIn Interface - Ping-Pong v1.x](http://specs.futoin.org/final/preview/ftn4_if_ping.html)
 [Web Site](http://futoin.org/)
 
 # About
@@ -68,6 +72,18 @@ or included modular way, e.g.:
 ```javascript
 var Executor = require('futoin-executor/Executor');
 ```
+
+
+# Browser installation
+
+The module can be used with `webpack` or any other CommonJS packer.
+
+*Note: there are the following globals available*:
+
+* SimpleCCM - global reference to futoin-invoker.SimpleCCM class
+* AdvancedCCM - global reference to futoin-invoker.AdvancedCCM class
+* futoin.Invoker - global reference to futoin-invoker module
+
 
 # Examples
 
@@ -542,8 +558,8 @@ It allows communication across open pages (frames/tabs/windows) inside client br
 
 | Param | Type | Description |
 | --- | --- | --- |
-| ccm | <code>AdvancedCCM</code> |  |
-| opts | <code>object</code> | see BrowserExecutorOptions |
+| ccm | <code>AdvancedCCM</code> | CCM ref |
+| opts | [<code>BrowserExecutorOptions</code>](#BrowserExecutorOptions) | executor options |
 
 <a name="BrowserExecutor.allowed_origins"></a>
 
@@ -687,6 +703,7 @@ An abstract core implementing pure FTN6 Executor logic.
 Get reference to associated AdvancedCCM instance
 
 **Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Returns**: <code>AdvancedCCM</code> - CCM ref  
 <a name="Executor+register"></a>
 
 ### executor.register(as, ifacever, impl, specdirs)
@@ -696,7 +713,7 @@ Register implementation of specific interface
 
 | Param | Type | Description |
 | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  |
+| as | <code>AsyncSteps</code> | steps interface |
 | ifacever | <code>string</code> | standard iface:version notation of interface        to be implemented. |
 | impl | <code>object</code> \| <code>function</code> | either iface implementation or func( impl, executor ) |
 | specdirs | <code>object</code> \| <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
@@ -804,8 +821,14 @@ If true, X-Forwarded-For will be used as Source Address, if present
 **Kind**: global class  
 <a name="new_NodeExecutor_new"></a>
 
-### new NodeExecutor()
+### new NodeExecutor(ccm, opts)
 Executor implementation for Node.js/io.js with HTTP and WebSockets transport
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> | CCM for internal requests |
+| opts | [<code>NodeExecutorOptions</code>](#NodeExecutorOptions) | executor options |
 
 <a name="RequestInfoConst"></a>
 
@@ -1013,20 +1036,26 @@ such security level.
 **Kind**: global class  
 
 * [RequestInfo](#RequestInfo)
-    * [new RequestInfo()](#new_RequestInfo_new)
+    * [new RequestInfo(executor, rawreq)](#new_RequestInfo_new)
     * [.info](#RequestInfo+info) ⇒ <code>object</code>
     * [.params()](#RequestInfo+params) ⇒ <code>object</code>
     * [.result()](#RequestInfo+result) ⇒ <code>object</code>
-    * [.rawInput()](#RequestInfo+rawInput)
-    * [.rawOutput()](#RequestInfo+rawOutput)
-    * [.executor()](#RequestInfo+executor)
-    * [.channel()](#RequestInfo+channel)
+    * [.rawInput()](#RequestInfo+rawInput) ⇒ <code>object</code>
+    * [.rawOutput()](#RequestInfo+rawOutput) ⇒ <code>object</code>
+    * [.executor()](#RequestInfo+executor) ⇒ [<code>Executor</code>](#Executor)
+    * [.channel()](#RequestInfo+channel) ⇒ [<code>ChannelContext</code>](#ChannelContext)
     * [.cancelAfter(time_ms)](#RequestInfo+cancelAfter)
 
 <a name="new_RequestInfo_new"></a>
 
-### new RequestInfo()
+### new RequestInfo(executor, rawreq)
 RequestInfo object as defined in FTN6
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| executor | [<code>Executor</code>](#Executor) | _ |
+| rawreq | <code>object</code> \| <code>string</code> | raw request |
 
 <a name="RequestInfo+info"></a>
 
@@ -1042,44 +1071,50 @@ NOTE: reqInfo.info() === reqInfo.info
 Get reference to input params
 
 **Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
+**Returns**: <code>object</code> - parameter holder  
 <a name="RequestInfo+result"></a>
 
 ### requestInfo.result() ⇒ <code>object</code>
 Get reference to output
 
 **Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
+**Returns**: <code>object</code> - result variable holder  
 <a name="RequestInfo+rawInput"></a>
 
-### requestInfo.rawInput()
+### requestInfo.rawInput() ⇒ <code>object</code>
 Get reference to input stream
 
 **Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
+**Returns**: <code>object</code> - raw input stream  
 **Throws**:
 
 - RawInputError
 
 <a name="RequestInfo+rawOutput"></a>
 
-### requestInfo.rawOutput()
+### requestInfo.rawOutput() ⇒ <code>object</code>
 Get reference to output stream
 
 **Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
+**Returns**: <code>object</code> - raw output stream  
 **Throws**:
 
 - RawOutputError
 
 <a name="RequestInfo+executor"></a>
 
-### requestInfo.executor()
+### requestInfo.executor() ⇒ [<code>Executor</code>](#Executor)
 Get reference to associated Executor instance
 
 **Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
+**Returns**: [<code>Executor</code>](#Executor) - _  
 <a name="RequestInfo+channel"></a>
 
-### requestInfo.channel()
+### requestInfo.channel() ⇒ [<code>ChannelContext</code>](#ChannelContext)
 Get reference to channel context
 
 **Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
+**Returns**: [<code>ChannelContext</code>](#ChannelContext) - _  
 <a name="RequestInfo+cancelAfter"></a>
 
 ### requestInfo.cancelAfter(time_ms)
@@ -1103,7 +1138,7 @@ NOTE: repeat calls override previous value
     * [.host](#SourceAddress+host)
     * [.port](#SourceAddress+port)
     * [.type](#SourceAddress+type)
-    * [.asString()](#SourceAddress+asString)
+    * [.asString()](#SourceAddress+asString) ⇒ <code>string</code>
 
 <a name="new_SourceAddress_new"></a>
 
@@ -1137,10 +1172,11 @@ Type field
 **Kind**: instance property of [<code>SourceAddress</code>](#SourceAddress)  
 <a name="SourceAddress+asString"></a>
 
-### sourceAddress.asString()
+### sourceAddress.asString() ⇒ <code>string</code>
 Get a stable string representation
 
 **Kind**: instance method of [<code>SourceAddress</code>](#SourceAddress)  
+**Returns**: <code>string</code> - string representation  
 <a name="UserInfo"></a>
 
 ## UserInfo
@@ -1171,12 +1207,14 @@ Class representing user information
 Get local unique ID
 
 **Kind**: instance method of [<code>UserInfo</code>](#UserInfo)  
+**Returns**: <code>integer</code> - Local ID  
 <a name="UserInfo+globalID"></a>
 
 ### userInfo.globalID() ⇒ <code>string</code>
 Get local global ID
 
 **Kind**: instance method of [<code>UserInfo</code>](#UserInfo)  
+**Returns**: <code>string</code> - Global ID  
 <a name="UserInfo+details"></a>
 
 ### userInfo.details(as, [user_field_identifiers]) ⇒ <code>AsyncSteps</code>
@@ -1187,7 +1225,7 @@ Get user info details
 
 | Param | Type | Description |
 | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  |
+| as | <code>AsyncSteps</code> | steps interface |
 | [user_field_identifiers] | <code>object</code> | field list to get |
 
 <a name="UserInfoConst"></a>
@@ -1342,6 +1380,7 @@ An abstract core implementing pure FTN6 Executor logic.
 Get reference to associated AdvancedCCM instance
 
 **Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Returns**: <code>AdvancedCCM</code> - CCM ref  
 <a name="Executor+register"></a>
 
 ### executor.register(as, ifacever, impl, specdirs)
@@ -1351,7 +1390,7 @@ Register implementation of specific interface
 
 | Param | Type | Description |
 | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  |
+| as | <code>AsyncSteps</code> | steps interface |
 | ifacever | <code>string</code> | standard iface:version notation of interface        to be implemented. |
 | impl | <code>object</code> \| <code>function</code> | either iface implementation or func( impl, executor ) |
 | specdirs | <code>object</code> \| <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
@@ -1399,8 +1438,8 @@ It allows communication across open pages (frames/tabs/windows) inside client br
 
 | Param | Type | Description |
 | --- | --- | --- |
-| ccm | <code>AdvancedCCM</code> |  |
-| opts | <code>object</code> | see BrowserExecutorOptions |
+| ccm | <code>AdvancedCCM</code> | CCM ref |
+| opts | [<code>BrowserExecutorOptions</code>](#BrowserExecutorOptions) | executor options |
 
 <a name="BrowserExecutor.allowed_origins"></a>
 
@@ -1417,23 +1456,22 @@ BasicAuth is not official spec - it is a temporary solution
 until FTN8 Security Concept is finalized
 
 **Kind**: global function  
-
-* [BasicAuthFace()](#BasicAuthFace)
-    * [.ifacespec](#BasicAuthFace.ifacespec)
-    * [.register()](#BasicAuthFace.register)
-
-<a name="BasicAuthFace.ifacespec"></a>
-
-### BasicAuthFace.ifacespec
-Embedded spec for FutoIn BasicAuthFace
-
-**Kind**: static property of [<code>BasicAuthFace</code>](#BasicAuthFace)  
 <a name="BasicAuthFace.register"></a>
 
-### BasicAuthFace.register()
+### BasicAuthFace.register(as, ccm, endpoint, [credentials], [options])
 BasicAuth interface registration helper
 
 **Kind**: static method of [<code>BasicAuthFace</code>](#BasicAuthFace)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| as | <code>AsyncSteps</code> |  | step interface |
+| ccm | <code>AdvancedCCM</code> |  | CCM instance |
+| endpoint | <code>string</code> |  | endpoint URL |
+| [credentials] | <code>\*</code> | <code></code> | see CCM register() |
+| [options] | <code>object</code> | <code>{}</code> | registration options |
+| [options.version] | <code>string</code> | <code>&quot;1.0&quot;</code> | iface version |
+
 <a name="BasicAuthService"></a>
 
 ## BasicAuthService()
@@ -1445,8 +1483,8 @@ until FTN8 Security Concept is finalized
 * [BasicAuthService()](#BasicAuthService)
     * _instance_
         * [.addUser(user, secret, details, [system_user])](#BasicAuthService+addUser)
-        * [._getUser(as, user)](#BasicAuthService+_getUser) ⇒ <code>object</code>
-        * [._getUserByID(as, local_id)](#BasicAuthService+_getUserByID) ⇒ <code>object</code>
+        * [._getUser(as, user)](#BasicAuthService+_getUser)
+        * [._getUserByID(as, local_id)](#BasicAuthService+_getUserByID)
     * _static_
         * [.register(as, executor)](#BasicAuthService.register) ⇒ [<code>BasicAuthService</code>](#BasicAuthService)
 
@@ -1466,28 +1504,28 @@ Register users statically right after registration
 
 <a name="BasicAuthService+_getUser"></a>
 
-### basicAuthService._getUser(as, user) ⇒ <code>object</code>
+### basicAuthService._getUser(as, user)
 Get by name. Override, if needed.
 
 **Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
-**Returns**: <code>object</code> - user object or null (through as)  
+**Note**: as result: {object} user object or null (through as)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  |
+| as | <code>AsyncSteps</code> | steps interface |
 | user | <code>string</code> | user name |
 
 <a name="BasicAuthService+_getUserByID"></a>
 
-### basicAuthService._getUserByID(as, local_id) ⇒ <code>object</code>
+### basicAuthService._getUserByID(as, local_id)
 Get by ID. Override, if needed.
 
 **Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
-**Returns**: <code>object</code> - user object or null (through as)  
+**Note**: as result: {object} user object or null (through as)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  |
+| as | <code>AsyncSteps</code> | steps interfaces |
 | local_id | <code>number</code> | local ID |
 
 <a name="BasicAuthService.register"></a>
@@ -1500,7 +1538,7 @@ BasicAuthService registration helper
 
 | Param | Type | Description |
 | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  |
+| as | <code>AsyncSteps</code> | steps interface |
 | executor | [<code>Executor</code>](#Executor) | executor instance |
 
 

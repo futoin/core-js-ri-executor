@@ -16,16 +16,17 @@ function BasicAuthService()
 
 /**
  * BasicAuthService registration helper
- * @param {AsyncSteps} as
+ * @param {AsyncSteps} as - steps interface
  * @param {Executor} executor - executor instance
  * @alias BasicAuthService.register
  * @returns {BasicAuthService} reference to implementation instance (to register users)
  */
 BasicAuthService.register = function( as, executor )
 {
-    var iface = BasicAuthFace.ifacespec;
+    var iface = BasicAuthFace.spec( "1.0" );
     var ifacever = iface.iface + ':' + iface.version;
     var impl = new this();
+
     executor.register( as, ifacever, impl, [ iface ] );
 
     // a quick hack
@@ -45,6 +46,7 @@ BasicAuthService.prototype =
     addUser : function( user, secret, details, system_user )
     {
         var next_id = this._next_id++;
+
         details = details || {};
         details.Login = user; // yes, side-effect
 
@@ -54,9 +56,9 @@ BasicAuthService.prototype =
             info : {
                 local_id : next_id,
                 global_id : 'G' + next_id,
-                details : details
+                details : details,
             },
-            system_user : system_user || false
+            system_user : system_user || false,
         };
 
         this._user_list[ user ] = user_reg;
@@ -65,9 +67,9 @@ BasicAuthService.prototype =
 
     /**
      * Get by name. Override, if needed.
-     * @param {AsyncSteps} as
+     * @param {AsyncSteps} as - steps interface
      * @param {string} user - user name
-     * @returns {object} user object or null (through as)
+     * @note as result: {object} user object or null (through as)
      */
     _getUser : function( as, user )
     {
@@ -81,9 +83,9 @@ BasicAuthService.prototype =
 
     /**
      * Get by ID. Override, if needed.
-     * @param {AsyncSteps} as
+     * @param {AsyncSteps} as - steps interfaces
      * @param {number} local_id - local ID
-     * @returns {object} user object or null (through as)
+     * @note as result: {object} user object or null (through as)
      */
     _getUserByID : function( as, local_id )
     {
@@ -98,6 +100,7 @@ BasicAuthService.prototype =
     auth : function( as, reqinfo )
     {
         var p = reqinfo.params();
+
         this._getUser( as, p.user );
 
         as.add( function( as, u )
@@ -107,8 +110,8 @@ BasicAuthService.prototype =
                  ( u.secret === p.pwd ) )
             {
                 reqinfo.result().seclvl = u.system_user ?
-                        reqinfo.SL_SYSTEM :
-                        reqinfo.SL_SAFE_OPS;
+                    reqinfo.SL_SYSTEM :
+                    reqinfo.SL_SAFE_OPS;
                 as.success( u.info );
             }
             else
@@ -121,6 +124,7 @@ BasicAuthService.prototype =
     checkHMAC : function( as, reqinfo )
     {
         var p = reqinfo.params();
+
         this._getUser( as, p.user );
 
         as.add( function( as, u )
@@ -148,6 +152,7 @@ BasicAuthService.prototype =
     genHMAC : function( as, reqinfo )
     {
         var p = reqinfo.params();
+
         this._getUser( as, p.user );
 
         as.add( function( as, u )
@@ -156,6 +161,7 @@ BasicAuthService.prototype =
             {
                 var algo = SpecTools.getRawAlgo( as, p.algo );
                 var sig = SpecTools.genHMACRaw( algo, u.secret, p.msg );
+
                 reqinfo.result().sig = sig.toString( 'base64' );
                 return;
             }
@@ -167,6 +173,7 @@ BasicAuthService.prototype =
     getUserDetails : function( as, reqinfo )
     {
         var p = reqinfo.params();
+
         this._getUserByID( as, p.local_id );
 
         as.add( function( as, u )
@@ -179,7 +186,7 @@ BasicAuthService.prototype =
 
             as.error( 'InvalidUser' );
         } );
-    }
+    },
 };
 
 module.exports = BasicAuthService;

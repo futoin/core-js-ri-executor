@@ -27,11 +27,11 @@ if ( is_in_browser )
 else
 {
     thisDir = __dirname;
-    var hidreq = require;
+
     NodeExecutor = executor_module.NodeExecutor;
-    MemoryStream = hidreq( 'memorystream' );
+    MemoryStream = module.require( 'memorystream' );
     
-    var chai_module = hidreq( 'chai' );
+    var chai_module = module.require( 'chai' );
     chai_module.should();
     assert = chai_module.assert;
 

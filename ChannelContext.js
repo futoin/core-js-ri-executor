@@ -37,14 +37,17 @@ var ChannelContextProto =
      * Standard values: HTTP, WS, BROWSER, TCP, UDP, UNIX
      *
      * @returns {string} arbitrary string, see FTN6
+     * @abstract
      */
     type : function()
-    {},
+    {
+        return null;
+    },
 
     /**
      * Check if transport is stateful (e.g. WebSockets)
      *
-     * @returns true, if context object is persistent across
+     * @returns {Boolean} true, if context object is persistent across
      * requests in the same session
      */
     isStateful : function()
@@ -69,6 +72,7 @@ var ChannelContextProto =
     /**
      * Get native input stream
      * @private
+     * @returns {object} raw input stream
      */
     _openRawInput : function()
     {
@@ -78,6 +82,7 @@ var ChannelContextProto =
     /**
      * Get native output stream
      * @private
+     * @returns {object} raw output stream
      */
     _openRawOutput : function()
     {
@@ -87,7 +92,7 @@ var ChannelContextProto =
     /**
      * Register Invoker interface on bi-directional channels to make
      * calls from Server to Client.
-     * @param {AsyncSteps} as
+     * @param {AsyncSteps} as - steps interface
      * @param {string} ifacever - standard iface:version notation
      * @param {object} options - standard Invoker options
      * @see AdvancedCCM.register
@@ -123,7 +128,7 @@ var ChannelContextProto =
      * can have only a single ClientExecutor which can have only a single
      * instance implementing specified iface:version.
      * @param {string} ifacever - standard iface:version notation
-     * @returns {NativeIface}
+     * @returns {NativeIface} - native interface
      * @see AdvancedCCM.iface
      */
     iface : function( ifacever )
@@ -132,16 +137,26 @@ var ChannelContextProto =
     },
 
     /**
+     * It is just a subset of *ExecFunc*
+     * @private
+     * @callback PerformRequestFunc
+     * @param {AsyncSteps} as - steps interface
+     * @param {ChannelContext} ctx - channel context
+     * @param {object} ftmreq - raw FutoIn request
+     * @alias perform_request_callback
+     */
+
+    /**
      * Returns actual closure for making Server to Client requests
      * @private
-     * @returns {Function}
+     * @returns {PerformRequestFunc} perform request callback
+     * @abstract
      */
     _getPerformRequest : function()
     {
-        throw Error( "NotImplemented" );
-
         // Implementation should return the following function
         // return function( as, ctx, ftnreq ) {};
+        return null;
     },
 
     /**
@@ -153,7 +168,7 @@ var ChannelContextProto =
         this._executor = null;
         this._ifaces = null;
         this.state = null;
-    }
+    },
 };
 
 ChannelContext.prototype = ChannelContextProto;

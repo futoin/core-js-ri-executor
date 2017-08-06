@@ -8,7 +8,6 @@ var async_steps = require( 'futoin-asyncsteps' );
 var ee = require( 'event-emitter' );
 var _clone = require( 'lodash/clone' );
 
-var Executor = require( './Executor' );
 var ChannelContext = require( './ChannelContext' );
 var SourceAddress = require( './SourceAddress' );
 var RequestInfo = require( './RequestInfo' );
@@ -21,6 +20,7 @@ var CallbackChannelContext = function( executor )
 };
 
 var CallbackChannelContextProto = _clone( ChannelContext.prototype );
+
 CallbackChannelContext.prototype = CallbackChannelContextProto;
 
 CallbackChannelContextProto.type = function()
@@ -41,6 +41,7 @@ var InternalChannelContext = function( executor, invoker_executor )
 };
 
 var InternalChannelContextProto = _clone( ChannelContext.prototype );
+
 InternalChannelContext.prototype = InternalChannelContextProto;
 
 InternalChannelContextProto._invoker_executor = null;
@@ -114,7 +115,7 @@ var ExecutorOptions =
      * marked "heavy". See FTN3
      * @default
      */
-    heavyReqTimeout : 60e3
+    heavyReqTimeout : 60e3,
 };
 
 /**
@@ -184,7 +185,7 @@ var ExecutorProto =
     /**
      * Get reference to associated AdvancedCCM instance
      * @alias Executor#ccm
-     * @returns {AdvancedCCM}
+     * @returns {AdvancedCCM} CCM ref
      */
     ccm : function()
     {
@@ -193,7 +194,7 @@ var ExecutorProto =
 
     /**
      * Register implementation of specific interface
-     * @param {AsyncSteps} as
+     * @param {AsyncSteps} as - steps interface
      * @param {string} ifacever - standard iface:version notation of interface
      *        to be implemented.
      * @param {object|Function} impl - either iface implementation or func( impl, executor )
@@ -229,7 +230,7 @@ var ExecutorProto =
             iface : iface,
             version : mjrmnr,
             mjrver : mjr,
-            mnrver : mnr
+            mnrver : mnr,
         };
 
         invoker.SpecTools.loadIface( as, info, specdirs || this._specdirs );
@@ -261,7 +262,7 @@ var ExecutorProto =
                     version : supmjrmnr,
                     mjrver : supmjr,
                     mnrver : supmnr,
-                    derived : info
+                    derived : info,
                 };
 
                 if ( ( supiface in ifaces ) &&
@@ -299,11 +300,13 @@ var ExecutorProto =
         var source_addr = new SourceAddress( context.type(), null, info.regname );
 
         var reqinfo_info = reqinfo.info;
+
         reqinfo_info.CHANNEL_CONTEXT = context;
         reqinfo_info.CLIENT_ADDR = source_addr;
         reqinfo_info.SECURE_CHANNEL = info.secure_channel;
 
         var as = async_steps();
+
         reqinfo._as = as;
 
         as.add(
@@ -314,7 +317,7 @@ var ExecutorProto =
                     void as;
                     var ftnrsp = {
                         rid : reqinfo._rawreq.rid,
-                        e : "InternalError"
+                        e : "InternalError",
                     };
 
                     reqinfo._cleanup();
@@ -347,12 +350,12 @@ var ExecutorProto =
 
     /**
      * Entry point for in-program originated requests. Process with maximum efficiency (not yet ;)
-     * @param {AsyncSteps} as
+     * @param {AsyncSteps} as - steps interface
      * @param {object} info - raw Invoker interface info
      * @param {object} ftnreq - FutoIn request object
      * @param {object=} upload_data - upload stream, if any
      * @param {object=} download_stream - download stream, if any
-     * @returns ftnrsp, content-type
+     * @note AS result: ftnrsp, content-type
      * @fires Executor#notExpected
      * @fires Executor#request
      * @fires Executor#response
@@ -372,6 +375,7 @@ var ExecutorProto =
         var source_addr = new SourceAddress( context.type(), null, null );
 
         var reqinfo_info = reqinfo.info;
+
         reqinfo_info.CHANNEL_CONTEXT = context;
         reqinfo_info.CLIENT_ADDR = source_addr;
         reqinfo_info.SECURE_CHANNEL = true;
@@ -391,6 +395,7 @@ var ExecutorProto =
         {
             // Make sure we have a clean AsyncSteps
             var inner_as = async_steps();
+
             reqinfo._as = inner_as;
 
             inner_as.add(
@@ -408,7 +413,9 @@ var ExecutorProto =
                                 orig_as.error( FutoInError.InternalError, "Executor canceled" );
                             }
                             catch ( e )
-                            {}
+                            {
+                                // ignore
+                            }
                         }
                     } );
 
@@ -449,7 +456,7 @@ var ExecutorProto =
      * Do full cycle of request processing, including all security checks
      *
      * NOTE: as.state.reqinfo must point to valid instance of RequestInfo
-     * @param {AsyncSteps} as
+     * @param {AsyncSteps} as - steps interface
      * @fires Executor#notExpected
      * @fires Executor#request
      * @fires Executor#response
@@ -471,6 +478,7 @@ var ExecutorProto =
             {
                 var reqinfo_info = reqinfo.info;
                 var rawreq = reqinfo_info.RAW_REQUEST;
+
                 _this.emit( 'request', reqinfo, rawreq );
 
                 // Step 1. Parsing interface and function info
@@ -564,6 +572,7 @@ var ExecutorProto =
                 }
 
                 var rawrsp = reqinfo.info.RAW_RESPONSE;
+
                 rawrsp.e = err;
                 delete rawrsp.r;
 
@@ -576,17 +585,18 @@ var ExecutorProto =
                 as.success( reqinfo );
             }
         )
-        .add( function( as, reqinfo )
-        {
-            _this._signResponse( as, reqinfo );
-        } );
+            .add( function( as, reqinfo )
+            {
+                _this._signResponse( as, reqinfo );
+            } );
     },
 
     /**
      * Shortcut to check access through #acl interface.
      *
      * NOTE: as.state.reqinfo must point to valid instance of RequestInfo
-     * @param {AsyncSteps} as
+     * @param {AsyncSteps} as - steps interface
+     * @param {string} acd - access control descriptor
      */
     checkAccess : function( as, acd )
     {
@@ -597,7 +607,7 @@ var ExecutorProto =
     /**
      * NOT IMPLEMENTED, DO NOT USE. Just a compliance with the Executor interface
      * from spec.
-     * @param {AsyncSteps} as
+     * @param {AsyncSteps} as - steps interface
      */
     initFromCache : function( as )
     {
@@ -607,7 +617,7 @@ var ExecutorProto =
     /**
      * NOT IMPLEMENTED, DO NOT USE. Just a compliance with the Executor interface
      * from spec.
-     * @param {AsyncSteps} as
+     * @param {AsyncSteps} as - steps interface
      */
     cacheInit : function( as )
     {
@@ -696,19 +706,19 @@ var ExecutorProto =
         {
             reqinfo_info.SECURITY_LEVEL = obf.slvl;
             reqinfo_info.USER_INFO = new UserInfo(
-                    this._ccm,
-                    obf.lid,
-                    obf.gid,
-                    null );
+                this._ccm,
+                obf.lid,
+                obf.gid,
+                null );
         }
         else
         {
             reqinfo_info.SECURITY_LEVEL = authrsp.seclvl;
             reqinfo_info.USER_INFO = new UserInfo(
-                    this._ccm,
-                    authrsp.local_id,
-                    authrsp.global_id,
-                    authrsp.details );
+                this._ccm,
+                authrsp.local_id,
+                authrsp.global_id,
+                authrsp.details );
         }
     },
 
@@ -727,19 +737,17 @@ var ExecutorProto =
                 if ( reqinfo_info.RAW_REQUEST.obf &&
                      ( reqinfo.info.CHANNEL_CONTEXT.type() === 'INTERNAL' ) )
                 {
-                    _this._stepReqinfoUser( as, reqinfo_info, {
-                        seclvl : RequestInfo.SL_SYSTEM
-                    } );
+                    _this._stepReqinfoUser( as, reqinfo_info, { seclvl : RequestInfo.SL_SYSTEM } );
                 }
                 else
                 {
                     basicauth.call( as, 'auth',
-                    {
-                        user : sec[ 0 ],
-                        pwd : sec[ 1 ],
-                        client_addr : reqinfo_info.CLIENT_ADDR.asString(),
-                        is_secure : reqinfo_info.SECURE_CHANNEL
-                    } );
+                        {
+                            user : sec[ 0 ],
+                            pwd : sec[ 1 ],
+                            client_addr : reqinfo_info.CLIENT_ADDR.asString(),
+                            is_secure : reqinfo_info.SECURE_CHANNEL,
+                        } );
 
                     as.add( function( as, rsp )
                     {
@@ -770,17 +778,18 @@ var ExecutorProto =
                 var basicauth = _this._ccm.iface( '#basicauth' );
                 var reqinfo_info = reqinfo.info;
                 var req = _clone( reqinfo.info.RAW_REQUEST );
+
                 delete req.sec;
 
                 basicauth.call( as, 'checkHMAC',
-                {
-                    msg : req,
-                    user : user,
-                    algo : algo,
-                    sig : sig,
-                    client_addr : reqinfo_info.CLIENT_ADDR.asString(),
-                    is_secure : reqinfo_info.SECURE_CHANNEL
-                } );
+                    {
+                        msg : req,
+                        user : user,
+                        algo : algo,
+                        sig : sig,
+                        client_addr : reqinfo_info.CLIENT_ADDR.asString(),
+                        is_secure : reqinfo_info.SECURE_CHANNEL,
+                    } );
 
                 as.add( function( as, rsp )
                 {
@@ -906,7 +915,9 @@ var ExecutorProto =
                         }
                     }
                     catch ( e )
-                    {}
+                    {
+                        // ignore
+                    }
                 }
 
                 as.error( FutoInError.InvalidRequest, "Type mismatch for parameter: " + k );
@@ -1017,11 +1028,11 @@ var ExecutorProto =
                 }
 
                 invoker.SpecTools.checkResultType(
-                        as,
-                        reqinfo_info._iface_info,
-                        reqinfo_info._func,
-                        k,
-                        rsp.r[ k ]
+                    as,
+                    reqinfo_info._iface_info,
+                    reqinfo_info._func,
+                    k,
+                    rsp.r[ k ]
                 );
                 ++c;
             }
@@ -1067,11 +1078,11 @@ var ExecutorProto =
                     var basicauth = _this._ccm.iface( '#basicauth' );
 
                     basicauth.call( as, 'genHMAC',
-                    {
-                        msg : rawrsp,
-                        user : reqinfo_info._hmac_user,
-                        algo : reqinfo_info._hmac_algo,
-                    } );
+                        {
+                            msg : rawrsp,
+                            user : reqinfo_info._hmac_user,
+                            algo : reqinfo_info._hmac_algo,
+                        } );
 
                     as.add( function( as, rsp )
                     {
@@ -1119,7 +1130,7 @@ var ExecutorProto =
         }
 
         return rawmsg;
-    }
+    },
 };
 
 Executor.prototype = ExecutorProto;

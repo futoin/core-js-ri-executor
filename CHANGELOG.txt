@@ -1,7 +1,11 @@
 
 === (next) ===
+BREAKING: removed AMD/minified dist files
 FIXED: removed console log when bi-directional interface
        is used on uni-directional connection
+CHANGED: to use eslint & webpack for testing
+NEW: webpack-ready
+NEW: FTN4 Ping-Pong service iface support
 
 === 1.1.0 (2017-08-04) ===
 NEW: FTN3 v1.6 support

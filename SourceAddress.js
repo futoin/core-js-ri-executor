@@ -52,6 +52,7 @@ SourceAddress.prototype =
 
     /**
      * Get a stable string representation
+     * @returns {string} string representation
      * @alias SourceAddress#asString
      */
     asString : function()
@@ -68,7 +69,7 @@ SourceAddress.prototype =
         {
             return this.type + ":" + this.host + ":" + this.port;
         }
-    }
+    },
 };
 
 module.exports = SourceAddress;

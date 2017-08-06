@@ -24,7 +24,7 @@ var DerivedKeyProto =
 
     /**
      * Get master key ID
-     * @returns {integer}
+     * @returns {integer} Base ID
      */
     baseID : function()
     {
@@ -33,7 +33,7 @@ var DerivedKeyProto =
 
     /**
      * Get derived key sequence ID
-     * @returns {integer}
+     * @returns {integer} Sequence ID
      */
     sequenceID : function()
     {
@@ -43,7 +43,7 @@ var DerivedKeyProto =
     /**
      * Encrypt data with current derived key. Useful
      * for very senstive information.
-     * @param {AsyncSteps} as
+     * @param {AsyncSteps} as - steps interface
      * @param {string|Buffer} data to encrypt
      * @returns {Buffer} encrypted data
      */
@@ -52,11 +52,12 @@ var DerivedKeyProto =
         void as;
         void data;
         as.error( 'NotImplemented', 'Derived key encryption is not supported yet' );
+        return null;
     },
 
     /**
      * Decrypt data using current derived key
-     * @param {AsyncSteps} as
+     * @param {AsyncSteps} as - steps interface
      * @param {Buffer} data to decrypt
      * @returns {Buffer} decrypted data
      */
@@ -65,12 +66,13 @@ var DerivedKeyProto =
         void as;
         void data;
         as.error( 'NotImplemented', 'Derived key decryption is not supported yet' );
+        return null;
     },
 
     _cleanup : function()
     {
         this._ccm = null;
-    }
+    },
 };
 
 DerivedKey.prototype = DerivedKeyProto;

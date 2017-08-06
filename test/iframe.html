@@ -3,37 +3,43 @@
   <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>tests</title>
+    <script src="../node_modules/chai/chai.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../dist/iframe.js" type="text/javascript" charset="utf-8"></script>
+    
+    <script type="text/javascript" charset="utf-8" src="./integration_iface.js"></script>
   </head>
   <body>
-      <script src="../node_modules/chai/chai.js" type="text/javascript" charset="utf-8"></script>
-      <script src="../node_modules/futoin-asyncsteps/dist/futoin-asyncsteps.min.js" type="text/javascript" charset="utf-8"></script>
-      <script src="../node_modules/futoin-invoker/dist/futoin-invoker.min.js" type="text/javascript" charset="utf-8"></script>
-      <script src="../dist/futoin-executor.min.js" type="text/javascript" charset="utf-8"></script>
-      
-      <script type="text/javascript" charset="utf-8" src="./integration_iface.js"></script>
       <script type="text/javascript" charset="utf-8">
-chai.should();
+function run_on_load(event) {
+    chai.should();
 
-var opts = {};
-opts.specDirs = [
-    exports.test_if_anon,
-    exports.test_if_anon_secure,
-    exports.test_if_anon_bidirect
-];
-opts.allowedOrigins = [
-    'http://localhost:8000'
-];
+    var opts = {};
+    opts.specDirs = [
+        exports.test_if_anon,
+        exports.test_if_anon_secure,
+        exports.test_if_anon_bidirect
+    ];
+    opts.allowedOrigins = [
+        'http://localhost:8000'
+    ];
 
-var ccm = new FutoIn.Invoker.AdvancedCCM( opts );
-var browser_executor = new BrowserExecutor( ccm, opts );
+    var ccm = new FutoIn.Invoker.AdvancedCCM( opts );
+    var browser_executor = new BrowserExecutor( ccm, opts );
 
-$as().add( function( as )
-{
-    browser_executor.register( as, 'test.int.anon:1.0', exports.interface_impl );
-    browser_executor.register( as, 'test.int.bidirect:1.0', exports.interface_impl );
-    browser_executor.register( as, 'test.int.anonsec:1.0', exports.interface_impl );
-} )
-.execute();
+    window.$as().add( function( as )
+    {
+        browser_executor.register( as, 'test.int.anon:1.0', exports.interface_impl );
+        browser_executor.register( as, 'test.int.bidirect:1.0', exports.interface_impl );
+        browser_executor.register( as, 'test.int.anonsec:1.0', exports.interface_impl );
+    } )
+    .execute();
+};
+
+if (document.readyState === "complete") {
+    run_on_load();
+} else {
+    window.addEventListener("load", run_on_load);
+}
       </script>
   </body>
 </html>

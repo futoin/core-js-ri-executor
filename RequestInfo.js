@@ -168,12 +168,14 @@ var RequestInfoConst = {
      * Associated transport channel context
      * @see ChannelContext
      */
-    INFO_CHANNEL_CONTEXT : "CHANNEL_CONTEXT"
+    INFO_CHANNEL_CONTEXT : "CHANNEL_CONTEXT",
 };
 
 /**
  * RequestInfo object as defined in FTN6
  * @class
+ * @param {Executor} executor - _
+ * @param {object|string} rawreq - raw request
  */
 var RequestInfo = function( executor, rawreq )
 {
@@ -188,9 +190,7 @@ var RequestInfo = function( executor, rawreq )
     this._rawreq = rawreq;
 
     // ---
-    var rawrsp = {
-        r : {}
-    };
+    var rawrsp = { r : {} };
 
     if ( 'rid' in rawreq )
     {
@@ -204,6 +204,7 @@ var RequestInfo = function( executor, rawreq )
     {
         return this.info;
     };
+
     this.info = info;
 
     info.X509_CN = null;
@@ -232,7 +233,7 @@ RequestInfoProto._as = null;
 
 /**
  * Get reference to input params
- * @return {object}
+ * @return {object} parameter holder
  * @alias RequestInfo#params
  */
 RequestInfoProto.params = function()
@@ -242,7 +243,7 @@ RequestInfoProto.params = function()
 
 /**
  * Get reference to output
- * @return {object}
+ * @return {object} result variable holder
  * @alias RequestInfo#result
  */
 RequestInfoProto.result = function()
@@ -262,6 +263,7 @@ RequestInfoProto.info = null;
 /**
  * Get reference to input stream
  * @throws RawInputError
+ * @returns {object} raw input stream
  * @alias RequestInfo#rawInput
  */
 RequestInfoProto.rawInput = function()
@@ -289,6 +291,7 @@ RequestInfoProto.rawInput = function()
 /**
  * Get reference to output stream
  * @throws RawOutputError
+ * @returns {object} raw output stream
  * @alias RequestInfo#rawOutput
  */
 RequestInfoProto.rawOutput = function()
@@ -315,6 +318,7 @@ RequestInfoProto.rawOutput = function()
 
 /**
  * Get reference to associated Executor instance
+ * @returns {Executor} _
  * @alias RequestInfo#executor
  */
 RequestInfoProto.executor = function()
@@ -324,6 +328,7 @@ RequestInfoProto.executor = function()
 
 /**
  * Get reference to channel context
+ * @returns {ChannelContext} _
  * @alias RequestInfo#channel
  */
 RequestInfoProto.channel = function()
