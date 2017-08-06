@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.2.0 (2017-08-06) ===
 BREAKING: removed AMD/minified dist files
 FIXED: removed console log when bi-directional interface
        is used on uni-directional connection
