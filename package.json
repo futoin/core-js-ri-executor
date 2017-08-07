@@ -19,7 +19,7 @@
     "communication",
     "distributed",
     "browser",
-    "amd"
+    "webpack"
   ],
   "author": {
     "name": "Andrey Galkin",
