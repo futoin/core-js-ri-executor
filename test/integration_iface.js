@@ -10,7 +10,7 @@ if ( typeof exports === 'undefined' )
 exports.test_if_anon = {
     iface : 'test.int.anon',
     version : '1.0',
-    ftn3rev : '1.3',
+    ftn3rev : '1.7',
     funcs : {
         'regular' : {
             'params' : {
@@ -60,6 +60,9 @@ exports.test_if_anon = {
                     'type' : 'string'
                 }
             }
+        },
+        'customResult' : {
+            'result' : 'boolean'
         },
         'noParams' : {
             'result' : {
@@ -259,6 +262,11 @@ exports.interface_impl = {
     
     noResult : function( as, reqinfo )
     {
+    },
+    
+    customResult : function( as, reqinfo )
+    {
+        return true;
     },
     
     noParams : function( as, reqinfo )

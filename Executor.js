@@ -537,9 +537,9 @@ var ExecutorProto =
 
                     var result = impl[ func ]( as, reqinfo );
 
-                    if ( result )
+                    if ( typeof result !== 'undefined' )
                     {
-                        _extend( reqinfo.result(), result );
+                        as.success( result );
                     }
                 } );
 
@@ -547,9 +547,17 @@ var ExecutorProto =
                 // ---
                 as.add( function( as, result )
                 {
-                    if ( result )
+                    if ( typeof result === 'undefined' )
+                    {
+                        // pass
+                    }
+                    else if ( typeof result === 'object' )
                     {
                         _extend( reqinfo.result(), result );
+                    }
+                    else
+                    {
+                        reqinfo.info.RAW_RESPONSE.r = result;
                     }
 
                     _this._checkResponse( as, reqinfo );
@@ -994,7 +1002,8 @@ var ExecutorProto =
         {
             reqinfo_info.RAW_RESPONSE = null;
 
-            if ( Object.keys( rsp.r ).length > 0 )
+            if ( typeof rsp.r !== 'object' ||
+                 Object.keys( rsp.r ).length > 0 )
             {
                 as.error( FutoInError.InternalError, "Raw result is expected" );
             }
@@ -1012,15 +1021,26 @@ var ExecutorProto =
         }
 
         // check result variables
-        if ( Object.keys( finfo.result ).length > 0 )
+        var resvars = finfo.result;
+        var result = rsp.r;
+        var iface_info = reqinfo_info._iface_info;
+
+        if ( typeof resvars === 'string' )
         {
-            var resvars = finfo.result;
+            if ( !invoker.SpecTools.checkType( iface_info, resvars, result ) )
+            {
+                as.error( FutoInError.InternalError, "Invalid result type" );
+            }
+        }
+        else if ( Object.keys( resvars ).length > 0 )
+        {
             var c = 0;
             var k;
+            var func = reqinfo_info._func;
 
             // NOTE: the must be no unknown result variables on executor side as exactly the
             // specified interface version must be implemented
-            for ( k in rsp.r )
+            for ( k in result )
             {
                 if ( !( k in resvars ) )
                 {
@@ -1029,10 +1049,10 @@ var ExecutorProto =
 
                 invoker.SpecTools.checkResultType(
                     as,
-                    reqinfo_info._iface_info,
-                    reqinfo_info._func,
+                    iface_info,
+                    func,
                     k,
-                    rsp.r[ k ]
+                    result[ k ]
                 );
                 ++c;
             }
@@ -1042,7 +1062,7 @@ var ExecutorProto =
                 as.error( FutoInError.InternalError, "Missing result variables" );
             }
         }
-        else if ( Object.keys( rsp.r ).length > 0 )
+        else if ( Object.keys( result ).length > 0 )
         {
             as.error( FutoInError.InternalError, "No result variables are expected" );
         }

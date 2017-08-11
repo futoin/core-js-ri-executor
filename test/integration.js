@@ -299,6 +299,12 @@ model_as.add(
             {
                 res.should.be.empty;
             }
+   // ---
+        }).add( function( as ){
+            set_step( "customResult" );
+            anon_iface.call( as, 'customResult');
+        }).add( function( as, res ){
+            res.should.be.true;
     // ---
         }).add( function( as ){
             set_step( "noParams" );
