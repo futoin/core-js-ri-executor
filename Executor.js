@@ -433,6 +433,10 @@ var ExecutorProto =
                         {
                             orig_as.success( ftnrsp, invoker.SimpleCCM.FUTOIN_CONTENT_TYPE );
                         }
+                        else
+                        {
+                            orig_as.success();
+                        }
                     } );
                 },
                 function( as, err )

@@ -1,4 +1,7 @@
 
+=== (next) ===
+FIXED: internal calls to work with futoin-invoker v1.3.1+
+
 === 1.3.0 (2017-08-11) ===
 NEW: FTN3 v1.7 custom result types
 
