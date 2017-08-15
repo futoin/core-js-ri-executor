@@ -1,4 +1,7 @@
 
+=== (next) ===
+NEW: PingService as a common functionality for many API
+
 === 1.3.1 (2017-08-11) ===
 FIXED: internal calls to work with futoin-invoker v1.3.1+
 

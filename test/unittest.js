@@ -302,3 +302,35 @@ describe( 'DerivedKey', function(){
     });
 });
 
+describe( 'PingService', function(){
+    it('should work', function(done){
+        const as = async_steps();
+        const ccm = new invoker.AdvancedCCM();
+        const executor = new executor_module.Executor( ccm );
+        const BasicAuthFace = require( '../BasicAuthFace' );
+        const BasicAuthService = require( '../BasicAuthService' );
+        const PingFace = require('futoin-invoker/PingFace');
+        const PingService = require('../PingService');
+        
+        as.add((as) => {
+            as.add((as) => {
+                const auth_svc = BasicAuthService.register(as, executor);
+                auth_svc.addUser('login', 'pass');
+                BasicAuthFace.register(as, ccm, executor);
+                
+                PingService.register(as, executor);
+                PingFace.register(as, ccm, '#ping', executor, 'login:pass');
+            })
+            .add((as) => {
+                ccm.iface('#ping').ping(as, 123);
+                as.add((as, res) => {
+                    res.should.equal(123);
+                    done();
+                });
+            });
+        }, (as, err) => {
+            console.log(err);
+            done(as.state.last_exception);
+        }).execute();
+    });
+});

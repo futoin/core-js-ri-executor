@@ -459,6 +459,10 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
 <dd></dd>
 <dt><a href="#NodeExecutor">NodeExecutor</a></dt>
 <dd></dd>
+<dt><a href="#PingService">PingService</a></dt>
+<dd><p>Implementation of futoin.ping &amp; futoin.anonping interface</p>
+<p>Designed to be used as imported part of larger interfaces.</p>
+</dd>
 <dt><a href="#RequestInfoConst">RequestInfoConst</a></dt>
 <dd></dd>
 <dt><a href="#RequestInfo">RequestInfo</a></dt>
@@ -829,6 +833,26 @@ Executor implementation for Node.js/io.js with HTTP and WebSockets transport
 | --- | --- | --- |
 | ccm | <code>AdvancedCCM</code> | CCM for internal requests |
 | opts | [<code>NodeExecutorOptions</code>](#NodeExecutorOptions) | executor options |
+
+<a name="PingService"></a>
+
+## PingService
+Implementation of futoin.ping & futoin.anonping interface
+
+Designed to be used as imported part of larger interfaces.
+
+**Kind**: global class  
+<a name="PingService.register"></a>
+
+### PingService.register(as, executor)
+Register futoin.ping interface with Executor
+
+**Kind**: static method of [<code>PingService</code>](#PingService)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+| executor | [<code>Executor</code>](#Executor) | executor instance |
 
 <a name="RequestInfoConst"></a>
 

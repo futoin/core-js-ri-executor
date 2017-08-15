@@ -82,5 +82,16 @@ module.exports = {
                 "no-console" : ["off"],
             }
         },
+        {
+            env: {
+                es6: true,
+                commonjs: true,
+                browser: true,
+            },
+            files: [ "PingService.js" ],
+            rules: {
+                strict: [ "error", "global" ],
+            }
+        },
     ]
 };
