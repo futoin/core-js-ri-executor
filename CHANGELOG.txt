@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.3.3 (2017-08-16) ===
 NEW: added Executor's 'close' event for clean shutdown of services
 
 === 1.3.2 (2017-08-15) ===
