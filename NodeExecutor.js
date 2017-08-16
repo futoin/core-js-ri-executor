@@ -783,6 +783,7 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
 
 NodeExecutorProto.close = function( close_cb )
 {
+    Executor.prototype.close.apply( this, [] );
     this._http_server.close( close_cb );
 };
 

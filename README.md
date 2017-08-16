@@ -689,6 +689,7 @@ Useful for audit logging.
     * ["request"](#Executor+event_request)
     * ["response"](#Executor+event_response)
     * ["notExpected"](#Executor+event_notExpected)
+    * ["close"](#Executor+event_close)
 
 <a name="new_Executor_new"></a>
 
@@ -741,6 +742,13 @@ Fired when request processing is started.
 ### "notExpected"
 Fired when not expected error occurs
 ( errmsg, error_info, last_exception )
+
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
+<a name="Executor+event_close"></a>
+
+### "close"
+Fired when Executor is shutting down.
+()
 
 **Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="NodeExecutorOptions"></a>
@@ -1386,6 +1394,7 @@ URL of avatar image
     * ["request"](#Executor+event_request)
     * ["response"](#Executor+event_response)
     * ["notExpected"](#Executor+event_notExpected)
+    * ["close"](#Executor+event_close)
 
 <a name="new_Executor_new"></a>
 
@@ -1438,6 +1447,13 @@ Fired when request processing is started.
 ### "notExpected"
 Fired when not expected error occurs
 ( errmsg, error_info, last_exception )
+
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
+<a name="Executor+event_close"></a>
+
+### "close"
+Fired when Executor is shutting down.
+()
 
 **Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="BrowserExecutor"></a>

@@ -1131,9 +1131,18 @@ var ExecutorProto =
 
     /**
      * Shutdown Executor and stop whole processing
+     * @param {callable} [close_cb=null] - callback to execute after Executor shutdown
+     * @fires Executor#close
      */
-    close : function()
-    {},
+    close : function( close_cb )
+    {
+        this.emit( 'close' );
+
+        if ( close_cb )
+        {
+            close_cb();
+        }
+    },
 
     /**
      * Not standard. Pack message object into JSON representation.
@@ -1177,4 +1186,10 @@ module.exports = Executor;
  * Fired when not expected error occurs
  * ( errmsg, error_info, last_exception )
  * @event Executor#notExpected
+ */
+
+/**
+ * Fired when Executor is shutting down.
+ * ()
+ * @event Executor#close
  */

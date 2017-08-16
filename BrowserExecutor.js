@@ -337,11 +337,7 @@ BrowserExecutorProto.handleMessage = function( event )
 BrowserExecutorProto.close = function( close_cb )
 {
     browser_window.removeEventListener( 'message', this._event_listener );
-
-    if ( close_cb )
-    {
-        close_cb();
-    }
+    Executor.prototype.close.apply( this, [ close_cb ] );
 };
 
 module.exports = BrowserExecutor;
