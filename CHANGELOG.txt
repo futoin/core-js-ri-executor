@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.4.0 (2017-08-18) ===
 NEW: RequestInfo#result() replace support
 NEW: FTN6 v1.6 support
 
