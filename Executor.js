@@ -511,7 +511,11 @@ var ExecutorProto =
                     sec = sec.split( ':' );
 
                     // reserved user name
-                    if ( sec[ 0 ] === '-hmac' )
+                    if ( sec[ 0 ] === '-internal' )
+                    {
+                        _this._checkInternalAuth( as, reqinfo, sec );
+                    }
+                    else if ( sec[ 0 ] === '-hmac' )
                     {
                         _this._checkAuthHMAC( as, reqinfo, sec[1], sec[2], sec[3] );
                     }
@@ -818,6 +822,37 @@ var ExecutorProto =
                 as.error( FutoInError.SecurityError, "Signature Verification Failed" );
             }
         );
+    },
+
+    _checkInternalAuth : function( as, reqinfo )
+    {
+        var reqinfo_info = reqinfo.info;
+
+        if ( reqinfo.info.CHANNEL_CONTEXT.type() !== 'INTERNAL' )
+        {
+            as.error( FutoInError.SecurityError, "Not internal channel" );
+        }
+
+        var obf = reqinfo_info.RAW_REQUEST.obf;
+
+        if ( obf )
+        {
+            reqinfo_info.SECURITY_LEVEL = obf.slvl;
+            reqinfo_info.USER_INFO = new UserInfo(
+                this._ccm,
+                obf.lid,
+                obf.gid,
+                null );
+        }
+        else
+        {
+            reqinfo_info.SECURITY_LEVEL = RequestInfo.SL_SYSTEM;
+            reqinfo_info.USER_INFO = new UserInfo(
+                this._ccm,
+                '-internal',
+                '-internal',
+                null );
+        }
     },
 
     _seclvl_list : [ "Anonymous", "Info", "SafeOps", "PrivilegedOps", "ExceptionalOps", "ExceptionalOps", "System" ],

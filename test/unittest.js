@@ -268,6 +268,45 @@ describe( 'Executor', function(){
             });
             as.execute();
         });
+    
+        it('should support "-internal" credentials', function(done){
+            var ifacedef = {
+                iface: 'internal.test',
+                version: '1.0',
+                ftn3rev: '1.7',
+                funcs: {
+                    f: {
+                        result: 'integer'
+                    }
+                }
+            };
+            
+            as.add(
+                function(as){
+                    var impl = {
+                        f : function( as, reqinfo ) {
+                            return 123;
+                        }
+                    };
+                    executor.register(as, 'internal.test:1.0', impl, [ ifacedef ]);
+                    ccm.register( as , 'inttest', 'internal.test:1.0',
+                                executor, null,
+                                { specDirs: [ ifacedef ] } );
+                    as.add( function(as) {
+                        ccm.iface('inttest').f(as);
+                    });
+                    as.add( function(as, res) {
+                        res.should.equal(123);
+                    })
+                },
+                function(as, err) {
+                    console.log(as.state.error_info);
+                    done(as.state.last_exception);
+                }
+            )
+            as.add(function(as) { done(); });
+            as.execute();
+        });
     });
 });
 
