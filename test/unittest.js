@@ -310,6 +310,15 @@ describe( 'Executor', function(){
     });
 });
 
+describe( 'RequestInfo', function(){
+    it('should support replace of result()', function(){
+        var reqinfo = new executor_module.RequestInfo( null, {} );
+        reqinfo.result().a = 1;
+        reqinfo.result('Yeah');
+        reqinfo.result().should.equal('Yeah');
+    });
+});
+
 describe( 'UserInfo', function(){
     it('should basically function', function(){
         var userinfo = new executor_module.UserInfo( null, 'LID123', 'GID123' );

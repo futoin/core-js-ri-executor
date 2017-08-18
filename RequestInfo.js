@@ -243,11 +243,17 @@ RequestInfoProto.params = function()
 
 /**
  * Get reference to output
+ * @param {*} replace - replace result object
  * @return {object} result variable holder
  * @alias RequestInfo#result
  */
-RequestInfoProto.result = function()
+RequestInfoProto.result = function( replace )
 {
+    if ( replace )
+    {
+        this._rawrsp.r = replace;
+    }
+
     return this._rawrsp.r;
 };
 

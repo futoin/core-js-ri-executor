@@ -1071,7 +1071,7 @@ such security level.
     * [new RequestInfo(executor, rawreq)](#new_RequestInfo_new)
     * [.info](#RequestInfo+info) ⇒ <code>object</code>
     * [.params()](#RequestInfo+params) ⇒ <code>object</code>
-    * [.result()](#RequestInfo+result) ⇒ <code>object</code>
+    * [.result(replace)](#RequestInfo+result) ⇒ <code>object</code>
     * [.rawInput()](#RequestInfo+rawInput) ⇒ <code>object</code>
     * [.rawOutput()](#RequestInfo+rawOutput) ⇒ <code>object</code>
     * [.executor()](#RequestInfo+executor) ⇒ [<code>Executor</code>](#Executor)
@@ -1106,11 +1106,16 @@ Get reference to input params
 **Returns**: <code>object</code> - parameter holder  
 <a name="RequestInfo+result"></a>
 
-### requestInfo.result() ⇒ <code>object</code>
+### requestInfo.result(replace) ⇒ <code>object</code>
 Get reference to output
 
 **Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
 **Returns**: <code>object</code> - result variable holder  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| replace | <code>\*</code> | replace result object |
+
 <a name="RequestInfo+rawInput"></a>
 
 ### requestInfo.rawInput() ⇒ <code>object</code>
