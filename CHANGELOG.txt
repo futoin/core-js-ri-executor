@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.4.1 (2017-08-19) ===
 FIXED: check failure when "boolean" is used in type variant (invoker v1.4.1+)
 
 === 1.4.0 (2017-08-18) ===
