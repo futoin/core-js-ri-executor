@@ -5,5 +5,6 @@ node_js:
 
 before_install: sudo pip install futoin-cid
 script:
-- nodeVer=$TRAVIS_NODE_VERSION  nodeEnv=development cid prepare
-- nodeVer=$TRAVIS_NODE_VERSION  nodeEnv=development cid run test
+- nodeVer=$TRAVIS_NODE_VERSION nodeEnv=development cid tool update
+- nodeVer=$TRAVIS_NODE_VERSION nodeEnv=development cid prepare
+- nodeVer=$TRAVIS_NODE_VERSION nodeEnv=development cid run test
