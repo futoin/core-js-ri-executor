@@ -855,7 +855,15 @@ var ExecutorProto =
         }
     },
 
-    _seclvl_list : [ "Anonymous", "Info", "SafeOps", "PrivilegedOps", "ExceptionalOps", "ExceptionalOps", "System" ],
+    _seclvl_list : [
+        "Anonymous",
+        "Info",
+        "SafeOps",
+        "PrivilegedOps",
+        "ExceptionalOps",
+        "ExceptionalOps",
+        "System",
+    ],
 
     _checkConstraints : function( as, reqinfo )
     {
