@@ -1440,21 +1440,21 @@ functional-red-black-tree@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
 
-futoin-asyncsteps@^1.6.2:
-  version "1.6.2"
-  resolved "https://registry.yarnpkg.com/futoin-asyncsteps/-/futoin-asyncsteps-1.6.2.tgz#25f6b45f54e621a8df3c08d844b432920b58358b"
+futoin-asyncsteps@^1.6.3:
+  version "1.6.3"
+  resolved "https://registry.yarnpkg.com/futoin-asyncsteps/-/futoin-asyncsteps-1.6.3.tgz#75a9180a3da31015096a54fd5bfe6e7d661f510e"
   dependencies:
     performance-now "^2.1.0"
 
-futoin-invoker@^1.4.1:
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-1.4.1.tgz#6698c0d5502d34ac30c9d8a03e4d58ebe5072249"
+futoin-invoker@^1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-1.4.2.tgz#6eaffae117b8b6c3f6dfbad274d31ffb7865cc68"
   dependencies:
     agentkeepalive "^3.3.0"
     detect-node "^2.0.3"
     event-emitter "^0.3.5"
     faye-websocket "^0.11.1"
-    futoin-asyncsteps "^1.6.2"
+    futoin-asyncsteps "^1.6.3"
     lodash "^4.17.4"
     performance-now "^2.1.0"
     request "^2.81.0"

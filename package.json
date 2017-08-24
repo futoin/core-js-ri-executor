@@ -35,8 +35,8 @@
     "detect-node": "^2.0.3",
     "event-emitter": "^0.3.5",
     "faye-websocket": "^0.11.1",
-    "futoin-asyncsteps": "^1.6.2",
-    "futoin-invoker": "^1.4.1",
+    "futoin-asyncsteps": "^1.6.3",
+    "futoin-invoker": "^1.4.2",
     "lodash": "^4.17.4",
     "performance-now": "^2.1.0"
   },
