@@ -114,7 +114,7 @@ HTTPChannelContextProto.setCookie = function( name, value, options )
     options.secure = options.secure || this._is_secure_channel;
     options.overwrite = true;
 
-    return cookies.set( name, options );
+    return cookies.set( name, value, options );
 };
 
 // ---
