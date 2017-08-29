@@ -302,7 +302,7 @@ exports.interface_impl = {
         raw_inp.on( 'end', function( chunk ){
             as.success( { a : data.join( '' ) } );
         });
-        as.setCancel( function( as ){} );
+        as.waitExternal();
     },
     
     rawResult : function( as, reqinfo )
@@ -324,7 +324,7 @@ exports.interface_impl = {
             raw_out.write( data.join( '' ), 'utf8' );
             as.success();
         });
-        as.setCancel( function( as ){} );
+        as.waitExternal();
 
     },
     
@@ -341,7 +341,7 @@ exports.interface_impl = {
             raw_out.write( reqinfo.params().a + data.join( '' ) + reqinfo.params().e, 'utf8' );
             as.success();
         });
-        as.setCancel( function( as ){} );
+        as.waitExternal();
 
     },
     

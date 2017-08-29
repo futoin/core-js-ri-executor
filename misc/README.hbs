@@ -30,6 +30,9 @@ Reference implementation of:
 * Spec: [FTN3: FutoIn Interface Definition v1.x](http://specs.futoin.org/final/preview/ftn3_iface_definition.html)
 * Spec: [FTN5: FutoIn HTTP integration v1.x](http://specs.futoin.org/final/preview/ftn5_iface_http_integration.html)
 * Spec: [FTN4: FutoIn Interface - Ping-Pong v1.x](http://specs.futoin.org/final/preview/ftn4_if_ping.html)
+
+Author: [Andrey Galkin](mailto:andrey@futoin.org)
+
 [Web Site](http://futoin.org/)
 
 # About

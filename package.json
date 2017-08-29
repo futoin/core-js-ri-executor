@@ -31,12 +31,12 @@
     "email": "support@futoin.org"
   },
   "dependencies": {
-    "cookies": "^0.7.0",
+    "cookies": "^0.7.1",
     "detect-node": "^2.0.3",
     "event-emitter": "^0.3.5",
     "faye-websocket": "^0.11.1",
-    "futoin-asyncsteps": "^1.6.3",
-    "futoin-invoker": "^1.4.2",
+    "futoin-asyncsteps": "^1.7.0",
+    "futoin-invoker": "^1.4.3",
     "lodash": "^4.17.4",
     "performance-now": "^2.1.0"
   },
