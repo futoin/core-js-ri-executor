@@ -1,4 +1,7 @@
 
+=== (next) ===
+BREAKING: changed futoin-* to be peer dependency
+
 === 1.4.3 (2017-08-29) ===
 NEW: upgraded to AsyncSteps v1.7 with FTN12 v1.8 support
 
