@@ -1,4 +1,7 @@
 
+=== (next) ===
+SECURITY: upgraded futoin-invoker to v1.5.4
+
 === 1.5.1 (2017-09-04) ===
 FIXED: added workaround related to NPM: https://github.com/npm/npm/issues/16723
 
