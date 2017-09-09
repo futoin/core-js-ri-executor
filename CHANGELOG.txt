@@ -1,4 +1,7 @@
 
+=== (next) ===
+FIXED: to support onInvokerAbort() for internal comm channel
+
 === 1.5.2 (2017-09-08) ===
 SECURITY: upgraded futoin-invoker to v1.5.4
 

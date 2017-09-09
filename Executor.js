@@ -76,6 +76,17 @@ InternalChannelContextProto._commError = function( as )
     as.error( FutoInError.CommError, "No Invoker's Executor for internal call" );
 };
 
+InternalChannelContextProto.onInvokerAbort = function( callable, user_data )
+{
+    this._invoker_executor.once(
+        'close',
+        function()
+        {
+            callable( user_data );
+        }
+    );
+};
+
 /**
  * Pseudo-class for Executor options documentation
  * @class
