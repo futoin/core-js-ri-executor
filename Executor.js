@@ -175,6 +175,9 @@ var Executor = function( ccm, opts )
             return data.length; // Yes, it does not work for multi-byte correctly
         };
     }
+
+    // Ensure to close executor on CCM close
+    ccm.once( 'close', this.close.bind( this ) );
 };
 
 var ExecutorProto =
