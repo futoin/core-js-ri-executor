@@ -198,7 +198,7 @@ var NodeExecutorOptions =
 {
     /**
      * Provide a pre-configured HTTP server instance or
-     * use httpAddr & httpPort options
+     * use httpPort [& httpAddr] options
      * @default
      */
     httpServer : null,
@@ -293,7 +293,7 @@ var NodeExecutor = function( ccm, opts )
     {
         http_server = opts.httpServer;
     }
-    else if ( opts.httpAddr && opts.httpPort )
+    else if ( opts.httpPort )
     {
         http_server = http.createServer();
 

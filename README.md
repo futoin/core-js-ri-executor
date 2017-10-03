@@ -779,7 +779,7 @@ Pseudo-class for NodeExecutor options documentation
 
 ### NodeExecutorOptions.httpServer
 Provide a pre-configured HTTP server instance or
-use httpAddr & httpPort options
+use httpPort [& httpAddr] options
 
 **Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code></code>  
