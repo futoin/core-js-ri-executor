@@ -4,7 +4,7 @@ const PingFace = require( 'futoin-invoker/PingFace' );
 
 /**
  * Implementation of futoin.ping & futoin.anonping interface
- * 
+ *
  * Designed to be used as imported part of larger interfaces.
  */
 class PingService
