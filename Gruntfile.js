@@ -11,7 +11,12 @@ module.exports = function( grunt )
             options: { fix: true },
             target: [ '*.js', 'lib/**/*.js' ],
         },
-        mocha_istanbul: { coverage: { src: [ 'test/integration.js', 'test/unittest.js' ] } },
+        mocha_istanbul: {
+            coverage: { src: [ 'test/integration.js', 'test/unittest.js' ] },
+            options: {
+                mochaOptions: [ '--exit' ],
+            },
+        },
         istanbul_check_coverage: {},
         webpack: { test: require( './webpack.test' ) },
         connect: {
