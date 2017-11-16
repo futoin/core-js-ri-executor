@@ -61,7 +61,7 @@
     "test/**"
   ],
   "peerDependencies": {
-    "futoin-asyncsteps": "^1.7.1",
+    "futoin-asyncsteps": "^1.8.0",
     "futoin-invoker": "^1.5.5"
   }
 }
