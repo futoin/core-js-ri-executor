@@ -12,6 +12,9 @@
       "@cid tool envexec node -- sh -c \"test $NODE_ENV != production\"",
       "@cid tool exec grunt -- test"
     ],
-    "upgrade-deps": "@cid tool exec yarn -- upgrade --latest"
+    "upgrade-deps": [
+      "@cid tool update",
+      "@cid tool exec yarn -- upgrade --latest"
+    ]
   }
 }
