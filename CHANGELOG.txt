@@ -1,4 +1,7 @@
 
+=== (next) ===
+NEW: as.state.async_stack support in notExpected
+
 === 1.5.5 (2017-10-03) ===
 FIXED: to allow skipping httpAddr option of NodeExecutor
 

@@ -356,7 +356,8 @@ var ExecutorProto =
             },
             function( as, err )
             {
-                _this.emit( 'notExpected', err, as.state.error_info, as.state.last_exception );
+                _this.emit( 'notExpected', err, as.state.error_info,
+                    as.state.last_exception, as.state.async_stack );
                 reqinfo._cleanup();
             }
         ).execute();
@@ -455,7 +456,8 @@ var ExecutorProto =
                 },
                 function( as, err )
                 {
-                    _this.emit( 'notExpected', err, as.state.error_info, as.state.last_exception );
+                    _this.emit( 'notExpected', err, as.state.error_info,
+                        as.state.last_exception, as.state.async_stack );
                     reqinfo._cleanup();
                 }
             ).execute();
@@ -596,7 +598,8 @@ var ExecutorProto =
                       ( !reqinfo_info._func_info ||
                         !( err in reqinfo_info._func_info.throws ) ) )
                 {
-                    _this.emit( 'notExpected', err, error_info, as.state.last_exception );
+                    _this.emit( 'notExpected', err, error_info,
+                        as.state.last_exception, as.state.async_stack );
                     err = FutoInError.InternalError;
                     error_info = 'Not expected error';
                 }
@@ -1215,7 +1218,9 @@ var ExecutorProto =
 
         if ( this._byteLength( rawmsg, 'utf8' ) > this.SAFE_PAYLOAD_LIMIT )
         {
-            this.emit( 'notExpected', FutoInError.InternalError, "Response size has exceeded safety limit" );
+            this.emit( 'notExpected', FutoInError.InternalError,
+                       "Response size has exceeded safety limit",
+                       null, null );
             throw new Error( FutoInError.InternalError );
         }
 
@@ -1241,7 +1246,7 @@ module.exports = Executor;
 
 /**
  * Fired when not expected error occurs
- * ( errmsg, error_info, last_exception )
+ * ( errmsg, error_info, last_exception, async_stack )
  * @event Executor#notExpected
  */
 
