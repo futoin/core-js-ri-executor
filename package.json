@@ -41,7 +41,7 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "eslint": "^4.11.0",
-    "futoin-asyncsteps": "^1.8.0",
+    "futoin-asyncsteps": "^1.9.0",
     "futoin-invoker": "^1.5.5",
     "grunt": "^1.0.1",
     "grunt-contrib-connect": "^1.0.2",
@@ -61,7 +61,7 @@
     "test/**"
   ],
   "peerDependencies": {
-    "futoin-asyncsteps": "^1.8.0",
+    "futoin-asyncsteps": "^1.9.0",
     "futoin-invoker": "^1.5.5"
   }
 }

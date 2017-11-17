@@ -744,7 +744,7 @@ Fired when request processing is started.
 
 ### "notExpected"
 Fired when not expected error occurs
-( errmsg, error_info, last_exception, last_stack )
+( errmsg, error_info, last_exception, async_stack )
 
 **Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="Executor+event_close"></a>
@@ -1454,7 +1454,7 @@ Fired when request processing is started.
 
 ### "notExpected"
 Fired when not expected error occurs
-( errmsg, error_info, last_exception, last_stack )
+( errmsg, error_info, last_exception, async_stack )
 
 **Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="Executor+event_close"></a>

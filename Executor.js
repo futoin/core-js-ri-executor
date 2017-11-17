@@ -1219,8 +1219,8 @@ var ExecutorProto =
         if ( this._byteLength( rawmsg, 'utf8' ) > this.SAFE_PAYLOAD_LIMIT )
         {
             this.emit( 'notExpected', FutoInError.InternalError,
-                       "Response size has exceeded safety limit",
-                       null, null );
+                "Response size has exceeded safety limit",
+                null, null );
             throw new Error( FutoInError.InternalError );
         }
 
