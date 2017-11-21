@@ -59,8 +59,8 @@ ajv@^4.9.1:
     json-stable-stringify "^1.0.1"
 
 ajv@^5.1.0, ajv@^5.1.5, ajv@^5.2.3, ajv@^5.3.0:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/ajv/-/ajv-5.3.0.tgz#4414ff74a50879c208ee5fdc826e32c303549eda"
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/ajv/-/ajv-5.4.0.tgz#32d1cf08dbc80c432f426f12e10b2511f6b46474"
   dependencies:
     co "^4.6.0"
     fast-deep-equal "^1.0.0"
@@ -282,8 +282,8 @@ big.js@^3.1.3:
   resolved "https://registry.yarnpkg.com/big.js/-/big.js-3.2.0.tgz#a5fc298b81b9e0dca2e458824784b65c52ba588e"
 
 binary-extensions@^1.0.0:
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-1.10.0.tgz#9aeb9a6c5e88638aad171e167f5900abe24835d0"
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-1.11.0.tgz#46aa1751fb6a2f93ee5e689bb1087d4b14c6c205"
 
 block-stream@*:
   version "0.0.9"
@@ -1405,9 +1405,9 @@ futoin-asyncsteps@^1.9.0:
   dependencies:
     performance-now "^2.1.0"
 
-futoin-invoker@^1.5.5:
-  version "1.5.5"
-  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-1.5.5.tgz#dca5615eae0788a2c51d16076dcc40a73eff874d"
+futoin-invoker@^1.5.6:
+  version "1.5.6"
+  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-1.5.6.tgz#e7a19806acf88fb2135615fbf1bbfbbaee531c47"
   dependencies:
     agentkeepalive "^3.3.0"
     detect-node "^2.0.3"
@@ -1415,7 +1415,7 @@ futoin-invoker@^1.5.5:
     faye-websocket "^0.11.1"
     lodash "^4.17.4"
     performance-now "^2.1.0"
-    request "^2.81.0"
+    request "^2.83.0"
 
 gauge@~2.7.3:
   version "2.7.4"
@@ -3062,7 +3062,7 @@ request@2.81.0:
     tunnel-agent "^0.6.0"
     uuid "^3.0.0"
 
-request@^2.81.0:
+request@^2.81.0, request@^2.83.0:
   version "2.83.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.83.0.tgz#ca0b65da02ed62935887808e6f510381034e3356"
   dependencies:
