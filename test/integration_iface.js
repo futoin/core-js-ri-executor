@@ -2,7 +2,7 @@
 if ( typeof exports === 'undefined' )
 {
     exports = {
-        in_browser : true
+        in_browser : true,
     };
 }
 
@@ -12,180 +12,180 @@ exports.test_if_anon = {
     version : '1.0',
     ftn3rev : '1.7',
     funcs : {
-        'regular' : {
-            'params' : {
-                'b' : {
-                    'type' : 'boolean'
+        regular : {
+            params : {
+                b : {
+                    type : 'boolean',
                 },
-                's' : {
-                    'type' : 'string'
+                s : {
+                    type : 'string',
                 },
-                'n' : {
-                    'type' : 'number'
+                n : {
+                    type : 'number',
                 },
-                'i' : {
-                    'type' : 'integer'
+                i : {
+                    type : 'integer',
                 },
-                'm' : {
-                    'type' : 'map'
+                m : {
+                    type : 'map',
                 },
-                'a' : {
-                    'type' : 'array'
-                }
+                a : {
+                    type : 'array',
+                },
             },
-            'result' : {
-                'rb' : {
-                    'type' : 'boolean'
+            result : {
+                rb : {
+                    type : 'boolean',
                 },
-                'rs' : {
-                    'type' : 'string'
+                rs : {
+                    type : 'string',
                 },
-                'rn' : {
-                    'type' : 'number'
+                rn : {
+                    type : 'number',
                 },
-                'ri' : {
-                    'type' : 'integer'
+                ri : {
+                    type : 'integer',
                 },
-                'rm' : {
-                    'type' : 'map'
+                rm : {
+                    type : 'map',
                 },
-                'ra' : {
-                    'type' : 'array'
-                }
-            }
-        },
-        'noResult' : {
-            'params' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            }
-        },
-        'customResult' : {
-            'result' : 'boolean'
-        },
-        'noParams' : {
-            'result' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            }
-        },
-        'testAuth' : {
-            'result' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            }
-        },
-        'rawUpload' : {
-            'result' : {
-                'a' : {
-                    'type' : 'string'
-                }
+                ra : {
+                    type : 'array',
+                },
             },
-            rawupload : true
         },
-        'rawResult' : {
-            'params' : {
-                'a' : {
-                    'type' : 'string'
-                }
+        noResult : {
+            params : {
+                a : {
+                    type : 'string',
+                },
             },
-            rawresult : true
         },
-        'rawUploadResult' : {
-            rawupload : true,
-            rawresult : true
+        customResult : {
+            result : 'boolean',
         },
-        'rawUploadResultParams' : {
-            'params' : {
-                'a' : {
-                    'type' : 'string'
+        noParams : {
+            result : {
+                a : {
+                    type : 'string',
                 },
-                'e' : {
-                    'type' : 'string'
+            },
+        },
+        testAuth : {
+            result : {
+                a : {
+                    type : 'string',
                 },
-                'c' : {
-                    'type' : 'integer'
+            },
+        },
+        rawUpload : {
+            result : {
+                a : {
+                    type : 'string',
                 },
-                'o' : {
-                    'type' : 'map'
-                }
             },
             rawupload : true,
-            rawresult : true
         },
-        'clientTimeout' : {
-            'result' : {
-                'err' : {
-                    'type' : 'string'
-                }
-            }
-        },
-        'serverError' : {
-            'params' : {
-                'a' : {
-                    'type' : 'string'
-                }
+        rawResult : {
+            params : {
+                a : {
+                    type : 'string',
+                },
             },
-            'result' : {
-                'r' : {
-                    'type' : 'string'
-                }
+            rawresult : true,
+        },
+        rawUploadResult : {
+            rawupload : true,
+            rawresult : true,
+        },
+        rawUploadResultParams : {
+            params : {
+                a : {
+                    type : 'string',
+                },
+                e : {
+                    type : 'string',
+                },
+                c : {
+                    type : 'integer',
+                },
+                o : {
+                    type : 'map',
+                },
+            },
+            rawupload : true,
+            rawresult : true,
+        },
+        clientTimeout : {
+            result : {
+                err : {
+                    type : 'string',
+                },
+            },
+        },
+        serverError : {
+            params : {
+                a : {
+                    type : 'string',
+                },
+            },
+            result : {
+                r : {
+                    type : 'string',
+                },
             },
             heavy : true,
             throws : [
                 'ValidError',
-                'SecondValid'
-            ]
+                'SecondValid',
+            ],
         },
         cancelAfterTimeout : {
-            'result' : {
-                'r' : {
-                    'type' : 'string'
-                }
-            }
+            result : {
+                r : {
+                    type : 'string',
+                },
+            },
         },
-        
+
         testHTTPheader : {
-            'result' : {
-                'r' : {
-                    'type' : 'string'
-                }
-            }
+            result : {
+                r : {
+                    type : 'string',
+                },
+            },
         },
 
         testOnBehalfOf : {
-            'result' : {
-                'r' : {
-                    'type' : 'string'
-                }
-            }
+            result : {
+                r : {
+                    type : 'string',
+                },
+            },
         },
-        
+
         testOnBehalfOfSub : {
-            'result' : {
-                'r' : {
-                    'type' : 'string'
-                }
+            result : {
+                r : {
+                    type : 'string',
+                },
             },
-            seclvl : 'Info'
+            seclvl : 'Info',
         },
-        
+
         testSecLevel : {
-            'result' : {
-                'r' : {
-                    'type' : 'string'
-                }
+            result : {
+                r : {
+                    type : 'string',
+                },
             },
-            seclvl : 'ExceptionalOps'
-        }
+            seclvl : 'ExceptionalOps',
+        },
 
     },
     requires : [
-        'AllowAnonymous'
-    ]
+        'AllowAnonymous',
+    ],
 };
 
 // ---
@@ -193,18 +193,18 @@ exports.test_if_anon_secure = {
     iface : 'test.int.anonsec',
     version : '1.0',
     funcs : {
-        'testSecure' : {
-            'result' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            }
-        }
+        testSecure : {
+            result : {
+                a : {
+                    type : 'string',
+                },
+            },
+        },
     },
     requires : [
         'AllowAnonymous',
-        'SecureChannel'
-    ]
+        'SecureChannel',
+    ],
 };
 
 // --
@@ -213,25 +213,25 @@ exports.test_if_anon_bidirect = {
     version : '1.0',
     ftn3rev : '1.1',
     funcs : {
-        'testBiDirect' : {
-            'result' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            }
+        testBiDirect : {
+            result : {
+                a : {
+                    type : 'string',
+                },
+            },
         },
-        'clientCallback' : {
-            'result' : {
-                'a' : {
-                    'type' : 'string'
-                }
-            }
-        }
+        clientCallback : {
+            result : {
+                a : {
+                    type : 'string',
+                },
+            },
+        },
     },
     requires : [
         'AllowAnonymous',
-        'BiDirectChannel'
-    ]
+        'BiDirectChannel',
+    ],
 };
 
 // ---
@@ -248,140 +248,156 @@ exports.interface_impl = {
 
         var params = reqinfo.params();
         var result = reqinfo.result();
-        
+
         result.rs = params.s;
         result.rb = params.b;
         result.rn = params.n;
-        
-        as.success({
+
+        as.success( {
             ri : params.i,
             rm : params.m,
-            ra : params.a
-        });
+            ra : params.a,
+        } );
     },
-    
+
     noResult : function( as, reqinfo )
     {
     },
-    
+
     customResult : function( as, reqinfo )
     {
         return true;
     },
-    
+
     noParams : function( as, reqinfo )
     {
         return { a : 'test' };
     },
-    
+
     testAuth : function( as, reqinfo )
     {
         try
         {
             reqinfo.info[ reqinfo.INFO_SECURITY_LEVEL ].should.equal(
-                    reqinfo.info._hmac_user ?
-                            reqinfo.SL_PRIVILEGED_OPS :
-                            reqinfo.SL_SAFE_OPS );
+                reqinfo.info._hmac_user ?
+                    reqinfo.SL_PRIVILEGED_OPS :
+                    reqinfo.SL_SAFE_OPS );
             reqinfo.info[ reqinfo.INFO_USER_INFO ].should.not.be.null;
         }
         catch ( e )
         {
             as.error( 'InternalError', e.message );
-        }            
+        }
+
         return { a : 'test' };
     },
-    
+
     rawUpload : function( as, reqinfo )
     {
         var raw_inp = reqinfo.rawInput();
         var data = [];
 
-        raw_inp.on( 'data', function( chunk ){
+        raw_inp.on( 'data', function( chunk )
+        {
             data.push( chunk );
-        });
-        raw_inp.on( 'end', function( chunk ){
+        } );
+        raw_inp.on( 'end', function( chunk )
+        {
             as.success( { a : data.join( '' ) } );
-        });
+        } );
         as.waitExternal();
     },
-    
+
     rawResult : function( as, reqinfo )
     {
         var raw_out = reqinfo.rawOutput();
+
         raw_out.write( reqinfo.params().a, 'utf8' );
     },
-    
+
     rawUploadResult : function( as, reqinfo )
     {
         var raw_inp = reqinfo.rawInput();
         var raw_out = reqinfo.rawOutput();
         var data = [];
 
-        raw_inp.on( 'data', function( chunk ){
+        raw_inp.on( 'data', function( chunk )
+        {
             data.push( chunk );
-        });
-        raw_inp.on( 'end', function( chunk ){
+        } );
+        raw_inp.on( 'end', function( chunk )
+        {
             raw_out.write( data.join( '' ), 'utf8' );
             as.success();
-        });
+        } );
         as.waitExternal();
-
     },
-    
+
     rawUploadResultParams : function( as, reqinfo )
     {
         var raw_inp = reqinfo.rawInput();
         var raw_out = reqinfo.rawOutput();
         var data = [];
 
-        raw_inp.on( 'data', function( chunk ){
+        raw_inp.on( 'data', function( chunk )
+        {
             data.push( chunk );
-        });
-        raw_inp.on( 'end', function( chunk ){
+        } );
+        raw_inp.on( 'end', function( chunk )
+        {
             raw_out.write( reqinfo.params().a + data.join( '' ) + reqinfo.params().e, 'utf8' );
             as.success();
-        });
+        } );
         as.waitExternal();
-
     },
-    
+
     clientTimeout : function( as, reqinfo )
     {
         as.setTimeout( 1e3 );
     },
-    
+
     serverError : function( as, reqinfo )
     {
         as.error( reqinfo.params().a );
     },
-    
+
     testBiDirect : function( as, reqinfo )
     {
         return { a : 'OK' };
     },
-    
+
     cancelAfterTimeout : function( as, reqinfo )
     {
         reqinfo.cancelAfter( 1 );
         as.setTimeout( 1e4 );
 
-        var fail = setTimeout( function(){ assert( false ); }, 100 );
-        as.setCancel( function(){ clearTimeout( fail ); } );
+        var fail = setTimeout( function()
+        {
+            assert( false );
+        }, 100 );
+
+        as.setCancel( function()
+        {
+            clearTimeout( fail );
+        } );
     },
-    
+
     clientCallback : function( as, reqinfo )
     {
         var ifacever = 'test.int.bidirect:1.0';
         var channel = reqinfo.channel();
 
         as.add(
-            function( as ){
+            function( as )
+            {
                 channel.register( as, ifacever );
 
-                as.add(function( as ){
+                as.add( function( as )
+                {
                     var iface = channel.iface( ifacever );
+
                     iface.call( as, 'clientCallback' );
-                });
+                } );
             },
             function( as, err )
             {
@@ -396,7 +412,7 @@ exports.interface_impl = {
         try
         {
             var channel = reqinfo.channel();
-            
+
             if ( channel.type() === "HTTP" )
             {
                 channel.getRequestHeaders()['content-type'].should.equal( 'application/futoin+json' );
@@ -416,7 +432,7 @@ exports.interface_impl = {
             as.error( 'InternalError', e.message );
         }
     },
-    
+
     testOnBehalfOf : function( as, reqinfo )
     {
         if ( reqinfo.channel().type() === 'BROWSER' )
@@ -451,7 +467,7 @@ exports.interface_impl = {
                         try
                         {
                             var login = user_details.Login;
-                            
+
                             ( login === 'user' || login === 'hmacuser' ).should.be.true;
                         }
                         catch ( e )

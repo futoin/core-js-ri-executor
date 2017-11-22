@@ -101,5 +101,26 @@ module.exports = {
                 strict: [ "error", "global" ],
             }
         },
+        {
+            env : {
+                es6: true,
+                node: true,
+                commonjs: true,
+                mocha: true,
+            },
+            files: [ "test/**/*.js" ],
+            rules: {
+                "no-console" : ["off"],
+                "no-unused-vars": ["off"],
+                "require-jsdoc": ["off"],
+                "strict" : ["off"],
+            },
+            globals: {
+                "FutoInInvoker" : true,
+                "FutoInExecutor" : true,
+                "chai" : true,
+                "assert" : true,
+            },
+        },
     ]
 };

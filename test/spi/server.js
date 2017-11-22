@@ -5,7 +5,7 @@ var invoker_module = require( 'futoin-invoker' );
 var executor_module = require( '../../lib/main' );
 var BasicAuthFace = require( '../../BasicAuthFace' );
 var BasicAuthService = require( '../../BasicAuthService' );
-var util = require('util');
+var util = require( 'util' );
 
 var opts = {
     prodMode : true,
@@ -17,12 +17,13 @@ var opts = {
     messageSniffer_disabled : function( info, rawmsg, isreq )
     {
         console.dir( rawmsg );
-    }
+    },
 };
 
 function print_stats()
 {
     var mem = process.memoryUsage();
+
     console.log( "SERVER MEMUSED:"+mem.heapUsed+"/"+mem.heapTotal+"@"+mem.rss );
 }
 
@@ -32,12 +33,14 @@ var impl = {};
 
 var internal_executor = new executor_module.Executor( ccm, opts );
 
-executor.on('ready', function(){
+executor.on( 'ready', function()
+{
     async_steps().add(
         function( as )
         {
             executor.register( as, 'spi.test:0.1', impl );
             var authsrv = BasicAuthService.register( as, internal_executor );
+
             authsrv.addUser( 'basicuser', 'basicpass' );
             authsrv.addUser( 'hmacuser', 'hmacpass' );
             BasicAuthFace.register( as, ccm, internal_executor );
@@ -48,15 +51,16 @@ executor.on('ready', function(){
             console.log( as.state.last_exception.stack );
         }
     )
-    .add( function( as ) {
-        process.send({ ready : 'ok' });
-    })
-    .execute();
-    
+        .add( function( as )
+        {
+            process.send( { ready : 'ok' } );
+        } )
+        .execute();
+
     print_stats();
-    
+
     setInterval( print_stats, 1e3 );
-});
+} );
 
 
 impl.normalCall = function( as, reqinfo )
