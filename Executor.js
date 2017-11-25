@@ -1093,7 +1093,7 @@ var ExecutorProto =
         {
             if ( !invoker.SpecTools.checkType( iface_info, resvars, result ) )
             {
-                as.error( FutoInError.InternalError, "Invalid result type" );
+                as.error( FutoInError.InternalError, "Invalid result type: " + result );
             }
         }
         else if ( Object.keys( resvars ).length > 0 )
@@ -1102,7 +1102,7 @@ var ExecutorProto =
             var k;
             var func = reqinfo_info._func;
 
-            // NOTE: the must be no unknown result variables on executor side as exactly the
+            // NOTE: there must be no unknown result variables on executor side as exactly the
             // specified interface version must be implemented
             for ( k in result )
             {
