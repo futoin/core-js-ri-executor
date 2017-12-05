@@ -199,6 +199,16 @@ WSChannelContextProto._getPerformRequest = function()
                 );
             }
 
+            // It seems, send is not affected by max length limit
+            // in current websocket impl. Leaving for possible
+            // issues in the future.
+            // dirty hack
+            // ws_conn._driver._maxLength = Math.max(
+            //  ws_conn._driver._maxLength,
+            //  ctx.max_rsp_size,
+            //  ctx.max_req_size
+            // );
+
             //
             var rawmsg = JSON.stringify( ftnreq );
 
@@ -381,7 +391,7 @@ var NodeExecutor = function( ccm, opts )
                     sock,
                     body,
                     null,
-                    { maxLength : _this.SAFE_PAYLOAD_LIMIT }
+                    { maxLength : _this._maxAnySize }
                 );
 
                 _this.handleWSConnection( req, ws );
@@ -458,7 +468,7 @@ NodeExecutorProto.handleHTTPRequest = function( req, rsp )
             {
                 len += chunk.length;
 
-                if ( len > _this.SAFE_PAYLOAD_LIMIT )
+                if ( len > _this._maxReqSize )
                 {
                     this.emit( 'clientError', req, 'Request size has exceeded safety limit' );
 

@@ -1,4 +1,7 @@
 
+=== (next) ===
+FIXED: to properly detect maximum payload size without change of constants
+
 === 1.6.0 (2017-12-05) ===
 NEW: FTN3 v1.8 "maxreqsize" & "maxrspsize" function definition attribute
 

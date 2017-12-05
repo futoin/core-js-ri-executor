@@ -183,6 +183,11 @@ var Executor = function( ccm, opts )
     this._heavy_timeout = opts.heavyReqTimeout;
 
     //
+    this._maxReqSize = this.SAFE_PAYLOAD_LIMIT;
+    this._maxRspSize = this.SAFE_PAYLOAD_LIMIT;
+    this._maxAnySize = this.SAFE_PAYLOAD_LIMIT;
+
+    //
     if ( typeof Buffer !== 'undefined' && Buffer.byteLength )
     {
         this._byteLength = Buffer.byteLength;
@@ -214,6 +219,10 @@ var ExecutorProto =
     _heavy_timeout : null,
 
     _byteLength : null,
+
+    _maxReqSize : null,
+    _maxRspSize : null,
+    _maxAnySize : null,
 
     /**
      * Get reference to associated AdvancedCCM instance
@@ -311,18 +320,22 @@ var ExecutorProto =
                 }
 
                 ifaces[ supiface ][ supmjr ] = supinfo;
-
-                //---
-                var max_msg_len = _this.SAFE_PAYLOAD_LIMIT;
-
-                for ( var f in supinfo.funcs )
-                {
-                    f = supinfo.funcs[ f ];
-                    max_msg_len = Math.max( max_msg_len, f._max_req_size, f._max_rsp_size );
-                }
-
-                _this.SAFE_PAYLOAD_LIMIT = max_msg_len;
             }
+
+            //---
+            var max_req_size = _this._maxReqSize;
+            var max_rsp_size = _this._maxRspSize;
+
+            for ( var f in info.funcs )
+            {
+                f = info.funcs[ f ];
+                max_req_size = Math.max( max_req_size, f._max_req_size );
+                max_rsp_size = Math.max( max_rsp_size, f._max_rsp_size );
+            }
+
+            _this._maxReqSize = max_req_size;
+            _this._maxRspSize = max_rsp_size;
+            _this._maxAnySize = Math.max( max_req_size, max_rsp_size );
         } );
     },
 
