@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.6.1 (2017-12-05) ===
 FIXED: to properly detect maximum payload size without change of constants
 
 === 1.6.0 (2017-12-05) ===
