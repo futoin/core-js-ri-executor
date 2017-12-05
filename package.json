@@ -40,9 +40,9 @@
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "eslint": "^4.11.0",
+    "eslint": "^4.12.1",
     "futoin-asyncsteps": "^1.9.1",
-    "futoin-invoker": "^1.5.7",
+    "futoin-invoker": "^1.6.0",
     "grunt": "^1.0.1",
     "grunt-contrib-connect": "^1.0.2",
     "grunt-eslint": "^20.1.0",
@@ -55,13 +55,13 @@
     "memorystream": "^0.3.1",
     "minimist": "^1.2.0",
     "mocha": "^4.0.1",
-    "webpack": "^3.8.1"
+    "webpack": "^3.10.0"
   },
   "eslintIgnore": [
     "test/**"
   ],
   "peerDependencies": {
     "futoin-asyncsteps": "^1.9.1",
-    "futoin-invoker": "^1.5.7"
+    "futoin-invoker": "^1.6.0"
   }
 }

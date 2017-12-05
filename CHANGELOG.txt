@@ -1,4 +1,7 @@
 
+=== (next) ===
+NEW: FTN3 v1.8 "maxreqsize" & "maxrspsize" function definition attribute
+
 === 1.5.8 (2017-11-25) ===
 FIXED: license disclaimers
 CHANGED: to include Executor's error result in error_info

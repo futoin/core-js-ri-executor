@@ -311,6 +311,17 @@ var ExecutorProto =
                 }
 
                 ifaces[ supiface ][ supmjr ] = supinfo;
+
+                //---
+                var max_msg_len = _this.SAFE_PAYLOAD_LIMIT;
+
+                for ( var f in supinfo.funcs )
+                {
+                    f = supinfo.funcs[ f ];
+                    max_msg_len = Math.max( max_msg_len, f._max_req_size, f._max_rsp_size );
+                }
+
+                _this.SAFE_PAYLOAD_LIMIT = max_msg_len;
             }
         } );
     },

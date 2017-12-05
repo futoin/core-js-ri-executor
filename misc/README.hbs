@@ -17,7 +17,7 @@ Reference implementation of:
     Version: 1.6
 
     FTN3: FutoIn Interface Definition
-    Version: 1.7
+    Version: 1.8
 
     FTN5: FutoIn HTTP integration
     Version: 1.2
