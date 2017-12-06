@@ -16,6 +16,7 @@ var BrowserExecutor;
 var ClientExecutor = executor_module.ClientExecutor;
 var MemoryStream;
 var thisDir;
+var request;
 
 if ( is_in_browser )
 {
@@ -35,6 +36,8 @@ else
 
     chai_module.should();
     assert = chai_module.assert;
+
+    request = module.require( 'request' );
 }
 
 var integration_iface = require( './integration_iface' );
@@ -656,6 +659,41 @@ model_as.add(
                     as.state.ccm_msgs.length.should.equal( as.state.exec_msgs.length );
                 }
             }
+        } ).add( function( as )
+        {
+            if ( !node_test ) return;
+
+            as.add( function( as )
+            {
+                as.setTimeout( 1e3 );
+
+                request( {
+                    method: 'POST',
+                    url: 'http://localhost:1080/ftn',
+                    body: 'some invalid message',
+                }, function( e, r, b )
+                {
+                    if ( !e && r.statusCode == 200 )
+                    {
+                        as.success( b );
+                    }
+                    else
+                    {
+                        try
+                        {
+                            as.error( e );
+                        }
+                        catch ( e )
+                        {
+                            // pass
+                        }
+                    }
+                } );
+            } );
+            as.add( function( as, res )
+            {
+                res.should.equal( '{"e":"InvalidRequest","edesc":"Missing req.f"}' );
+            } );
         } );
     },
     function( as, err )

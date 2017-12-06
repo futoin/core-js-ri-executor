@@ -494,6 +494,16 @@ NodeExecutorProto.handleHTTPRequest = function( req, rsp )
             {
                 var ftnreq = data.join( '' );
 
+                try
+                {
+                    ftnreq = JSON.parse( ftnreq );
+                }
+                catch ( e )
+                {
+                    ftnreq = {};
+                    // fail through standard path
+                }
+
                 _this._handleHTTPRequestCommon( ftnreq, req, rsp, false );
             }
         );
