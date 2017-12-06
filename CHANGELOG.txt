@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.6.2 (2017-12-06) ===
 FIXED: potential DoS with newer stricter Node.js and corrupted request message
 
 === 1.6.1 (2017-12-05) ===
