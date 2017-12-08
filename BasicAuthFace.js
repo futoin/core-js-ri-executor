@@ -19,59 +19,51 @@
  * limitations under the License.
  */
 
-var NativeIface = require( 'futoin-invoker/NativeIface' );
+const NativeIface = require( 'futoin-invoker/NativeIface' );
 
 /**
  * BasicAuth is not official spec - it is a temporary solution
  * until FTN8 Security Concept is finalized
  */
-function BasicAuthFace()
-{
-    NativeIface.apply( this, arguments );
+class BasicAuthFace extends NativeIface {
+    /**
+    * BasicAuth interface registration helper
+    * @param {AsyncSteps} as - step interface
+    * @param {AdvancedCCM} ccm - CCM instance
+    * @param {string} endpoint - endpoint URL
+    * @param {*} [credentials=null] - see CCM register()
+    * @param {object} [options={}] - registration options
+    * @param {string} [options.version=1.0] - iface version
+    * @alias BasicAuthFace.register
+    */
+    static register( as, ccm, endpoint, credentials, options ) {
+        options = options || {};
+        var ifacever = options.version || '0.1';
+        var iface = this.spec( ifacever );
+
+        options.nativeImpl = this;
+        options.specDirs = [ iface ];
+
+        ccm.register(
+            as,
+            '#basicauth',
+            iface.iface + ':' + iface.version,
+            endpoint,
+            credentials,
+            options
+        );
+    }
 }
 
-/**
- * BasicAuth interface registration helper
- * @param {AsyncSteps} as - step interface
- * @param {AdvancedCCM} ccm - CCM instance
- * @param {string} endpoint - endpoint URL
- * @param {*} [credentials=null] - see CCM register()
- * @param {object} [options={}] - registration options
- * @param {string} [options.version=1.0] - iface version
- * @alias BasicAuthFace.register
- */
-BasicAuthFace.register = function( as, ccm, endpoint, credentials, options )
-{
-    options = options || {};
-    var ifacever = options.version || '1.0';
-    var iface = this.spec( ifacever );
-
-    options.nativeImpl = this;
-    options.specDirs = [ iface ];
-
-    ccm.register(
-        as,
-        '#basicauth',
-        iface.iface + ':' + iface.version,
-        endpoint,
-        credentials,
-        options
-    );
-};
-
-BasicAuthFace.prototype = NativeIface.prototype;
 module.exports = BasicAuthFace;
-BasicAuthFace.spec = NativeIface.spec;
 
-var specs = {};
-
-BasicAuthFace._specs = specs;
+const specs = BasicAuthFace._specs = {};
 
 /**
  * Embedded spec for FutoIn BasicAuthFace
  * @ignore
  */
-specs['1.0'] =
+specs['0.1'] =
         {
             iface : "futoin.basicauth",
             version : "0.1",

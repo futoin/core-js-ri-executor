@@ -26,20 +26,13 @@
  * @param {integer|string=} port - port or path, if applicable
  * @class
  */
-var SourceAddress = function( type, host, port )
-{
-    if ( type === null )
-    {
-        if ( typeof host !== 'string' )
-        {
+var SourceAddress = function( type, host, port ) {
+    if ( type === null ) {
+        if ( typeof host !== 'string' ) {
             type = "LOCAL";
-        }
-        else if ( host.match( /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ ) )
-        {
+        } else if ( host.match( /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ ) ) {
             type = "IPv4";
-        }
-        else
-        {
+        } else {
             type = "IPv6";
         }
     }
@@ -74,18 +67,12 @@ SourceAddress.prototype =
      * @returns {string} string representation
      * @alias SourceAddress#asString
      */
-    asString : function()
-    {
-        if ( this.type === "LOCAL" )
-        {
+    asString : function() {
+        if ( this.type === "LOCAL" ) {
             return "LOCAL:" + this.port;
-        }
-        else if ( this.type === "IPv6" )
-        {
+        } else if ( this.type === "IPv6" ) {
             return "IPv6:[" + this.host + "]:" + this.port;
-        }
-        else
-        {
+        } else {
             return this.type + ":" + this.host + ":" + this.port;
         }
     },

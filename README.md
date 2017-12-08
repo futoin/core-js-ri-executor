@@ -14,7 +14,7 @@
 Reference implementation of:
  
     FTN6: FutoIn Executor Concept
-    Version: 1.6
+    Version: 1.7
 
     FTN3: FutoIn Interface Definition
     Version: 1.8
@@ -79,9 +79,12 @@ var Executor = require('futoin-executor/Executor');
 
 # Browser installation
 
-The module can be used with `webpack` or any other CommonJS packer.
+Pre-packed modules are available in dist/ folder.
 
-*Note: there are the following globals available*:
+The module can be used directly with `webpack` or any other CommonJS packer, if
+ES6->ES5 transpiler is enabled.
+
+*The following globals are available*:
 
 * SimpleCCM - global reference to futoin-invoker.SimpleCCM class
 * AdvancedCCM - global reference to futoin-invoker.AdvancedCCM class
@@ -446,6 +449,10 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
 ## Classes
 
 <dl>
+<dt><a href="#BasicAuthFace">BasicAuthFace</a></dt>
+<dd><p>BasicAuth is not official spec - it is a temporary solution
+until FTN8 Security Concept is finalized</p>
+</dd>
 <dt><a href="#BrowserExecutorOptions">BrowserExecutorOptions</a> ⇐ <code><a href="#ExecutorOptions">ExecutorOptions</a></code></dt>
 <dd></dd>
 <dt><a href="#BrowserExecutor">BrowserExecutor</a></dt>
@@ -498,10 +505,6 @@ futoin-executor.BrowserExecutor</p>
 ## Functions
 
 <dl>
-<dt><a href="#BasicAuthFace">BasicAuthFace()</a></dt>
-<dd><p>BasicAuth is not official spec - it is a temporary solution
-until FTN8 Security Concept is finalized</p>
-</dd>
 <dt><a href="#BasicAuthService">BasicAuthService()</a></dt>
 <dd><p>BasicService is not official spec - it is a temporary solution
 until FTN8 Security Concept is finalized</p>
@@ -511,6 +514,29 @@ until FTN8 Security Concept is finalized</p>
 <a name="module_futoin-executor"></a>
 
 ## futoin-executor
+<a name="BasicAuthFace"></a>
+
+## BasicAuthFace
+BasicAuth is not official spec - it is a temporary solution
+until FTN8 Security Concept is finalized
+
+**Kind**: global class  
+<a name="BasicAuthFace.register"></a>
+
+### BasicAuthFace.register(as, ccm, endpoint, [credentials], [options])
+BasicAuth interface registration helper
+
+**Kind**: static method of [<code>BasicAuthFace</code>](#BasicAuthFace)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| as | <code>AsyncSteps</code> |  | step interface |
+| ccm | <code>AdvancedCCM</code> |  | CCM instance |
+| endpoint | <code>string</code> |  | endpoint URL |
+| [credentials] | <code>\*</code> | <code></code> | see CCM register() |
+| [options] | <code>object</code> | <code>{}</code> | registration options |
+| [options.version] | <code>string</code> | <code>&quot;1.0&quot;</code> | iface version |
+
 <a name="BrowserExecutorOptions"></a>
 
 ## BrowserExecutorOptions ⇐ [<code>ExecutorOptions</code>](#ExecutorOptions)
@@ -1497,29 +1523,6 @@ it is an object, where field is actual origin and value must evaluate
 to true.
 
 **Kind**: static property of [<code>BrowserExecutor</code>](#BrowserExecutor)  
-<a name="BasicAuthFace"></a>
-
-## BasicAuthFace()
-BasicAuth is not official spec - it is a temporary solution
-until FTN8 Security Concept is finalized
-
-**Kind**: global function  
-<a name="BasicAuthFace.register"></a>
-
-### BasicAuthFace.register(as, ccm, endpoint, [credentials], [options])
-BasicAuth interface registration helper
-
-**Kind**: static method of [<code>BasicAuthFace</code>](#BasicAuthFace)  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  | step interface |
-| ccm | <code>AdvancedCCM</code> |  | CCM instance |
-| endpoint | <code>string</code> |  | endpoint URL |
-| [credentials] | <code>\*</code> | <code></code> | see CCM register() |
-| [options] | <code>object</code> | <code>{}</code> | registration options |
-| [options.version] | <code>string</code> | <code>&quot;1.0&quot;</code> | iface version |
-
 <a name="BasicAuthService"></a>
 
 ## BasicAuthService()

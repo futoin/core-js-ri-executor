@@ -35,8 +35,7 @@ var RequestInfo = require( './RequestInfo' );
 // TODO: message size limit @security
 
 // ---
-var HTTPChannelContext = function( executor, req, rsp )
-{
+var HTTPChannelContext = function( executor, req, rsp ) {
     ChannelContext.call( this, executor );
     this._http_req = req;
     this._http_rsp = rsp;
@@ -50,47 +49,38 @@ HTTPChannelContextProto._http_req = null;
 HTTPChannelContextProto._http_rsp = null;
 HTTPChannelContextProto._cookies = null;
 
-HTTPChannelContextProto.type = function()
-{
+HTTPChannelContextProto.type = function() {
     return "HTTP";
 };
 
-HTTPChannelContextProto.onInvokerAbort = function( callable, user_data )
-{
+HTTPChannelContextProto.onInvokerAbort = function( callable, user_data ) {
     this._http_req.on(
         'close',
-        function()
-        {
+        function() {
             callable( user_data );
         }
     );
 };
 
-HTTPChannelContextProto._openRawInput = function()
-{
+HTTPChannelContextProto._openRawInput = function() {
     return this._http_req;
 };
 
-HTTPChannelContextProto._openRawOutput = function()
-{
+HTTPChannelContextProto._openRawOutput = function() {
     return this._http_rsp;
 };
 
-HTTPChannelContextProto.getRequestHeaders = function()
-{
+HTTPChannelContextProto.getRequestHeaders = function() {
     return this._http_req.headers;
 };
 
-HTTPChannelContextProto.setResponseHeader = function( name, value, override )
-{
+HTTPChannelContextProto.setResponseHeader = function( name, value, override ) {
     var rsp = this._http_rsp;
 
-    if ( override === false )
-    {
+    if ( override === false ) {
         var old = rsp.getHeader( name );
 
-        if ( old )
-        {
+        if ( old ) {
             value = [ value, old ];
         }
     }
@@ -98,17 +88,14 @@ HTTPChannelContextProto.setResponseHeader = function( name, value, override )
     rsp.setHeader( name, value );
 };
 
-HTTPChannelContextProto.setStatusCode = function( code )
-{
+HTTPChannelContextProto.setStatusCode = function( code ) {
     this._http_rsp.statusCode = code;
 };
 
-HTTPChannelContextProto._initCookies = function()
-{
+HTTPChannelContextProto._initCookies = function() {
     var cookies = this._cookies;
 
-    if ( !cookies )
-    {
+    if ( !cookies ) {
         cookies = new Cookies( this._http_req, this._http_rsp );
         this._cookies = cookies;
     }
@@ -116,15 +103,13 @@ HTTPChannelContextProto._initCookies = function()
     return cookies;
 };
 
-HTTPChannelContextProto.getCookie = function( name )
-{
+HTTPChannelContextProto.getCookie = function( name ) {
     var cookies = this._initCookies();
 
     return cookies.get( name );
 };
 
-HTTPChannelContextProto.setCookie = function( name, value, options )
-{
+HTTPChannelContextProto.setCookie = function( name, value, options ) {
     var cookies = this._initCookies();
 
     options = options || {};
@@ -137,8 +122,7 @@ HTTPChannelContextProto.setCookie = function( name, value, options )
 };
 
 // ---
-var WSChannelContext = function( executor, conn )
-{
+var WSChannelContext = function( executor, conn ) {
     ChannelContext.call( this, executor );
     this._ws_conn = conn;
     conn._ftn_srid = 1;
@@ -151,49 +135,40 @@ WSChannelContext.prototype = WSChannelContextProto;
 
 WSChannelContextProto._ws_conn = null;
 
-WSChannelContextProto.type = function()
-{
+WSChannelContextProto.type = function() {
     return "WS";
 };
 
-WSChannelContextProto.isStateful = function()
-{
+WSChannelContextProto.isStateful = function() {
     return true;
 };
 
-WSChannelContextProto.onInvokerAbort = function( callable, user_data )
-{
+WSChannelContextProto.onInvokerAbort = function( callable, user_data ) {
     this._ws_conn.on(
         'close',
-        function()
-        {
+        function() {
             callable( user_data );
         }
     );
 };
 
-WSChannelContextProto._getPerformRequest = function()
-{
+WSChannelContextProto._getPerformRequest = function() {
     var ws_conn = this._ws_conn;
 
-    return function( as, ctx, ftnreq )
-    {
-        as.add( function( as )
-        {
+    return function( as, ctx, ftnreq ) {
+        as.add( function( as ) {
             var rid = 'S' + ws_conn._ftn_srid++;
 
             ftnreq.rid = rid;
 
             //
-            if ( ctx.expect_response )
-            {
+            if ( ctx.expect_response ) {
                 var reqas = ws_conn._ftn_reqas;
 
                 reqas[ rid ] = as;
 
                 as.setCancel(
-                    function( )
-                    {
+                    function( ) {
                         delete reqas[ rid ];
                     }
                 );
@@ -280,8 +255,7 @@ var NodeExecutorOptions =
  * @param {AdvancedCCM} ccm - CCM for internal requests
  * @param {NodeExecutorOptions} opts - executor options
  */
-var NodeExecutor = function( ccm, opts )
-{
+var NodeExecutor = function( ccm, opts ) {
     Executor.call( this, ccm, opts );
 
     opts = opts || {};
@@ -292,8 +266,7 @@ var NodeExecutor = function( ccm, opts )
     var _this = this;
 
     // ---
-    if ( !opts.httpPath )
-    {
+    if ( !opts.httpPath ) {
         /* eslint-disable no-console */
         console.log( '[Executor] Missing httpPath option' );
         /* eslint-enable no-console */
@@ -303,8 +276,7 @@ var NodeExecutor = function( ccm, opts )
     // ---
     var http_path = opts.httpPath;
 
-    if ( http_path[ http_path.length - 1 ] !== '/' )
-    {
+    if ( http_path[ http_path.length - 1 ] !== '/' ) {
         http_path += '/';
     }
 
@@ -318,12 +290,9 @@ var NodeExecutor = function( ccm, opts )
     var http_server;
     var managed_server = false;
 
-    if ( opts.httpServer )
-    {
+    if ( opts.httpServer ) {
         http_server = opts.httpServer;
-    }
-    else if ( opts.httpPort )
-    {
+    } else if ( opts.httpPort ) {
         http_server = http.createServer();
 
         http_server.listen(
@@ -333,16 +302,13 @@ var NodeExecutor = function( ccm, opts )
 
         http_server.on(
             'listening',
-            function()
-            {
+            function() {
                 _this.emit( 'ready' );
             }
         );
 
         managed_server = true;
-    }
-    else
-    {
+    } else {
         /* eslint-disable no-console */
         console.log( '[Executor] Neither httpServer nor httpAddr & httpPort set' );
         /* eslint-enable no-console */
@@ -355,17 +321,12 @@ var NodeExecutor = function( ccm, opts )
     // ---
     http_server.on(
         'request',
-        function( req, rsp )
-        {
+        function( req, rsp ) {
             if ( !_this.handleHTTPRequest( req, rsp ) &&
-                 managed_server )
-            {
-                try
-                {
+                 managed_server ) {
+                try {
                     req.socket.destroy();
-                }
-                catch ( e )
-                {
+                } catch ( e ) {
                     // ignore
                 }
             }
@@ -376,34 +337,27 @@ var NodeExecutor = function( ccm, opts )
     // ---
     http_server.on(
         'upgrade',
-        function( req, sock, body )
-        {
+        function( req, sock, body ) {
             var http_path = _this._http_path;
             var req_url = req.url;
 
             req_url = ( req_url + '/' ).substr( 0, http_path.length );
 
             if ( ( req_url === http_path ) &&
-                 WebSocket.isWebSocket( req ) )
-            {
+                 WebSocket.isWebSocket( req ) ) {
                 var ws = new WebSocket(
                     req,
                     sock,
                     body,
                     null,
-                    { maxLength : _this._maxAnySize }
+                    { maxLength : _this._maxReqSize }
                 );
 
                 _this.handleWSConnection( req, ws );
-            }
-            else if ( managed_server )
-            {
-                try
-                {
+            } else if ( managed_server ) {
+                try {
                     req.socket.destroy();
-                }
-                catch ( e )
-                {
+                } catch ( e ) {
                     // ignore
                 }
             }
@@ -427,33 +381,28 @@ NodeExecutorProto._trust_proxy = null;
  * @param {http.ServerResponse} rsp - response object
  * @returns {Boolean} true on success
  */
-NodeExecutorProto.handleHTTPRequest = function( req, rsp )
-{
+NodeExecutorProto.handleHTTPRequest = function( req, rsp ) {
     var _this = this;
 
     // ---
     var http_path = this._http_path;
     var req_url = req.url;
 
-    if ( ( req_url + '/' ).substr( 0, http_path.length ) !== http_path )
-    {
+    if ( ( req_url + '/' ).substr( 0, http_path.length ) !== http_path ) {
         return false;
     }
 
     // ---
     req.on(
         'error',
-        function()
-        {
+        function() {
             _this.emit( 'requestError', req );
         }
     );
 
     if ( ( req_url === http_path ) ||
-            ( req_url + '/' === http_path ) )
-    {
-        if ( req.method !== 'POST' )
-        {
+            ( req_url + '/' === http_path ) ) {
+        if ( req.method !== 'POST' ) {
             rsp.writeHead( 400, 'Invalid Request' );
             rsp.end();
             return true;
@@ -464,20 +413,15 @@ NodeExecutorProto.handleHTTPRequest = function( req, rsp )
 
         req.on(
             'data',
-            function( chunk )
-            {
+            function( chunk ) {
                 len += chunk.length;
 
-                if ( len > _this._maxReqSize )
-                {
+                if ( len > _this._maxReqSize ) {
                     this.emit( 'clientError', req, 'Request size has exceeded safety limit' );
 
-                    try
-                    {
+                    try {
                         req.socket.destroy();
-                    }
-                    catch ( e )
-                    {
+                    } catch ( e ) {
                         // ignore
                     }
 
@@ -490,16 +434,12 @@ NodeExecutorProto.handleHTTPRequest = function( req, rsp )
 
         req.on(
             'end',
-            function()
-            {
+            function() {
                 var ftnreq = data.join( '' );
 
-                try
-                {
+                try {
                     ftnreq = JSON.parse( ftnreq );
-                }
-                catch ( e )
-                {
+                } catch ( e ) {
                     ftnreq = {};
                     // fail through standard path
                 }
@@ -522,16 +462,12 @@ NodeExecutorProto.handleHTTPRequest = function( req, rsp )
         p : parsed_url.query,
     };
 
-    if ( pathname.length > 3 )
-    {
+    if ( pathname.length > 3 ) {
         ftnreq.sec = pathname[ 3 ];
-    }
-    else if ( 'authorization' in req.headers )
-    {
+    } else if ( 'authorization' in req.headers ) {
         var auth = req.headers.authorization.split( /\s+/ );
 
-        if ( auth[ 0 ] === 'Basic' )
-        {
+        if ( auth[ 0 ] === 'Basic' ) {
             ftnreq.sec = ( new Buffer( auth[ 1 ], 'base64' ) ).toString();
         }
     }
@@ -540,8 +476,7 @@ NodeExecutorProto.handleHTTPRequest = function( req, rsp )
     return true;
 };
 
-NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upload, from_query )
-{
+NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upload, from_query ) {
     var _this = this;
     var reqinfo = new RequestInfo( this, ftnreq );
 
@@ -554,8 +489,7 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
     var source_address = req.connection.remoteAddress;
 
     if ( this._trust_proxy &&
-            req.headers[ 'x-forwarded-for' ] )
-    {
+            req.headers[ 'x-forwarded-for' ] ) {
         source_address = req.headers[ 'x-forwarded-for' ];
     }
 
@@ -577,8 +511,7 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
 
     as.state.reqinfo = reqinfo;
 
-    var close_req = function()
-    {
+    var close_req = function() {
         as.cancel();
     };
 
@@ -586,8 +519,7 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
 
     reqinfo._as = as;
 
-    var cancel_req = function( as )
-    {
+    var cancel_req = function( as ) {
         void as;
         var ftnrsp = '{"e":"InternalError"}';
 
@@ -607,22 +539,19 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
     };
 
     as.add(
-        function( as )
-        {
+        function( as ) {
             as.setCancel( cancel_req );
 
             _this.process( as );
 
-            as.add( function( as )
-            {
+            as.add( function( as ) {
                 void as;
                 var ftnrsp = reqinfo_info.RAW_RESPONSE;
 
                 reqinfo._cleanup();
                 req.removeListener( 'close', close_req );
 
-                if ( ftnrsp !== null )
-                {
+                if ( ftnrsp !== null ) {
                     var rawmsg = _this.packPayloadJSON( ftnrsp );
 
                     _this._msg_sniffer( source_address, rawmsg, false );
@@ -635,11 +564,8 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
                         }
                     );
                     rsp.end( rawmsg, 'utf8' );
-                }
-                else
-                {
-                    if ( reqinfo_info.HAVE_RAW_RESULT )
-                    {
+                } else {
+                    if ( reqinfo_info.HAVE_RAW_RESULT ) {
                         _this._msg_sniffer( source_address, '%DATA%', false );
                     }
 
@@ -647,8 +573,7 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
                 }
             } );
         },
-        function( as, err )
-        {
+        function( as, err ) {
             void err;
             _this.emit( 'error', reqinfo, 'Internal Server Error' );
         }
@@ -660,16 +585,14 @@ NodeExecutorProto._handleHTTPRequestCommon = function( ftnreq, req, rsp, raw_upl
  * @param {http.IncomingMessage} upgrade_req - original HTTP upgrade request
  * @param {WebSocket} ws - WebSockets connection object
  */
-NodeExecutorProto.handleWSConnection = function( upgrade_req, ws )
-{
+NodeExecutorProto.handleWSConnection = function( upgrade_req, ws ) {
     // ---
     var _this = this;
 
     var source_addr = upgrade_req.connection.remoteAddress;
 
     if ( this._trust_proxy &&
-        upgrade_req.headers[ 'x-forwarded-for' ] )
-    {
+        upgrade_req.headers[ 'x-forwarded-for' ] ) {
         source_addr = upgrade_req.headers[ 'x-forwarded-for' ];
     }
 
@@ -687,38 +610,31 @@ NodeExecutorProto.handleWSConnection = function( upgrade_req, ws )
 
     ws.on(
         'close',
-        function( )
-        {
+        function( ) {
             context._cleanup();
         }
     );
 
     ws.on(
         'message',
-        function( event )
-        {
+        function( event ) {
             _this._msg_sniffer( source_addr, event.data, true );
 
             var ftnreq;
 
-            try
-            {
+            try {
                 ftnreq = JSON.parse( event.data );
-            }
-            catch ( e )
-            {
+            } catch ( e ) {
                 return; // ignore
             }
 
             // Handle response to server-initiated request
             var rid = ftnreq.rid;
 
-            if ( rid.charAt( 0 ) === 'S' )
-            {
+            if ( rid.charAt( 0 ) === 'S' ) {
                 var reqas = ws._ftn_reqas[ rid ];
 
-                if ( reqas )
-                {
+                if ( reqas ) {
                     reqas.success( ftnreq, 'application/futoin+json' );
                     delete ws._ftn_reqas[ rid ];
                 }
@@ -731,8 +647,7 @@ NodeExecutorProto.handleWSConnection = function( upgrade_req, ws )
     );
 };
 
-NodeExecutorProto._handleWSRequest = function( context, ftnreq )
-{
+NodeExecutorProto._handleWSRequest = function( context, ftnreq ) {
     var reqinfo = new RequestInfo( this, ftnreq );
 
     var reqinfo_info = reqinfo.info;
@@ -747,8 +662,7 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
 
     as.state.reqinfo = reqinfo;
 
-    var close_req = function()
-    {
+    var close_req = function() {
         as.cancel();
     };
 
@@ -760,8 +674,7 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
 
     reqinfo._as = as;
 
-    var cancel_req = function( as )
-    {
+    var cancel_req = function( as ) {
         void as;
         var ws_conn = context._ws_conn;
         var ftnrsp = {
@@ -771,28 +684,23 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
 
         reqinfo._cleanup();
 
-        try
-        {
+        try {
             var rawmsg = JSON.stringify( ftnrsp );
 
             _this._msg_sniffer( context._source_addr, rawmsg, false );
             ws_conn.send( rawmsg );
-        }
-        catch ( e )
-        {
+        } catch ( e ) {
             // ignore
         }
     };
 
     as.add(
-        function( as )
-        {
+        function( as ) {
             as.setCancel( cancel_req );
 
             _this.process( as );
 
-            as.add( function( as )
-            {
+            as.add( function( as ) {
                 void as;
                 var ftnrsp = reqinfo_info.RAW_RESPONSE;
                 var ws_conn = context._ws_conn;
@@ -801,8 +709,7 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
                 ws_conn.removeListener( 'close', close_req );
                 context._message_count -= 1;
 
-                if ( ftnrsp !== null )
-                {
+                if ( ftnrsp !== null ) {
                     var rawmsg = _this.packPayloadJSON( ftnrsp );
 
                     _this._msg_sniffer( context._source_addr, rawmsg, false );
@@ -810,8 +717,7 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
                 }
             } );
         },
-        function( as, err )
-        {
+        function( as, err ) {
             void err;
             context._ws_conn.removeListener( 'close', close_req );
             context._message_count -= 1;
@@ -820,8 +726,7 @@ NodeExecutorProto._handleWSRequest = function( context, ftnreq )
     ).execute();
 };
 
-NodeExecutorProto.close = function( close_cb )
-{
+NodeExecutorProto.close = function( close_cb ) {
     Executor.prototype.close.apply( this, [] );
     this._http_server.close( close_cb );
 };

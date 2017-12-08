@@ -4,20 +4,22 @@
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <title>tests</title>
     <script src="../node_modules/chai/chai.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../node_modules/babel-polyfill/dist/polyfill.js"></script>
     <script src="../dist/iframe.js" type="text/javascript" charset="utf-8"></script>
     
-    <script type="text/javascript" charset="utf-8" src="./integration_iface.js"></script>
+    <script type="text/javascript" charset="utf-8" src="../dist/integration_iface.js"></script>
   </head>
   <body>
       <script type="text/javascript" charset="utf-8">
 function run_on_load(event) {
     chai.should();
+    console.log(integrationFace);
 
     var opts = {};
     opts.specDirs = [
-        exports.test_if_anon,
-        exports.test_if_anon_secure,
-        exports.test_if_anon_bidirect
+        integrationFace.test_if_anon,
+        integrationFace.test_if_anon_secure,
+        integrationFace.test_if_anon_bidirect
     ];
     opts.allowedOrigins = [
         'http://localhost:8000'
@@ -28,9 +30,9 @@ function run_on_load(event) {
 
     window.$as().add( function( as )
     {
-        browser_executor.register( as, 'test.int.anon:1.0', exports.interface_impl );
-        browser_executor.register( as, 'test.int.bidirect:1.0', exports.interface_impl );
-        browser_executor.register( as, 'test.int.anonsec:1.0', exports.interface_impl );
+        browser_executor.register( as, 'test.int.anon:1.0', integrationFace.interface_impl );
+        browser_executor.register( as, 'test.int.bidirect:1.0', integrationFace.interface_impl );
+        browser_executor.register( as, 'test.int.anonsec:1.0', integrationFace.interface_impl );
     } )
     .execute();
 };

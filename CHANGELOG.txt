@@ -1,4 +1,8 @@
 
+=== (next) ===
+BREAKING CHANGE: converted all code to ES6
+NEW: webpack-based UMD dist entry point
+
 === 1.6.2 (2017-12-06) ===
 FIXED: potential DoS with newer stricter Node.js and corrupted request message
 

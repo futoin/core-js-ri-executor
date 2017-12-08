@@ -37,8 +37,7 @@ var RequestInfo = require( './RequestInfo' );
  * @param {BrowserExecutor} executor - _
  * @param {object} event - browser event
  */
-var BrowserChannelContext = function( executor, event )
-{
+var BrowserChannelContext = function( executor, event ) {
     ChannelContext.call( this, executor );
 
     this._event_origin = event.origin;
@@ -54,34 +53,28 @@ BrowserChannelContext.prototype = BrowserChannelContextProto;
 BrowserChannelContextProto._event_origin = null;
 BrowserChannelContextProto._event_source = null;
 
-BrowserChannelContextProto.type = function()
-{
+BrowserChannelContextProto.type = function() {
     return "BROWSER";
 };
 
-BrowserChannelContextProto.isStateful = function()
-{
+BrowserChannelContextProto.isStateful = function() {
     return true;
 };
 
-BrowserChannelContextProto._getPerformRequest = function()
-{
+BrowserChannelContextProto._getPerformRequest = function() {
     var evt_origin = this._event_origin;
     var evt_source = this._event_source;
     var revreq = this._executor._reverse_requests;
     var sniffer = this._executor._msg_sniffer;
 
-    return function( as, ctx, ftnreq )
-    {
-        as.add( function( as )
-        {
+    return function( as, ctx, ftnreq ) {
+        as.add( function( as ) {
             var rid = 'S' + revreq.rid++;
 
             ftnreq.rid = rid;
 
             //
-            if ( ctx.expect_response )
-            {
+            if ( ctx.expect_response ) {
                 var sentreqs = revreq.sentreqs;
 
                 sentreqs[ rid ] = {
@@ -91,8 +84,7 @@ BrowserChannelContextProto._getPerformRequest = function()
                 };
 
                 as.setCancel(
-                    function( )
-                    {
+                    function( ) {
                         delete sentreqs[ rid ];
                     }
                 );
@@ -138,8 +130,7 @@ var BrowserExecutorOptions =
  * @param {BrowserExecutorOptions} opts - executor options
  * @class
  */
-var BrowserExecutor = function( ccm, opts )
-{
+var BrowserExecutor = function( ccm, opts ) {
     Executor.call( this, ccm, opts );
 
     opts = opts || {};
@@ -157,8 +148,7 @@ var BrowserExecutor = function( ccm, opts )
     // --
     var allowed_origins = opts.allowedOrigins || {};
 
-    if ( allowed_origins instanceof Array )
-    {
+    if ( allowed_origins instanceof Array ) {
         allowed_origins = _zipObject( allowed_origins, allowed_origins );
     }
 
@@ -167,17 +157,14 @@ var BrowserExecutor = function( ccm, opts )
     // --
     var client_timeout = opts.clientTimeoutMS;
 
-    var connection_cleanup = function()
-    {
+    var connection_cleanup = function() {
         var ctx_list = _this._contexts;
         var remove_time = performance_now() - client_timeout;
 
-        for ( var i = ctx_list.length - 1; i >= 0; --i )
-        {
+        for ( var i = ctx_list.length - 1; i >= 0; --i ) {
             var ctx = ctx_list[ i ];
 
-            if ( ctx._last_used < remove_time )
-            {
+            if ( ctx._last_used < remove_time ) {
                 ctx._cleanup();
                 ctx_list.splice( i, 1 );
             }
@@ -189,8 +176,7 @@ var BrowserExecutor = function( ccm, opts )
     connection_cleanup();
 
     // --
-    this._event_listener = function( event )
-    {
+    this._event_listener = function( event ) {
         _this.handleMessage( event );
     };
 
@@ -209,8 +195,7 @@ BrowserExecutor.prototype = BrowserExecutorProto;
  */
 BrowserExecutorProto.allowed_origins = null;
 
-BrowserExecutorProto.handleMessage = function( event )
-{
+BrowserExecutorProto.handleMessage = function( event ) {
     this._msg_sniffer( event, event.data, true );
 
     var ftnreq = event.data;
@@ -220,8 +205,7 @@ BrowserExecutorProto.handleMessage = function( event )
     // Not valid request
     // ---
     if ( ( typeof ftnreq !== 'object' ) ||
-         !( 'rid' in ftnreq ) )
-    {
+         !( 'rid' in ftnreq ) ) {
         return;
     }
 
@@ -230,21 +214,18 @@ BrowserExecutorProto.handleMessage = function( event )
     // Handle response to server-initiated request
     // ---
     if ( !( 'f' in ftnreq ) &&
-         ( rid.charAt( 0 ) === 'S' ) )
-    {
+         ( rid.charAt( 0 ) === 'S' ) ) {
         var sentreqs = this._reverse_requests.sentreqs;
         var sreq = sentreqs[ rid ];
 
         if ( sreq &&
              ( source === sreq.evt_source ) &&
-             ( origin === sreq.evt_origin ) )
-        {
+             ( origin === sreq.evt_origin ) ) {
             sreq.reqas.success( ftnreq, 'application/futoin+json' );
             delete sentreqs[ rid ];
         }
 
-        if ( event.stopPropagation )
-        {
+        if ( event.stopPropagation ) {
             event.stopPropagation();
         }
 
@@ -254,8 +235,7 @@ BrowserExecutorProto.handleMessage = function( event )
     // ---
     if ( !( 'f' in ftnreq ) ||
          ( rid.charAt( 0 ) !== 'C' ) ||
-         !( origin in this.allowed_origins ) )
-    {
+         !( origin in this.allowed_origins ) ) {
         // ignore, not client request
         return;
     }
@@ -263,24 +243,19 @@ BrowserExecutorProto.handleMessage = function( event )
     var context = null;
     var ctx_list = this._contexts;
 
-    for ( var i = 0, c = ctx_list.length; i < c; ++i )
-    {
+    for ( var i = 0, c = ctx_list.length; i < c; ++i ) {
         var ctx = ctx_list[ i ];
 
         if ( ( ctx._event_source === source ) &&
-             ( ctx._event_origin === origin ) )
-        {
+             ( ctx._event_origin === origin ) ) {
             context = ctx;
             break;
         }
     }
 
-    if ( context )
-    {
+    if ( context ) {
         context._last_used = performance_now();
-    }
-    else
-    {
+    } else {
         context = new BrowserChannelContext( this, event );
         ctx_list.push( context );
     }
@@ -309,8 +284,7 @@ BrowserExecutorProto.handleMessage = function( event )
 
     reqinfo._as = as;
 
-    var cancel_req = function( as )
-    {
+    var cancel_req = function( as ) {
         void as;
         reqinfo._cleanup();
 
@@ -324,21 +298,18 @@ BrowserExecutorProto.handleMessage = function( event )
     };
 
     as.add(
-        function( as )
-        {
+        function( as ) {
             as.setCancel( cancel_req );
             _this.process( as );
 
             as.add(
-                function( as )
-                {
+                function( as ) {
                     void as;
                     var ftnrsp = reqinfo_info.RAW_RESPONSE;
 
                     reqinfo._cleanup();
 
-                    if ( ftnrsp !== null )
-                    {
+                    if ( ftnrsp !== null ) {
                         _this._msg_sniffer( event, ftnrsp, false );
                         context._event_source.postMessage( ftnrsp, context._event_origin );
                     }
@@ -347,14 +318,12 @@ BrowserExecutorProto.handleMessage = function( event )
         }
     ).execute();
 
-    if ( event.stopPropagation )
-    {
+    if ( event.stopPropagation ) {
         event.stopPropagation();
     }
 };
 
-BrowserExecutorProto.close = function( close_cb )
-{
+BrowserExecutorProto.close = function( close_cb ) {
     browser_window.removeEventListener( 'message', this._event_listener );
     Executor.prototype.close.apply( this, [ close_cb ] );
 };

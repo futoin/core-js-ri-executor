@@ -1,9 +1,29 @@
 {
   "name": "futoin-executor",
   "version": "1.6.2",
-  "description": "FutoIn Executor - Reference Implementation. FutoIn Service implementation base with strict API definition for Node and Browser",
+  "description": "FutoIn Service base with strict API definition for Node and Browser",
   "main": "lib/main.js",
   "browser": "lib/browser.js",
+  "files": [
+    "dist/",
+    "examples/",
+    "lib/",
+    "BasicAuthFace.js",
+    "BasicAuthService.js",
+    "BrowserExecutor.js",
+    "ChannelContext.js",
+    "DerivedKey.js",
+    "Executor.js",
+    "Gruntfile.js",
+    "NodeExecutor.js",
+    "PingService.js",
+    "RequestInfo.js",
+    "SourceAddress.js",
+    "UserInfo.js"
+  ],
+  "engines": {
+    "node": ">=6"
+  },
   "scripts": {
     "test": "grunt test"
   },
@@ -39,10 +59,15 @@
     "performance-now": "^2.1.0"
   },
   "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-object-assign": "^6.22.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "chai": "^4.1.2",
     "eslint": "^4.12.1",
-    "futoin-asyncsteps": "^1.9.1",
-    "futoin-invoker": "^1.6.0",
+    "futoin-asyncsteps": "^1.10.3",
+    "futoin-invoker": "^1.7.1",
     "grunt": "^1.0.1",
     "grunt-contrib-connect": "^1.0.2",
     "grunt-eslint": "^20.1.0",
@@ -62,7 +87,7 @@
     "test/**"
   ],
   "peerDependencies": {
-    "futoin-asyncsteps": "^1.9.1",
-    "futoin-invoker": "^1.6.0"
+    "futoin-asyncsteps": "^1.10.3",
+    "futoin-invoker": "^1.7.1"
   }
 }

@@ -127,8 +127,7 @@ var UserInfoConst =
  * @param {object} details - user info fields, see UserInfoConst
  * @class
  */
-var UserInfo = function( ccm, local_id, global_id, details )
-{
+var UserInfo = function( ccm, local_id, global_id, details ) {
     this._ccm = ccm;
     this._local_id = local_id;
     this._global_id = global_id;
@@ -149,8 +148,7 @@ UserInfoProto._details = null;
  * @alias UserInfo#localID
  * @returns {integer} Local ID
  */
-UserInfoProto.localID = function()
-{
+UserInfoProto.localID = function() {
     return this._local_id;
 };
 
@@ -159,8 +157,7 @@ UserInfoProto.localID = function()
  * @alias UserInfo#globalID
  * @returns {string} Global ID
  */
-UserInfoProto.globalID = function()
-{
+UserInfoProto.globalID = function() {
     return this._global_id;
 };
 
@@ -171,14 +168,11 @@ UserInfoProto.globalID = function()
  * @alias UserInfo#details
  * @returns {AsyncSteps} for easy chaining. {object} with details through as.success()
  */
-UserInfoProto.details = function( as, user_field_identifiers )
-{
+UserInfoProto.details = function( as, user_field_identifiers ) {
     var user_details = this._details;
 
-    if ( user_details )
-    {
-        as.add( function( as )
-        {
+    if ( user_details ) {
+        as.add( function( as ) {
             as.success( user_details );
         } );
         return;
@@ -191,8 +185,7 @@ UserInfoProto.details = function( as, user_field_identifiers )
         fields : user_field_identifiers || {},
     } );
 
-    as.add( function( as, rsp )
-    {
+    as.add( function( as, rsp ) {
         var user_details = rsp.details;
 
         basic_auth._details = user_details;
@@ -202,8 +195,7 @@ UserInfoProto.details = function( as, user_field_identifiers )
     return as;
 };
 
-UserInfoProto._cleanup = function()
-{
+UserInfoProto._cleanup = function() {
     this._ccm = null;
 };
 

@@ -1,14 +1,18 @@
 'use strict';
 
+const UglifyJsPlugin = require( 'uglifyjs-webpack-plugin' );
+
 module.exports = {
     entry: {
         'futoin-executor': './lib/browser.js',
-        unittest : './test/unittest.js',
-        integration_test : './test/integration.js',
-        integration_iface : './test/integration_iface.js',
-        iframe : './test/iframe.js',
     },
     output: {
+        library: {
+            root: "FutoInExecutor",
+            amd: "futoin-executor",
+            commonjs: "futoin-executor",
+        },
+        libraryTarget: "umd",
         filename: "[name].js",
         path: __dirname + '/dist',
     },
@@ -38,4 +42,9 @@ module.exports = {
             },
         ],
     },
+    plugins: [
+        new UglifyJsPlugin( {
+            sourceMap: true,
+        } ),
+    ],
 };

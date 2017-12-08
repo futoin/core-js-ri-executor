@@ -196,13 +196,11 @@ var RequestInfoConst = {
  * @param {Executor} executor - _
  * @param {object|string} rawreq - raw request
  */
-var RequestInfo = function( executor, rawreq )
-{
+var RequestInfo = function( executor, rawreq ) {
     this._executor = executor;
 
     // ---
-    if ( typeof rawreq === "string" )
-    {
+    if ( typeof rawreq === "string" ) {
         rawreq = JSON.parse( rawreq );
     }
 
@@ -211,16 +209,14 @@ var RequestInfo = function( executor, rawreq )
     // ---
     var rawrsp = { r : {} };
 
-    if ( 'rid' in rawreq )
-    {
+    if ( 'rid' in rawreq ) {
         rawrsp.rid = rawreq.rid;
     }
 
     this._rawrsp = rawrsp;
 
     // ---
-    var info = function()
-    {
+    var info = function() {
         return this.info;
     };
 
@@ -255,8 +251,7 @@ RequestInfoProto._as = null;
  * @return {object} parameter holder
  * @alias RequestInfo#params
  */
-RequestInfoProto.params = function()
-{
+RequestInfoProto.params = function() {
     return this._rawreq.p;
 };
 
@@ -266,10 +261,8 @@ RequestInfoProto.params = function()
  * @return {object} result variable holder
  * @alias RequestInfo#result
  */
-RequestInfoProto.result = function( replace )
-{
-    if ( replace )
-    {
+RequestInfoProto.result = function( replace ) {
+    if ( replace ) {
         this._rawrsp.r = replace;
     }
 
@@ -291,21 +284,17 @@ RequestInfoProto.info = null;
  * @returns {object} raw input stream
  * @alias RequestInfo#rawInput
  */
-RequestInfoProto.rawInput = function()
-{
+RequestInfoProto.rawInput = function() {
     var rawinp = this._rawinp;
 
-    if ( !rawinp )
-    {
+    if ( !rawinp ) {
         if ( this.info.HAVE_RAW_UPLOAD &&
-                ( this.info.CHANNEL_CONTEXT !== null ) )
-        {
+                ( this.info.CHANNEL_CONTEXT !== null ) ) {
             rawinp = this.info.CHANNEL_CONTEXT._openRawInput();
             this._rawinp = rawinp;
         }
 
-        if ( !rawinp )
-        {
+        if ( !rawinp ) {
             throw new Error( 'RawInputError' );
         }
     }
@@ -319,21 +308,17 @@ RequestInfoProto.rawInput = function()
  * @returns {object} raw output stream
  * @alias RequestInfo#rawOutput
  */
-RequestInfoProto.rawOutput = function()
-{
+RequestInfoProto.rawOutput = function() {
     var rawout = this._rawout;
 
-    if ( !rawout )
-    {
+    if ( !rawout ) {
         if ( this.info.HAVE_RAW_RESULT &&
-                ( this.info.CHANNEL_CONTEXT !== null ) )
-        {
+                ( this.info.CHANNEL_CONTEXT !== null ) ) {
             rawout = this.info.CHANNEL_CONTEXT._openRawOutput();
             this._rawout = rawout;
         }
 
-        if ( !rawout )
-        {
+        if ( !rawout ) {
             throw new Error( 'RawOutputError' );
         }
     }
@@ -346,8 +331,7 @@ RequestInfoProto.rawOutput = function()
  * @returns {Executor} _
  * @alias RequestInfo#executor
  */
-RequestInfoProto.executor = function()
-{
+RequestInfoProto.executor = function() {
     return this._executor;
 };
 
@@ -356,8 +340,7 @@ RequestInfoProto.executor = function()
  * @returns {ChannelContext} _
  * @alias RequestInfo#channel
  */
-RequestInfoProto.channel = function()
-{
+RequestInfoProto.channel = function() {
     return this.info.CHANNEL_CONTEXT;
 };
 
@@ -369,22 +352,18 @@ RequestInfoProto.channel = function()
  *        value of microseconds. 0 - disables timeout
  * @alias RequestInfo#cancelAfter
  */
-RequestInfoProto.cancelAfter = function( time_ms )
-{
-    if ( this._cancelAfter )
-    {
+RequestInfoProto.cancelAfter = function( time_ms ) {
+    if ( this._cancelAfter ) {
         async_steps.AsyncTool.cancelCall( this._cancelAfter );
         this._cancelAfter = null;
     }
 
     if ( ( time_ms > 0 ) &&
-        this._as )
-    {
+        this._as ) {
         var _this = this;
 
         this._cancelAfter = async_steps.AsyncTool.callLater(
-            function( )
-            {
+            function( ) {
                 _this._as.cancel();
             },
             time_ms
@@ -395,8 +374,7 @@ RequestInfoProto.cancelAfter = function( time_ms )
 /**
  * @ignore
  */
-RequestInfoProto._cleanup = function()
-{
+RequestInfoProto._cleanup = function() {
     var info = this.info;
 
     this.cancelAfter( 0 );
@@ -406,15 +384,13 @@ RequestInfoProto._cleanup = function()
     var context = info.CHANNEL_CONTEXT;
 
     if ( context &&
-         !context.isStateful() )
-    {
+         !context.isStateful() ) {
         context._cleanup();
     }
 
     var user = info.USER_INFO;
 
-    if ( user )
-    {
+    if ( user ) {
         user._cleanup();
     }
 };

@@ -1,9 +1,9 @@
 
-if ( typeof exports === 'undefined' )
-{
-    exports = {
+if ( typeof window !== 'undefined' ) {
+    exports = window.integrationFace = {
         in_browser : true,
     };
+    module.exports = exports;
 }
 
 // ---
@@ -236,13 +236,11 @@ exports.test_if_anon_bidirect = {
 
 // ---
 exports.interface_impl = {
-    regular : function( as, reqinfo )
-    {
+    regular : function( as, reqinfo ) {
         var rawmsg = reqinfo.info()[ reqinfo.INFO_RAW_REQUEST ];
 
         if ( rawmsg.sec !== 'user:pass' &&
-             rawmsg.sec.substr( 0, 15 ) !== '-hmac:hmacuser:' )
-        {
+             rawmsg.sec.substr( 0, 15 ) !== '-hmac:hmacuser:' ) {
             as.error( 'SecurityError', 'Integration Test' );
         }
 
@@ -260,232 +258,184 @@ exports.interface_impl = {
         } );
     },
 
-    noResult : function( as, reqinfo )
-    {
+    noResult : function( as, reqinfo ) {
     },
 
-    customResult : function( as, reqinfo )
-    {
+    customResult : function( as, reqinfo ) {
         return true;
     },
 
-    noParams : function( as, reqinfo )
-    {
+    noParams : function( as, reqinfo ) {
         return { a : 'test' };
     },
 
-    testAuth : function( as, reqinfo )
-    {
-        try
-        {
+    testAuth : function( as, reqinfo ) {
+        try {
             reqinfo.info[ reqinfo.INFO_SECURITY_LEVEL ].should.equal(
                 reqinfo.info._hmac_user ?
                     reqinfo.SL_PRIVILEGED_OPS :
                     reqinfo.SL_SAFE_OPS );
             reqinfo.info[ reqinfo.INFO_USER_INFO ].should.not.be.null;
-        }
-        catch ( e )
-        {
+        } catch ( e ) {
             as.error( 'InternalError', e.message );
         }
 
         return { a : 'test' };
     },
 
-    rawUpload : function( as, reqinfo )
-    {
+    rawUpload : function( as, reqinfo ) {
         var raw_inp = reqinfo.rawInput();
         var data = [];
 
-        raw_inp.on( 'data', function( chunk )
-        {
+        raw_inp.on( 'data', function( chunk ) {
             data.push( chunk );
         } );
-        raw_inp.on( 'end', function( chunk )
-        {
+        raw_inp.on( 'end', function( chunk ) {
             as.success( { a : data.join( '' ) } );
         } );
         as.waitExternal();
     },
 
-    rawResult : function( as, reqinfo )
-    {
+    rawResult : function( as, reqinfo ) {
         var raw_out = reqinfo.rawOutput();
 
         raw_out.write( reqinfo.params().a, 'utf8' );
     },
 
-    rawUploadResult : function( as, reqinfo )
-    {
+    rawUploadResult : function( as, reqinfo ) {
         var raw_inp = reqinfo.rawInput();
         var raw_out = reqinfo.rawOutput();
         var data = [];
 
-        raw_inp.on( 'data', function( chunk )
-        {
+        raw_inp.on( 'data', function( chunk ) {
             data.push( chunk );
         } );
-        raw_inp.on( 'end', function( chunk )
-        {
+        raw_inp.on( 'end', function( chunk ) {
             raw_out.write( data.join( '' ), 'utf8' );
             as.success();
         } );
         as.waitExternal();
     },
 
-    rawUploadResultParams : function( as, reqinfo )
-    {
+    rawUploadResultParams : function( as, reqinfo ) {
         var raw_inp = reqinfo.rawInput();
         var raw_out = reqinfo.rawOutput();
         var data = [];
 
-        raw_inp.on( 'data', function( chunk )
-        {
+        raw_inp.on( 'data', function( chunk ) {
             data.push( chunk );
         } );
-        raw_inp.on( 'end', function( chunk )
-        {
+        raw_inp.on( 'end', function( chunk ) {
             raw_out.write( reqinfo.params().a + data.join( '' ) + reqinfo.params().e, 'utf8' );
             as.success();
         } );
         as.waitExternal();
     },
 
-    clientTimeout : function( as, reqinfo )
-    {
+    clientTimeout : function( as, reqinfo ) {
         as.setTimeout( 1e3 );
     },
 
-    serverError : function( as, reqinfo )
-    {
+    serverError : function( as, reqinfo ) {
         as.error( reqinfo.params().a );
     },
 
-    testBiDirect : function( as, reqinfo )
-    {
+    testBiDirect : function( as, reqinfo ) {
         return { a : 'OK' };
     },
 
-    cancelAfterTimeout : function( as, reqinfo )
-    {
+    cancelAfterTimeout : function( as, reqinfo ) {
         reqinfo.cancelAfter( 1 );
         as.setTimeout( 1e4 );
 
-        var fail = setTimeout( function()
-        {
+        var fail = setTimeout( function() {
             assert( false );
         }, 100 );
 
-        as.setCancel( function()
-        {
+        as.setCancel( function() {
             clearTimeout( fail );
         } );
     },
 
-    clientCallback : function( as, reqinfo )
-    {
+    clientCallback : function( as, reqinfo ) {
         var ifacever = 'test.int.bidirect:1.0';
         var channel = reqinfo.channel();
 
         as.add(
-            function( as )
-            {
+            function( as ) {
                 channel.register( as, ifacever );
 
-                as.add( function( as )
-                {
+                as.add( function( as ) {
                     var iface = channel.iface( ifacever );
 
                     iface.call( as, 'clientCallback' );
                 } );
             },
-            function( as, err )
-            {
+            function( as, err ) {
                 console.log( "Error: ", err, as.state.error_info );
                 console.log( as.state.last_exception.stack );
             }
         );
     },
 
-    testHTTPheader : function( as, reqinfo )
-    {
-        try
-        {
+    testHTTPheader : function( as, reqinfo ) {
+        try {
             var channel = reqinfo.channel();
 
-            if ( channel.type() === "HTTP" )
-            {
+            if ( channel.type() === "HTTP" ) {
                 channel.getRequestHeaders()['content-type'].should.equal( 'application/futoin+json' );
                 channel.setResponseHeader( 'MyHeader', 'value' );
                 channel.setStatusCode( 201 );
                 channel.setCookie( 'MyCookie', 'MyValue' );
 
                 return { r: 'OK' };
-            }
-            else
-            {
+            } else {
                 return { r: 'IGNORE' };
             }
-        }
-        catch ( e )
-        {
+        } catch ( e ) {
             as.error( 'InternalError', e.message );
         }
     },
 
-    testOnBehalfOf : function( as, reqinfo )
-    {
-        if ( reqinfo.channel().type() === 'BROWSER' )
-        {
+    testOnBehalfOf : function( as, reqinfo ) {
+        if ( reqinfo.channel().type() === 'BROWSER' ) {
             return { r: 'OK' };
         }
 
-        try
-        {
+        try {
             reqinfo.executor().ccm()
                 .iface( 'subcall' )
                 .call( as, 'testOnBehalfOfSub' );
-        }
-        catch ( e )
-        {
+        } catch ( e ) {
             console.log( e.stack );
             as.error( 'InternalError', e.message );
         }
     },
 
-    testOnBehalfOfSub : function( as, reqinfo )
-    {
-        try
-        {
+    testOnBehalfOfSub : function( as, reqinfo ) {
+        try {
             reqinfo.info.RAW_REQUEST.sec.should.equal( 'system:pass' );
 
             reqinfo.info.USER_INFO
                 .details( as )
                 .add(
-                    function( as, user_details )
-                    {
-                        try
-                        {
+                    function( as, user_details ) {
+                        try {
                             var login = user_details.Login;
 
                             ( login === 'user' || login === 'hmacuser' ).should.be.true;
-                        }
-                        catch ( e )
-                        {
+                        } catch ( e ) {
                             console.log( e.stack );
                             as.error( 'InternalError', e.message );
                         }
 
                         as.success( { r: 'OK' } );
                     },
-                    function( as, err )
-                    {
+                    function( as, err ) {
                         as.error( 'InternalError', as.state.error_info );
                     }
                 );
-        }
-        catch ( e )
-        {
+        } catch ( e ) {
             console.log( e.stack );
             as.error( 'InternalError', e.message );
         }

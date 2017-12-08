@@ -24,13 +24,11 @@
  * @param {Executor} executor - reference to associated executor
  * @class
  */
-var ChannelContext = function( executor )
-{
+var ChannelContext = function( executor ) {
     this._executor = executor;
     this._ifaces = {};
 
-    this.state = function()
-    {
+    this.state = function() {
         return this.state;
     };
 };
@@ -58,8 +56,7 @@ var ChannelContextProto =
      * @returns {string} arbitrary string, see FTN6
      * @abstract
      */
-    type : function()
-    {
+    type : function() {
         return null;
     },
 
@@ -69,8 +66,7 @@ var ChannelContextProto =
      * @returns {Boolean} true, if context object is persistent across
      * requests in the same session
      */
-    isStateful : function()
-    {
+    isStateful : function() {
         return false;
     },
 
@@ -82,8 +78,7 @@ var ChannelContextProto =
      * @param {Function} callable - callback
      * @param {any=} user_data - optional parameter to pass to callable
      */
-    onInvokerAbort : function( callable, user_data )
-    {
+    onInvokerAbort : function( callable, user_data ) {
         void callable;
         void user_data;
     },
@@ -93,8 +88,7 @@ var ChannelContextProto =
      * @private
      * @returns {object} raw input stream
      */
-    _openRawInput : function()
-    {
+    _openRawInput : function() {
         return null;
     },
 
@@ -103,8 +97,7 @@ var ChannelContextProto =
      * @private
      * @returns {object} raw output stream
      */
-    _openRawOutput : function()
-    {
+    _openRawOutput : function() {
         return null;
     },
 
@@ -116,25 +109,21 @@ var ChannelContextProto =
      * @param {object} options - standard Invoker options
      * @see AdvancedCCM.register
      */
-    register : function( as, ifacever, options )
-    {
-        if ( !this.isStateful() )
-        {
+    register : function( as, ifacever, options ) {
+        if ( !this.isStateful() ) {
             as.error( "InvokerError", 'Not stateful channel' );
         }
 
         options = options || {};
 
-        if ( !( 'sendOnBehalfOf' in options ) )
-        {
+        if ( !( 'sendOnBehalfOf' in options ) ) {
             options.sendOnBehalfOf = false;
         }
 
         this._executor.ccm().register( as, null, ifacever, this._getPerformRequest(), null, options );
         var _this = this;
 
-        as.add( function( as, info, impl )
-        {
+        as.add( function( as, info, impl ) {
             info.secure_channel = _this._executor._is_secure_channel;
             _this._ifaces[ ifacever ] = impl;
         } );
@@ -150,8 +139,7 @@ var ChannelContextProto =
      * @returns {NativeIface} - native interface
      * @see AdvancedCCM.iface
      */
-    iface : function( ifacever )
-    {
+    iface : function( ifacever ) {
         return this._ifaces[ ifacever ];
     },
 
@@ -171,8 +159,7 @@ var ChannelContextProto =
      * @returns {PerformRequestFunc} perform request callback
      * @abstract
      */
-    _getPerformRequest : function()
-    {
+    _getPerformRequest : function() {
         // Implementation should return the following function
         // return function( as, ctx, ftnreq ) {};
         return null;
@@ -182,8 +169,7 @@ var ChannelContextProto =
      * Cleanup procedure for disposal
      * @private
      */
-    _cleanup : function()
-    {
+    _cleanup : function() {
         this._executor = null;
         this._ifaces = null;
         this.state = null;
