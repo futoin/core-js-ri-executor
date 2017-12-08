@@ -19,13 +19,13 @@
  * limitations under the License.
  */
 
-var _extend = require( 'lodash/extend' );
+const _extend = require( 'lodash/extend' );
 
 /**
  * Pseudo-class for documenting UserInfo detail fields as
  * defined in FTN8 spec
  */
-var UserInfoConst =
+const UserInfoConst =
 {
     /**
      * Login Name
@@ -127,77 +127,70 @@ var UserInfoConst =
  * @param {object} details - user info fields, see UserInfoConst
  * @class
  */
-var UserInfo = function( ccm, local_id, global_id, details ) {
-    this._ccm = ccm;
-    this._local_id = local_id;
-    this._global_id = global_id;
-    this._details = details;
-};
-
-_extend( UserInfo, UserInfoConst );
-
-var UserInfoProto = UserInfoConst; // optimize
-
-UserInfoProto._ccm = null;
-UserInfoProto._local_id = null;
-UserInfoProto._global_id = null;
-UserInfoProto._details = null;
-
-/**
- * Get local unique ID
- * @alias UserInfo#localID
- * @returns {integer} Local ID
- */
-UserInfoProto.localID = function() {
-    return this._local_id;
-};
-
-/**
- * Get local global ID
- * @alias UserInfo#globalID
- * @returns {string} Global ID
- */
-UserInfoProto.globalID = function() {
-    return this._global_id;
-};
-
-/**
- * Get user info details
- * @param {AsyncSteps} as - steps interface
- * @param {object=} user_field_identifiers - field list to get
- * @alias UserInfo#details
- * @returns {AsyncSteps} for easy chaining. {object} with details through as.success()
- */
-UserInfoProto.details = function( as, user_field_identifiers ) {
-    var user_details = this._details;
-
-    if ( user_details ) {
-        as.add( function( as ) {
-            as.success( user_details );
-        } );
-        return;
+class UserInfo {
+    constructor( ccm, local_id, global_id, details ) {
+        this._ccm = ccm;
+        this._local_id = local_id;
+        this._global_id = global_id;
+        this._details = details;
     }
 
-    var basic_auth = this._ccm.iface( '#basicauth' );
+    /**
+    * Get local unique ID
+    * @alias UserInfo#localID
+    * @returns {integer} Local ID
+    */
+    localID() {
+        return this._local_id;
+    }
 
-    basic_auth.call( as, 'getUserDetails', {
-        local_id : this._local_id,
-        fields : user_field_identifiers || {},
-    } );
+    /**
+    * Get local global ID
+    * @alias UserInfo#globalID
+    * @returns {string} Global ID
+    */
+    globalID() {
+        return this._global_id;
+    }
 
-    as.add( function( as, rsp ) {
-        var user_details = rsp.details;
+    /**
+    * Get user info details
+    * @param {AsyncSteps} as - steps interface
+    * @param {object=} user_field_identifiers - field list to get
+    * @alias UserInfo#details
+    * @returns {AsyncSteps} for easy chaining. {object} with details through as.success()
+    */
+    details( as, user_field_identifiers ) {
+        const user_details = this._details;
 
-        basic_auth._details = user_details;
-        as.success( user_details );
-    } );
+        if ( user_details ) {
+            as.add( ( as ) => as.success( user_details ) );
+            return;
+        }
 
-    return as;
-};
+        const basic_auth = this._ccm.iface( '#basicauth' );
 
-UserInfoProto._cleanup = function() {
-    this._ccm = null;
-};
+        basic_auth.call( as, 'getUserDetails', {
+            local_id : this._local_id,
+            fields : user_field_identifiers || {},
+        } );
 
-UserInfo.prototype = UserInfoProto;
+        as.add( ( as, rsp ) => {
+            const user_details = rsp.details;
+
+            basic_auth._details = user_details;
+            as.success( user_details );
+        } );
+
+        return as;
+    }
+
+    _cleanup() {
+        this._ccm = null;
+    }
+}
+
+_extend( UserInfo, UserInfoConst );
+_extend( UserInfo.prototype, UserInfoConst );
+
 module.exports = UserInfo;

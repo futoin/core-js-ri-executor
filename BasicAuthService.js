@@ -19,39 +19,38 @@
  * limitations under the License.
  */
 
-var BasicAuthFace = require( './BasicAuthFace' );
-var SpecTools = require( 'futoin-invoker/SpecTools' );
+const BasicAuthFace = require( './BasicAuthFace' );
+const SpecTools = require( 'futoin-invoker/SpecTools' );
 
 /**
  * BasicService is not official spec - it is a temporary solution
  * until FTN8 Security Concept is finalized
  */
-function BasicAuthService() {
-    this._user_list = {};
-    this._user_ids = {};
-    this._next_id = 1;
-}
+class BasicAuthService {
+    constructor() {
+        this._user_list = {};
+        this._user_ids = {};
+        this._next_id = 1;
+    }
 
-/**
- * BasicAuthService registration helper
- * @param {AsyncSteps} as - steps interface
- * @param {Executor} executor - executor instance
- * @alias BasicAuthService.register
- * @returns {BasicAuthService} reference to implementation instance (to register users)
- */
-BasicAuthService.register = function( as, executor ) {
-    var iface = BasicAuthFace.spec( "0.1" );
-    var ifacever = iface.iface + ':' + iface.version;
-    var impl = new this();
+    /**
+    * BasicAuthService registration helper
+    * @param {AsyncSteps} as - steps interface
+    * @param {Executor} executor - executor instance
+    * @alias BasicAuthService.register
+    * @returns {BasicAuthService} reference to implementation instance (to register users)
+    */
+    static register( as, executor ) {
+        const iface = BasicAuthFace.spec( "0.1" );
+        const ifacever = iface.iface + ':' + iface.version;
+        const impl = new this();
 
-    executor.register( as, ifacever, impl, [ iface ] );
+        executor.register( as, ifacever, impl, [ iface ] );
 
-    // a quick hack
-    return impl;
-};
+        // a quick hack
+        return impl;
+    }
 
-BasicAuthService.prototype =
-{
     /**
      * Register users statically right after registration
      * @param {string} user - user name
@@ -60,13 +59,13 @@ BasicAuthService.prototype =
      * @param {boolean=} system_user - is system user
      * @alias BasicAuthService#addUser
      */
-    addUser : function( user, secret, details, system_user ) {
-        var next_id = this._next_id++;
+    addUser( user, secret, details, system_user ) {
+        const next_id = this._next_id++;
 
         details = details || {};
         details.Login = user; // yes, side-effect
 
-        var user_reg =
+        const user_reg =
         {
             secret : secret,
             info : {
@@ -79,7 +78,7 @@ BasicAuthService.prototype =
 
         this._user_list[ user ] = user_reg;
         this._user_ids[ next_id ] = user_reg;
-    },
+    }
 
     /**
      * Get by name. Override, if needed.
@@ -87,13 +86,11 @@ BasicAuthService.prototype =
      * @param {string} user - user name
      * @note as result: {object} user object or null (through as)
      */
-    _getUser : function( as, user ) {
-        var u = this._user_list[ user ];
+    _getUser( as, user ) {
+        const u = this._user_list[ user ];
 
-        as.add( function( as ) {
-            as.success( u );
-        } );
-    },
+        as.add( ( as ) => as.success( u ) );
+    }
 
     /**
      * Get by ID. Override, if needed.
@@ -101,20 +98,18 @@ BasicAuthService.prototype =
      * @param {number} local_id - local ID
      * @note as result: {object} user object or null (through as)
      */
-    _getUserByID : function( as, local_id ) {
-        var u = this._user_ids[ local_id ];
+    _getUserByID( as, local_id ) {
+        const u = this._user_ids[ local_id ];
 
-        as.add( function( as ) {
-            as.success( u );
-        } );
-    },
+        as.add( ( as ) => as.success( u ) );
+    }
 
-    auth : function( as, reqinfo ) {
-        var p = reqinfo.params();
+    auth( as, reqinfo ) {
+        const p = reqinfo.params();
 
         this._getUser( as, p.user );
 
-        as.add( function( as, u ) {
+        as.add( ( as, u ) => {
             // Vulnerable to time attacks
             if ( u &&
                  ( u.secret === p.pwd ) ) {
@@ -126,18 +121,18 @@ BasicAuthService.prototype =
                 as.error( 'AuthenticationFailure' );
             }
         } );
-    },
+    }
 
-    checkHMAC : function( as, reqinfo ) {
-        var p = reqinfo.params();
+    checkHMAC( as, reqinfo ) {
+        const p = reqinfo.params();
 
         this._getUser( as, p.user );
 
-        as.add( function( as, u ) {
+        as.add( ( as, u ) => {
             if ( u ) {
-                var algo = SpecTools.getRawAlgo( as, p.algo );
-                var sig = SpecTools.genHMACRaw( algo, u.secret, p.msg );
-                var msg_sig = new Buffer( p.sig, 'base64' );
+                const algo = SpecTools.getRawAlgo( as, p.algo );
+                const sig = SpecTools.genHMACRaw( algo, u.secret, p.msg );
+                const msg_sig = new Buffer( p.sig, 'base64' );
 
                 if ( SpecTools.checkHMAC( sig, msg_sig ) ) {
                     reqinfo.result().seclvl = u.system_user ?
@@ -150,17 +145,17 @@ BasicAuthService.prototype =
 
             as.error( 'AuthenticationFailure' );
         } );
-    },
+    }
 
-    genHMAC : function( as, reqinfo ) {
-        var p = reqinfo.params();
+    genHMAC( as, reqinfo ) {
+        const p = reqinfo.params();
 
         this._getUser( as, p.user );
 
-        as.add( function( as, u ) {
+        as.add( ( as, u ) => {
             if ( u ) {
-                var algo = SpecTools.getRawAlgo( as, p.algo );
-                var sig = SpecTools.genHMACRaw( algo, u.secret, p.msg );
+                const algo = SpecTools.getRawAlgo( as, p.algo );
+                const sig = SpecTools.genHMACRaw( algo, u.secret, p.msg );
 
                 reqinfo.result().sig = sig.toString( 'base64' );
                 return;
@@ -168,14 +163,14 @@ BasicAuthService.prototype =
 
             as.error( 'InvalidUser' );
         } );
-    },
+    }
 
-    getUserDetails : function( as, reqinfo ) {
-        var p = reqinfo.params();
+    getUserDetails( as, reqinfo ) {
+        const p = reqinfo.params();
 
         this._getUserByID( as, p.local_id );
 
-        as.add( function( as, u ) {
+        as.add( ( as, u ) => {
             if ( u ) {
                 reqinfo.result().details = u.info.details;
                 return;
@@ -183,7 +178,7 @@ BasicAuthService.prototype =
 
             as.error( 'InvalidUser' );
         } );
-    },
-};
+    }
+}
 
 module.exports = BasicAuthService;

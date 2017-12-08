@@ -24,19 +24,15 @@
  * @param {Executor} executor - reference to associated executor
  * @class
  */
-var ChannelContext = function( executor ) {
-    this._executor = executor;
-    this._ifaces = {};
+class ChannelContext {
+    constructor( executor ) {
+        this._executor = executor;
+        this._ifaces = {};
 
-    this.state = function() {
-        return this.state;
-    };
-};
-
-var ChannelContextProto =
-{
-    _executor : null,
-    _ifaces : null,
+        this.state = function() {
+            return this.state;
+        };
+    }
 
     /**
      * Persistent storage for arbitrary user variables.
@@ -46,7 +42,6 @@ var ChannelContextProto =
      * @alias ChannelContext.state
      * @returns {object} this.state
      */
-    state : null,
 
     /**
      * Get type of channel
@@ -56,9 +51,9 @@ var ChannelContextProto =
      * @returns {string} arbitrary string, see FTN6
      * @abstract
      */
-    type : function() {
+    type() {
         return null;
-    },
+    }
 
     /**
      * Check if transport is stateful (e.g. WebSockets)
@@ -66,9 +61,9 @@ var ChannelContextProto =
      * @returns {Boolean} true, if context object is persistent across
      * requests in the same session
      */
-    isStateful : function() {
+    isStateful() {
         return false;
-    },
+    }
 
     /**
      * Set invoker abort handler.
@@ -78,28 +73,28 @@ var ChannelContextProto =
      * @param {Function} callable - callback
      * @param {any=} user_data - optional parameter to pass to callable
      */
-    onInvokerAbort : function( callable, user_data ) {
+    onInvokerAbort( callable, user_data ) {
         void callable;
         void user_data;
-    },
+    }
 
     /**
      * Get native input stream
      * @private
      * @returns {object} raw input stream
      */
-    _openRawInput : function() {
+    _openRawInput() {
         return null;
-    },
+    }
 
     /**
      * Get native output stream
      * @private
      * @returns {object} raw output stream
      */
-    _openRawOutput : function() {
+    _openRawOutput() {
         return null;
-    },
+    }
 
     /**
      * Register Invoker interface on bi-directional channels to make
@@ -109,7 +104,7 @@ var ChannelContextProto =
      * @param {object} options - standard Invoker options
      * @see AdvancedCCM.register
      */
-    register : function( as, ifacever, options ) {
+    register( as, ifacever, options ) {
         if ( !this.isStateful() ) {
             as.error( "InvokerError", 'Not stateful channel' );
         }
@@ -121,13 +116,12 @@ var ChannelContextProto =
         }
 
         this._executor.ccm().register( as, null, ifacever, this._getPerformRequest(), null, options );
-        var _this = this;
 
-        as.add( function( as, info, impl ) {
-            info.secure_channel = _this._executor._is_secure_channel;
-            _this._ifaces[ ifacever ] = impl;
+        as.add( ( as, info, impl ) => {
+            info.secure_channel = this._executor._is_secure_channel;
+            this._ifaces[ ifacever ] = impl;
         } );
-    },
+    }
 
     /**
      * Get previously registered interface on bi-directional channel.
@@ -139,9 +133,9 @@ var ChannelContextProto =
      * @returns {NativeIface} - native interface
      * @see AdvancedCCM.iface
      */
-    iface : function( ifacever ) {
+    iface( ifacever ) {
         return this._ifaces[ ifacever ];
-    },
+    }
 
     /**
      * It is just a subset of *ExecFunc*
@@ -159,22 +153,21 @@ var ChannelContextProto =
      * @returns {PerformRequestFunc} perform request callback
      * @abstract
      */
-    _getPerformRequest : function() {
+    _getPerformRequest() {
         // Implementation should return the following function
         // return function( as, ctx, ftnreq ) {};
         return null;
-    },
+    }
 
     /**
      * Cleanup procedure for disposal
      * @private
      */
-    _cleanup : function() {
+    _cleanup() {
         this._executor = null;
         this._ifaces = null;
         this.state = null;
-    },
-};
+    }
+}
 
-ChannelContext.prototype = ChannelContextProto;
 module.exports = ChannelContext;

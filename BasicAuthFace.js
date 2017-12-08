@@ -38,8 +38,8 @@ class BasicAuthFace extends NativeIface {
     */
     static register( as, ccm, endpoint, credentials, options ) {
         options = options || {};
-        var ifacever = options.version || '0.1';
-        var iface = this.spec( ifacever );
+        const ifacever = options.version || '0.1';
+        const iface = this.spec( ifacever );
 
         options.nativeImpl = this;
         options.specDirs = [ iface ];

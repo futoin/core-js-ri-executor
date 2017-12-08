@@ -19,16 +19,16 @@
  * limitations under the License.
  */
 
-var _extend = require( 'lodash/extend' );
-var performance_now = require( "performance-now" );
-var async_steps = require( 'futoin-asyncsteps' );
+const _extend = require( 'lodash/extend' );
+const performance_now = require( "performance-now" );
+const async_steps = require( 'futoin-asyncsteps' );
 
 /**
  * Pseudo-class for RequestInfo.info field enumeration
  * @class
  * @see FTN6 spec
  */
-var RequestInfoConst = {
+const RequestInfoConst = {
     /**
      * Security Level - Anonymous
      * @const
@@ -196,204 +196,198 @@ var RequestInfoConst = {
  * @param {Executor} executor - _
  * @param {object|string} rawreq - raw request
  */
-var RequestInfo = function( executor, rawreq ) {
-    this._executor = executor;
+class RequestInfo {
+    constructor( executor, rawreq ) {
+        this._executor = executor;
+        this._rawinp = null;
+        this._rawout = null;
+        this._as = null;
 
-    // ---
-    if ( typeof rawreq === "string" ) {
-        rawreq = JSON.parse( rawreq );
-    }
-
-    this._rawreq = rawreq;
-
-    // ---
-    var rawrsp = { r : {} };
-
-    if ( 'rid' in rawreq ) {
-        rawrsp.rid = rawreq.rid;
-    }
-
-    this._rawrsp = rawrsp;
-
-    // ---
-    var info = function() {
-        return this.info;
-    };
-
-    this.info = info;
-
-    info.X509_CN = null;
-    info.PUBKEY = null;
-    info.CLIENT_ADDR = null;
-    info.SECURE_CHANNEL = false;
-    info.SECURITY_LEVEL = this.SL_ANONYMOUS;
-    info.USER_INFO = null;
-    info.RAW_REQUEST = rawreq;
-    info.RAW_RESPONSE = rawrsp;
-    info.DERIVED_KEY = null;
-    info.HAVE_RAW_UPLOAD = false;
-    info.HAVE_RAW_RESULT = false;
-    info.CHANNEL_CONTEXT = null;
-    info.REQUEST_TIME_FLOAT = performance_now();
-};
-
-_extend( RequestInfo, RequestInfoConst );
-
-var RequestInfoProto = RequestInfoConst; // optimize
-
-RequestInfoProto._executor = null;
-RequestInfoProto._rawinp = null;
-RequestInfoProto._rawout = null;
-RequestInfoProto._as = null;
-
-/**
- * Get reference to input params
- * @return {object} parameter holder
- * @alias RequestInfo#params
- */
-RequestInfoProto.params = function() {
-    return this._rawreq.p;
-};
-
-/**
- * Get reference to output
- * @param {*} replace - replace result object
- * @return {object} result variable holder
- * @alias RequestInfo#result
- */
-RequestInfoProto.result = function( replace ) {
-    if ( replace ) {
-        this._rawrsp.r = replace;
-    }
-
-    return this._rawrsp.r;
-};
-
-/**
- * Get reference to info map object
- *
- * NOTE: reqInfo.info() === reqInfo.info
- * @returns {object}
- * @alias RequestInfo#info
- */
-RequestInfoProto.info = null;
-
-/**
- * Get reference to input stream
- * @throws RawInputError
- * @returns {object} raw input stream
- * @alias RequestInfo#rawInput
- */
-RequestInfoProto.rawInput = function() {
-    var rawinp = this._rawinp;
-
-    if ( !rawinp ) {
-        if ( this.info.HAVE_RAW_UPLOAD &&
-                ( this.info.CHANNEL_CONTEXT !== null ) ) {
-            rawinp = this.info.CHANNEL_CONTEXT._openRawInput();
-            this._rawinp = rawinp;
+        // ---
+        if ( typeof rawreq === "string" ) {
+            rawreq = JSON.parse( rawreq );
         }
+
+        this._rawreq = rawreq;
+
+        // ---
+        const rawrsp = { r : {} };
+
+        if ( 'rid' in rawreq ) {
+            rawrsp.rid = rawreq.rid;
+        }
+
+        this._rawrsp = rawrsp;
+
+        // ---
+        const info = function() {
+            return this.info;
+        };
+
+        this.info = info;
+
+        info.X509_CN = null;
+        info.PUBKEY = null;
+        info.CLIENT_ADDR = null;
+        info.SECURE_CHANNEL = false;
+        info.SECURITY_LEVEL = this.SL_ANONYMOUS;
+        info.USER_INFO = null;
+        info.RAW_REQUEST = rawreq;
+        info.RAW_RESPONSE = rawrsp;
+        info.DERIVED_KEY = null;
+        info.HAVE_RAW_UPLOAD = false;
+        info.HAVE_RAW_RESULT = false;
+        info.CHANNEL_CONTEXT = null;
+        info.REQUEST_TIME_FLOAT = performance_now();
+    }
+
+    /**
+    * Get reference to input params
+    * @return {object} parameter holder
+    * @alias RequestInfo#params
+    */
+    params() {
+        return this._rawreq.p;
+    }
+
+    /**
+    * Get reference to output
+    * @param {*} replace - replace result object
+    * @return {object} result variable holder
+    * @alias RequestInfo#result
+    */
+    result( replace ) {
+        if ( replace ) {
+            this._rawrsp.r = replace;
+        }
+
+        return this._rawrsp.r;
+    }
+
+    /**
+    * Get reference to info map object
+    *
+    * NOTE: reqInfo.info() === reqInfo.info
+    * @alias RequestInfo#info
+    * @member {object}
+    */
+
+    /**
+    * Get reference to input stream
+    * @throws RawInputError
+    * @returns {object} raw input stream
+    * @alias RequestInfo#rawInput
+    */
+    rawInput() {
+        let rawinp = this._rawinp;
 
         if ( !rawinp ) {
-            throw new Error( 'RawInputError' );
+            if ( this.info.HAVE_RAW_UPLOAD &&
+                 ( this.info.CHANNEL_CONTEXT !== null )
+            ) {
+                rawinp = this.info.CHANNEL_CONTEXT._openRawInput();
+                this._rawinp = rawinp;
+            }
+
+            if ( !rawinp ) {
+                throw new Error( 'RawInputError' );
+            }
         }
+
+        return rawinp;
     }
 
-    return rawinp;
-};
-
-/**
- * Get reference to output stream
- * @throws RawOutputError
- * @returns {object} raw output stream
- * @alias RequestInfo#rawOutput
- */
-RequestInfoProto.rawOutput = function() {
-    var rawout = this._rawout;
-
-    if ( !rawout ) {
-        if ( this.info.HAVE_RAW_RESULT &&
-                ( this.info.CHANNEL_CONTEXT !== null ) ) {
-            rawout = this.info.CHANNEL_CONTEXT._openRawOutput();
-            this._rawout = rawout;
-        }
+    /**
+    * Get reference to output stream
+    * @throws RawOutputError
+    * @returns {object} raw output stream
+    * @alias RequestInfo#rawOutput
+    */
+    rawOutput() {
+        let rawout = this._rawout;
 
         if ( !rawout ) {
-            throw new Error( 'RawOutputError' );
+            if ( this.info.HAVE_RAW_RESULT &&
+                 ( this.info.CHANNEL_CONTEXT !== null )
+            ) {
+                rawout = this.info.CHANNEL_CONTEXT._openRawOutput();
+                this._rawout = rawout;
+            }
+
+            if ( !rawout ) {
+                throw new Error( 'RawOutputError' );
+            }
+        }
+
+        return rawout;
+    }
+
+    /**
+    * Get reference to associated Executor instance
+    * @returns {Executor} _
+    * @alias RequestInfo#executor
+    */
+    executor() {
+        return this._executor;
+    }
+
+    /**
+    * Get reference to channel context
+    * @returns {ChannelContext} _
+    * @alias RequestInfo#channel
+    */
+    channel() {
+        return this.info.CHANNEL_CONTEXT;
+    }
+
+    /**
+    * Set overall request processing timeout in microseconds.
+    *
+    * NOTE: repeat calls override previous value
+    * @param {float} time_ms - set automatic request timeout after specified
+    *        value of microseconds. 0 - disables timeout
+    * @alias RequestInfo#cancelAfter
+    */
+    cancelAfter( time_ms ) {
+        if ( this._cancelAfter ) {
+            async_steps.AsyncTool.cancelCall( this._cancelAfter );
+            this._cancelAfter = null;
+        }
+
+        if ( ( time_ms > 0 ) && this._as ) {
+            this._cancelAfter = async_steps.AsyncTool.callLater(
+                ( ) => this._as.cancel(),
+                time_ms
+            );
         }
     }
 
-    return rawout;
-};
+    /**
+    * @ignore
+    */
+    _cleanup() {
+        const info = this.info;
 
-/**
- * Get reference to associated Executor instance
- * @returns {Executor} _
- * @alias RequestInfo#executor
- */
-RequestInfoProto.executor = function() {
-    return this._executor;
-};
+        this.cancelAfter( 0 );
+        this._as = null;
+        this.info = null;
 
-/**
- * Get reference to channel context
- * @returns {ChannelContext} _
- * @alias RequestInfo#channel
- */
-RequestInfoProto.channel = function() {
-    return this.info.CHANNEL_CONTEXT;
-};
+        const context = info.CHANNEL_CONTEXT;
 
-/**
- * Set overall request processing timeout in microseconds.
- *
- * NOTE: repeat calls override previous value
- * @param {float} time_ms - set automatic request timeout after specified
- *        value of microseconds. 0 - disables timeout
- * @alias RequestInfo#cancelAfter
- */
-RequestInfoProto.cancelAfter = function( time_ms ) {
-    if ( this._cancelAfter ) {
-        async_steps.AsyncTool.cancelCall( this._cancelAfter );
-        this._cancelAfter = null;
+        if ( context &&
+            !context.isStateful() ) {
+            context._cleanup();
+        }
+
+        const user = info.USER_INFO;
+
+        if ( user ) {
+            user._cleanup();
+        }
     }
+}
 
-    if ( ( time_ms > 0 ) &&
-        this._as ) {
-        var _this = this;
+_extend( RequestInfo, RequestInfoConst );
+_extend( RequestInfo.prototype, RequestInfoConst );
 
-        this._cancelAfter = async_steps.AsyncTool.callLater(
-            function( ) {
-                _this._as.cancel();
-            },
-            time_ms
-        );
-    }
-};
-
-/**
- * @ignore
- */
-RequestInfoProto._cleanup = function() {
-    var info = this.info;
-
-    this.cancelAfter( 0 );
-    this._as = null;
-    this.info = null;
-
-    var context = info.CHANNEL_CONTEXT;
-
-    if ( context &&
-         !context.isStateful() ) {
-        context._cleanup();
-    }
-
-    var user = info.USER_INFO;
-
-    if ( user ) {
-        user._cleanup();
-    }
-};
-
-RequestInfo.prototype = RequestInfoProto;
 module.exports = RequestInfo;

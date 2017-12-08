@@ -26,56 +26,55 @@
  * @param {integer|string=} port - port or path, if applicable
  * @class
  */
-var SourceAddress = function( type, host, port ) {
-    if ( type === null ) {
-        if ( typeof host !== 'string' ) {
-            type = "LOCAL";
-        } else if ( host.match( /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ ) ) {
-            type = "IPv4";
-        } else {
-            type = "IPv6";
+class SourceAddress {
+    constructor( type, host, port ) {
+        if ( type === null ) {
+            if ( typeof host !== 'string' ) {
+                type = "LOCAL";
+            } else if ( host.match( /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ ) ) {
+                type = "IPv4";
+            } else {
+                type = "IPv6";
+            }
         }
+
+        this.type = type;
+        this.host = host;
+        this.port = port;
     }
 
-    this.type = type;
-    this.host = host;
-    this.port = port;
-};
-
-SourceAddress.prototype =
-{
     /**
      * Host field
      * @alias SourceAddress#host
+     * @member {string}
      */
-    host : null,
 
     /**
      * Port field
      * @alias SourceAddress#port
+     * @member {integer}
      */
-    port : null,
 
     /**
      * Type field
      * @alias SourceAddress#type
+     * @member {string}
      */
-    type : null,
 
     /**
      * Get a stable string representation
      * @returns {string} string representation
      * @alias SourceAddress#asString
      */
-    asString : function() {
+    asString() {
         if ( this.type === "LOCAL" ) {
-            return "LOCAL:" + this.port;
+            return `LOCAL:${this.port}`;
         } else if ( this.type === "IPv6" ) {
-            return "IPv6:[" + this.host + "]:" + this.port;
+            return `IPv6:[${this.host}]:${this.port}`;
         } else {
-            return this.type + ":" + this.host + ":" + this.port;
+            return `${this.type}:${this.host}:${this.port}`;
         }
-    },
-};
+    }
+}
 
 module.exports = SourceAddress;

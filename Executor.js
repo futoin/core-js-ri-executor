@@ -19,93 +19,80 @@
  * limitations under the License.
  */
 
-var _extend = require( 'lodash/extend' );
-var _defaults = require( 'lodash/defaults' );
-var invoker = require( 'futoin-invoker' );
-var FutoInError = invoker.FutoInError;
-var async_steps = require( 'futoin-asyncsteps' );
-var ee = require( 'event-emitter' );
-var _clone = require( 'lodash/clone' );
+const _extend = require( 'lodash/extend' );
+const _defaults = require( 'lodash/defaults' );
+const invoker = require( 'futoin-invoker' );
+const FutoInError = invoker.FutoInError;
+const async_steps = require( 'futoin-asyncsteps' );
+const ee = require( 'event-emitter' );
 
-var ChannelContext = require( './ChannelContext' );
-var SourceAddress = require( './SourceAddress' );
-var RequestInfo = require( './RequestInfo' );
-var UserInfo = require( './UserInfo' );
-
-// ---
-var CallbackChannelContext = function( executor ) {
-    ChannelContext.call( this, executor );
-};
-
-var CallbackChannelContextProto = _clone( ChannelContext.prototype );
-
-CallbackChannelContext.prototype = CallbackChannelContextProto;
-
-CallbackChannelContextProto.type = function() {
-    return "CALLBACK";
-};
-
-CallbackChannelContextProto.isStateful = function() {
-    return true;
-};
+const ChannelContext = require( './ChannelContext' );
+const SourceAddress = require( './SourceAddress' );
+const RequestInfo = require( './RequestInfo' );
+const UserInfo = require( './UserInfo' );
 
 // ---
-var InternalChannelContext = function( executor, invoker_executor ) {
-    ChannelContext.call( this, executor );
-    this._invoker_executor = invoker_executor;
-};
-
-var InternalChannelContextProto = _clone( ChannelContext.prototype );
-
-InternalChannelContext.prototype = InternalChannelContextProto;
-
-InternalChannelContextProto._invoker_executor = null;
-
-InternalChannelContextProto.type = function() {
-    return "INTERNAL";
-};
-
-InternalChannelContextProto.isStateful = function() {
-    return true;
-};
-
-InternalChannelContextProto._getPerformRequest = function() {
-    var invoker_executor = this._invoker_executor;
-
-    if ( !invoker_executor ) {
-        return this._commError;
+class CallbackChannelContext extends ChannelContext {
+    type() {
+        return "CALLBACK";
     }
 
-    return function( as, ctx, ftnreq ) {
-        invoker_executor.onInternalRequest( as, ctx.info, ftnreq );
-    };
-};
+    isStateful() {
+        return true;
+    }
+}
 
-InternalChannelContextProto._commError = function( as ) {
-    as.error( FutoInError.CommError, "No Invoker's Executor for internal call" );
-};
+// ---
+class InternalChannelContext extends ChannelContext {
+    constructor( executor, invoker_executor ) {
+        super( executor );
+        this._invoker_executor = invoker_executor;
+    }
 
-InternalChannelContextProto.onInvokerAbort = function( callable, user_data ) {
-    this._invoker_executor.once(
-        'close',
-        function() {
-            callable( user_data );
+    type() {
+        return "INTERNAL";
+    }
+
+    isStateful() {
+        return true;
+    }
+
+    _getPerformRequest() {
+        const invoker_executor = this._invoker_executor;
+
+        if ( !invoker_executor ) {
+            return this._commError;
         }
-    );
-};
+
+        return ( as, ctx, ftnreq ) => {
+            invoker_executor.onInternalRequest( as, ctx.info, ftnreq );
+        };
+    }
+
+    _commError( as ) {
+        as.error( FutoInError.CommError, "No Invoker's Executor for internal call" );
+    }
+
+    onInvokerAbort( callable, user_data ) {
+        this._invoker_executor.once(
+            'close',
+            () => callable( user_data )
+        );
+    }
+}
 
 /**
  * Pseudo-class for Executor options documentation
  * @class
  */
-var ExecutorOptions =
+const ExecutorOptions =
 {
     /**
      * Message sniffer callback( iface_info, msg, is_incomming ).
      * Useful for audit logging.
      * @default dummy
      */
-    messageSniffer : function() {},
+    messageSniffer : () => {},
 
     /**
      * Search dirs for spec definition or spec instance directly. It can
@@ -141,78 +128,63 @@ var ExecutorOptions =
  * @param {objects} opts - see ExecutorOptions
  * @class
  */
-var Executor = function( ccm, opts ) {
-    ee( this );
+class Executor {
+    constructor( ccm, opts ) {
+        ee( this );
 
-    this._ccm = ccm;
-    this._ifaces = {};
-    this._impls = {};
+        this._ccm = ccm;
+        this._ifaces = {};
+        this._impls = {};
 
-    opts = opts || {};
-    _defaults( opts, ExecutorOptions );
+        opts = opts || {};
+        _defaults( opts, ExecutorOptions );
 
-    //
-    var spec_dirs = opts.specDirs;
+        //
+        let spec_dirs = opts.specDirs;
 
-    if ( !( spec_dirs instanceof Array ) ) {
-        spec_dirs = [ spec_dirs ];
+        if ( !( spec_dirs instanceof Array ) ) {
+            spec_dirs = [ spec_dirs ];
+        }
+
+        this._specdirs = spec_dirs;
+
+        //
+        this._dev_checks = !opts.prodMode;
+
+        //
+        this._request_timeout = opts.reqTimeout;
+        this._heavy_timeout = opts.heavyReqTimeout;
+
+        //
+        this._maxReqSize = this.SAFE_PAYLOAD_LIMIT;
+        this._maxRspSize = this.SAFE_PAYLOAD_LIMIT;
+        this._maxAnySize = this.SAFE_PAYLOAD_LIMIT;
+
+        //
+        if ( typeof Buffer !== 'undefined' && Buffer.byteLength ) {
+            this._byteLength = Buffer.byteLength;
+        } else {
+            this._byteLength = ( data ) => {
+                return data.length; // Yes, it does not work for multi-byte correctly
+            };
+        }
+
+        // Ensure to close executor on CCM close
+        ccm.once( 'close', this.close.bind( this ) );
     }
 
-    this._specdirs = spec_dirs;
-
-    //
-    this._dev_checks = !opts.prodMode;
-
-    //
-    this._request_timeout = opts.reqTimeout;
-    this._heavy_timeout = opts.heavyReqTimeout;
-
-    //
-    this._maxReqSize = this.SAFE_PAYLOAD_LIMIT;
-    this._maxRspSize = this.SAFE_PAYLOAD_LIMIT;
-    this._maxAnySize = this.SAFE_PAYLOAD_LIMIT;
-
-    //
-    if ( typeof Buffer !== 'undefined' && Buffer.byteLength ) {
-        this._byteLength = Buffer.byteLength;
-    } else {
-        this._byteLength = function( data ) {
-            return data.length; // Yes, it does not work for multi-byte correctly
-        };
+    get SAFE_PAYLOAD_LIMIT() {
+        return 65536;
     }
-
-    // Ensure to close executor on CCM close
-    ccm.once( 'close', this.close.bind( this ) );
-};
-
-var ExecutorProto =
-{
-    SAFE_PAYLOAD_LIMIT : 65536,
-
-    _ccm : null,
-    _ifaces : null,
-    _impls : null,
-
-    _specdirs : null,
-    _dev_checks : false,
-
-    _request_timeout : null,
-    _heavy_timeout : null,
-
-    _byteLength : null,
-
-    _maxReqSize : null,
-    _maxRspSize : null,
-    _maxAnySize : null,
 
     /**
      * Get reference to associated AdvancedCCM instance
      * @alias Executor#ccm
      * @returns {AdvancedCCM} CCM ref
      */
-    ccm : function() {
+    ccm() {
         return this._ccm;
-    },
+    }
 
     /**
      * Register implementation of specific interface
@@ -224,19 +196,19 @@ var ExecutorProto =
      * of hardcoded spec definition.
      * @alias Executor#register
      */
-    register : function( as, ifacever, impl, specdirs ) {
-        var m = ifacever.match( invoker.SpecTools._ifacever_pattern );
+    register( as, ifacever, impl, specdirs ) {
+        const m = ifacever.match( invoker.SpecTools._ifacever_pattern );
 
         if ( m === null ) {
             as.error( FutoInError.InternalError, "Invalid ifacever" );
         }
 
-        var iface = m[ 1 ];
-        var mjrmnr = m[ 4 ];
-        var mjr = m[ 5 ];
-        var mnr = m[ 6 ];
+        const iface = m[ 1 ];
+        const mjrmnr = m[ 4 ];
+        const mjr = m[ 5 ];
+        const mnr = m[ 6 ];
 
-        var ifaces = this._ifaces;
+        const ifaces = this._ifaces;
 
         if ( ( iface in ifaces ) &&
              ( mjr in ifaces[ iface ] ) ) {
@@ -244,35 +216,34 @@ var ExecutorProto =
         }
         // ---
 
-        var info =
+        const info =
         {
             iface : iface,
             version : mjrmnr,
             mjrver : mjr,
             mnrver : mnr,
+            derived : undefined,
         };
 
         invoker.SpecTools.loadIface( as, info, specdirs || this._specdirs );
 
-        var _this = this;
-
-        as.add( function( as ) {
+        as.add( ( as ) => {
             if ( !( iface in ifaces ) ) {
                 ifaces[ iface ] = {};
-                _this._impls[ iface ] = {};
+                this._impls[ iface ] = {};
             }
 
             ifaces[ iface ][ mjr ] = info;
-            _this._impls[ iface ][ mjr ] = impl;
+            this._impls[ iface ][ mjr ] = impl;
 
-            for ( var i = 0; i < info.inherits.length; ++i ) {
-                var supm = info.inherits[ i ].match( invoker.SpecTools._ifacever_pattern );
-                var supiface = supm[ 1 ];
-                var supmjrmnr = supm[ 4 ];
-                var supmjr = supm[ 5 ];
-                var supmnr = supm[ 6 ];
+            for ( let i = 0; i < info.inherits.length; ++i ) {
+                const supm = info.inherits[ i ].match( invoker.SpecTools._ifacever_pattern );
+                const supiface = supm[ 1 ];
+                const supmjrmnr = supm[ 4 ];
+                const supmjr = supm[ 5 ];
+                const supmnr = supm[ 6 ];
 
-                var supinfo =
+                const supinfo =
                 {
                     iface : supiface,
                     version : supmjrmnr,
@@ -295,20 +266,20 @@ var ExecutorProto =
             }
 
             //---
-            var max_req_size = _this._maxReqSize;
-            var max_rsp_size = _this._maxRspSize;
+            let max_req_size = this._maxReqSize;
+            let max_rsp_size = this._maxRspSize;
 
-            for ( var f in info.funcs ) {
+            for ( let f in info.funcs ) {
                 f = info.funcs[ f ];
                 max_req_size = Math.max( max_req_size, f._max_req_size );
                 max_rsp_size = Math.max( max_rsp_size, f._max_rsp_size );
             }
 
-            _this._maxReqSize = max_req_size;
-            _this._maxRspSize = max_rsp_size;
-            _this._maxAnySize = Math.max( max_req_size, max_rsp_size );
+            this._maxReqSize = max_req_size;
+            this._maxRspSize = max_rsp_size;
+            this._maxAnySize = Math.max( max_req_size, max_rsp_size );
         } );
-    },
+    }
 
     /**
      * Entry point for Server-originated requests when acting as ClientExecutor
@@ -319,28 +290,26 @@ var ExecutorProto =
      * @fires Executor#request
      * @fires Executor#response
      */
-    onEndpointRequest : function( info, ftnreq, send_executor_rsp ) {
-        var _this = this;
-        var reqinfo = new RequestInfo( this, ftnreq );
+    onEndpointRequest( info, ftnreq, send_executor_rsp ) {
+        const reqinfo = new RequestInfo( this, ftnreq );
 
-        var context = new CallbackChannelContext( this );
-        var source_addr = new SourceAddress( context.type(), null, info.regname );
+        const context = new CallbackChannelContext( this );
+        const source_addr = new SourceAddress( context.type(), null, info.regname );
 
-        var reqinfo_info = reqinfo.info;
+        const reqinfo_info = reqinfo.info;
 
         reqinfo_info.CHANNEL_CONTEXT = context;
         reqinfo_info.CLIENT_ADDR = source_addr;
         reqinfo_info.SECURE_CHANNEL = info.secure_channel;
 
-        var as = async_steps();
+        const as = async_steps();
 
         reqinfo._as = as;
 
         as.add(
-            function( as ) {
-                as.setCancel( function( as ) {
-                    void as;
-                    var ftnrsp = {
+            ( as ) => {
+                as.setCancel( ( as ) => {
+                    const ftnrsp = {
                         rid : reqinfo._rawreq.rid,
                         e : "InternalError",
                     };
@@ -350,11 +319,10 @@ var ExecutorProto =
                 } );
 
                 as.state.reqinfo = reqinfo;
-                _this.process( as );
+                this.process( as );
 
-                as.add( function( as ) {
-                    void as;
-                    var ftnrsp = reqinfo_info.RAW_RESPONSE;
+                as.add( ( as ) => {
+                    const ftnrsp = reqinfo_info.RAW_RESPONSE;
 
                     reqinfo._cleanup();
 
@@ -363,13 +331,13 @@ var ExecutorProto =
                     }
                 } );
             },
-            function( as, err ) {
-                _this.emit( 'notExpected', err, as.state.error_info,
+            ( as, err ) => {
+                this.emit( 'notExpected', err, as.state.error_info,
                     as.state.last_exception, as.state.async_stack );
                 reqinfo._cleanup();
             }
         ).execute();
-    },
+    }
 
     /**
      * Entry point for in-program originated requests. Process with maximum efficiency (not yet ;)
@@ -383,19 +351,18 @@ var ExecutorProto =
      * @fires Executor#request
      * @fires Executor#response
      */
-    onInternalRequest : function( as, info, ftnreq, upload_data, download_stream ) {
-        var context = info._server_executor_context;
+    onInternalRequest( as, info, ftnreq, upload_data, download_stream ) {
+        let context = info._server_executor_context;
 
         if ( !context ) {
             context = new InternalChannelContext( this, info.options.executor );
             info._server_executor_context = context;
         }
 
-        var _this = this;
-        var reqinfo = new RequestInfo( this, ftnreq );
-        var source_addr = new SourceAddress( context.type(), null, null );
+        const reqinfo = new RequestInfo( this, ftnreq );
+        const source_addr = new SourceAddress( context.type(), null, null );
 
-        var reqinfo_info = reqinfo.info;
+        const reqinfo_info = reqinfo.info;
 
         reqinfo_info.CHANNEL_CONTEXT = context;
         reqinfo_info.CLIENT_ADDR = source_addr;
@@ -410,16 +377,15 @@ var ExecutorProto =
             reqinfo._rawout = download_stream;
         }
 
-        as.add( function( orig_as ) {
+        as.add( ( orig_as ) => {
             // Make sure we have a clean AsyncSteps
-            var inner_as = async_steps();
+            const inner_as = async_steps();
 
             reqinfo._as = inner_as;
 
             inner_as.add(
-                function( as ) {
-                    as.setCancel( function( as ) {
-                        void as;
+                ( as ) => {
+                    as.setCancel( ( as ) => {
                         reqinfo._cleanup();
 
                         if ( !as.state._orig_as_cancel ) {
@@ -432,11 +398,10 @@ var ExecutorProto =
                     } );
 
                     as.state.reqinfo = reqinfo;
-                    _this.process( as );
+                    this.process( as );
 
-                    as.add( function( as ) {
-                        void as;
-                        var ftnrsp = reqinfo_info.RAW_RESPONSE;
+                    as.add( ( as ) => {
+                        const ftnrsp = reqinfo_info.RAW_RESPONSE;
 
                         reqinfo._cleanup();
 
@@ -447,20 +412,19 @@ var ExecutorProto =
                         }
                     } );
                 },
-                function( as, err ) {
-                    _this.emit( 'notExpected', err, as.state.error_info,
+                ( as, err ) => {
+                    this.emit( 'notExpected', err, as.state.error_info,
                         as.state.last_exception, as.state.async_stack );
                     reqinfo._cleanup();
                 }
             ).execute();
 
-            orig_as.setCancel( function( as ) {
-                void as;
+            orig_as.setCancel( ( as ) => {
                 inner_as.state._orig_as_cancel = true;
                 inner_as.cancel();
             } );
         } );
-    },
+    }
 
     /**
      * Standard entry point used by subclasses.
@@ -472,71 +436,69 @@ var ExecutorProto =
      * @fires Executor#request
      * @fires Executor#response
      */
-    process : function( as ) {
-        var reqinfo = as.state.reqinfo;
+    process( as ) {
+        const reqinfo = as.state.reqinfo;
 
         if ( !reqinfo ||
               ( '_func_info' in reqinfo.info ) ) {
             as.error( FutoInError.InternalError, "Invalid process() invocation" );
         }
 
-        var _this = this;
-
         as.add(
-            function( as ) {
-                var reqinfo_info = reqinfo.info;
-                var rawreq = reqinfo_info.RAW_REQUEST;
+            ( as ) => {
+                const reqinfo_info = reqinfo.info;
+                const rawreq = reqinfo_info.RAW_REQUEST;
 
-                _this.emit( 'request', reqinfo, rawreq );
+                this.emit( 'request', reqinfo, rawreq );
 
                 // Step 1. Parsing interface and function info
                 // ---
-                _this._getInfo( as, reqinfo );
+                this._getInfo( as, reqinfo );
 
                 if ( reqinfo_info._func_info.heavy ) {
-                    reqinfo.cancelAfter( _this._heavy_timeout );
+                    reqinfo.cancelAfter( this._heavy_timeout );
                 } else {
-                    reqinfo.cancelAfter( _this._request_timeout );
+                    reqinfo.cancelAfter( this._request_timeout );
                 }
 
                 // Step 2. Check params
                 // ---
-                _this._checkParams( as, reqinfo );
+                this._checkParams( as, reqinfo );
 
                 // Step 3. Security
                 // ---
-                var sec = rawreq.sec;
+                let sec = rawreq.sec;
 
                 if ( sec ) {
                     sec = sec.split( ':' );
 
                     // reserved user name
                     if ( sec[ 0 ] === '-internal' ) {
-                        _this._checkInternalAuth( as, reqinfo, sec );
+                        this._checkInternalAuth( as, reqinfo, sec );
                     } else if ( sec[ 0 ] === '-hmac' ) {
-                        _this._checkAuthHMAC( as, reqinfo, sec[1], sec[2], sec[3] );
+                        this._checkAuthHMAC( as, reqinfo, sec[1], sec[2], sec[3] );
                     } else {
-                        _this._checkBasicAuth( as, reqinfo, sec );
+                        this._checkBasicAuth( as, reqinfo, sec );
                     }
                 }
 
                 // Step 4.
                 // ---
-                as.add( function( as ) {
+                as.add( ( as ) => {
                     // Step 4.1. Check constraints
                     // ---
-                    _this._checkConstraints( as, reqinfo );
+                    this._checkConstraints( as, reqinfo );
 
                     // Step 4.2. Invoke implementation
                     // ---
-                    var func = reqinfo_info._func;
-                    var impl = _this._getImpl( as, reqinfo );
+                    const func = reqinfo_info._func;
+                    const impl = this._getImpl( as, reqinfo );
 
                     if ( !( func in impl ) ) {
                         as.error( FutoInError.InternalError, "Missing function implementation" );
                     }
 
-                    var result = impl[ func ]( as, reqinfo );
+                    const result = impl[ func ]( as, reqinfo );
 
                     if ( typeof result !== 'undefined' ) {
                         as.success( result );
@@ -545,7 +507,7 @@ var ExecutorProto =
 
                 // Step 5. Gather result and sign succeeded response
                 // ---
-                as.add( function( as, result ) {
+                as.add( ( as, result ) => {
                     if ( typeof result === 'undefined' ) {
                         // pass
                     } else if ( typeof result === 'object' ) {
@@ -554,25 +516,25 @@ var ExecutorProto =
                         reqinfo.info.RAW_RESPONSE.r = result;
                     }
 
-                    _this._checkResponse( as, reqinfo );
+                    this._checkResponse( as, reqinfo );
                     as.success( reqinfo );
                 } );
             },
-            function( as, err ) {
-                var reqinfo = as.state.reqinfo;
-                var reqinfo_info = reqinfo.info;
-                var error_info = as.state.error_info;
+            ( as, err ) => {
+                const reqinfo = as.state.reqinfo;
+                const reqinfo_info = reqinfo.info;
+                let error_info = as.state.error_info;
 
                 if ( !( err in invoker.SpecTools.standard_errors ) &&
                       ( !reqinfo_info._func_info ||
                         !( err in reqinfo_info._func_info.throws ) ) ) {
-                    _this.emit( 'notExpected', err, error_info,
+                    this.emit( 'notExpected', err, error_info,
                         as.state.last_exception, as.state.async_stack );
                     err = FutoInError.InternalError;
                     error_info = 'Not expected error';
                 }
 
-                var rawrsp = reqinfo.info.RAW_RESPONSE;
+                const rawrsp = reqinfo.info.RAW_RESPONSE;
 
                 rawrsp.e = err;
                 delete rawrsp.r;
@@ -584,11 +546,9 @@ var ExecutorProto =
                 // Even though request itself fails, send response
                 as.success( reqinfo );
             }
-        )
-            .add( function( as, reqinfo ) {
-                _this._signResponse( as, reqinfo );
-            } );
-    },
+        );
+        as.add( ( as, reqinfo ) => this._signResponse( as, reqinfo ) );
+    }
 
     /**
      * Shortcut to check access through #acl interface.
@@ -597,32 +557,32 @@ var ExecutorProto =
      * @param {AsyncSteps} as - steps interface
      * @param {string} acd - access control descriptor
      */
-    checkAccess : function( as, acd ) {
+    checkAccess( as, acd ) {
         void acd;
         as.error( FutoInError.NotImplemented, "Access Control is not supported yet" );
-    },
+    }
 
     /**
      * NOT IMPLEMENTED, DO NOT USE. Just a compliance with the Executor interface
      * from spec.
      * @param {AsyncSteps} as - steps interface
      */
-    initFromCache : function( as ) {
+    initFromCache( as ) {
         as.error( FutoInError.NotImplemented, "Caching is not supported yet" );
-    },
+    }
 
     /**
      * NOT IMPLEMENTED, DO NOT USE. Just a compliance with the Executor interface
      * from spec.
      * @param {AsyncSteps} as - steps interface
      */
-    cacheInit : function( as ) {
+    cacheInit( as ) {
         as.error( FutoInError.NotImplemented, "Caching is not supported yet" );
-    },
+    }
 
-    _getInfo : function( as, reqinfo ) {
-        var reqinfo_info = reqinfo.info;
-        var f = reqinfo_info.RAW_REQUEST.f;
+    _getInfo( as, reqinfo ) {
+        const reqinfo_info = reqinfo.info;
+        let f = reqinfo_info.RAW_REQUEST.f;
 
         if ( typeof f !== "string" ) {
             as.error( FutoInError.InvalidRequest, "Missing req.f" );
@@ -635,8 +595,8 @@ var ExecutorProto =
             as.error( FutoInError.InvalidRequest, "Invalid req.f" );
         }
 
-        var iface = f[ 0 ];
-        var func = f[ 2 ];
+        const iface = f[ 0 ];
+        const func = f[ 2 ];
 
         //
         var v = f[ 1 ].split( '.' );
@@ -646,33 +606,36 @@ var ExecutorProto =
         }
 
         //
-        if ( !( iface in this._ifaces ) ) {
+        const iface_info_map = this._ifaces[iface];
+
+        if ( !iface_info_map ) {
             as.error( FutoInError.UnknownInterface, "Unknown Interface" );
         }
 
-        var vmjr = v[ 0 ];
-        var vmnr = v[ 1 ];
+        const vmjr = v[ 0 ];
+        const vmnr = v[ 1 ];
+        let iface_info = iface_info_map[ vmjr ];
 
-        if ( !( vmjr in this._ifaces[ iface ] ) ) {
+        if ( !iface_info ) {
             as.error( FutoInError.NotSupportedVersion, "Different major version" );
         }
-
-        var iface_info = this._ifaces[ iface ][ vmjr ];
 
         if ( iface_info.mnrver < vmnr ) {
             as.error( FutoInError.NotSupportedVersion, "Iface version is too old" );
         }
 
         // Jump to actual implementation
-        if ( 'derived' in iface_info ) {
-            iface_info = iface_info.derived;
+        const derived = iface_info.derived;
+
+        if ( derived ) {
+            iface_info = derived;
         }
 
-        if ( !( func in iface_info.funcs ) ) {
+        const finfo = iface_info.funcs[ func ];
+
+        if ( !finfo ) {
             as.error( FutoInError.InvalidRequest, "Not defined interface function" );
         }
-
-        var finfo = iface_info.funcs[ func ];
 
         reqinfo_info._iface_info = iface_info;
         reqinfo_info._func = func;
@@ -681,13 +644,12 @@ var ExecutorProto =
         if ( finfo.rawresult ) {
             reqinfo_info.HAVE_RAW_RESULT = true;
         }
-    },
+    }
 
-    _stepReqinfoUser : function( as, reqinfo_info, authrsp ) {
-        var obf = reqinfo_info.RAW_REQUEST.obf;
+    _stepReqinfoUser( as, reqinfo_info, authrsp ) {
+        const obf = reqinfo_info.RAW_REQUEST.obf;
 
-        if ( obf &&
-             ( authrsp.seclvl === RequestInfo.SL_SYSTEM ) ) {
+        if ( obf && ( authrsp.seclvl === RequestInfo.SL_SYSTEM ) ) {
             reqinfo_info.SECURITY_LEVEL = obf.slvl;
             reqinfo_info.USER_INFO = new UserInfo(
                 this._ccm,
@@ -702,21 +664,20 @@ var ExecutorProto =
                 authrsp.global_id,
                 authrsp.details );
         }
-    },
+    }
 
-    _checkBasicAuth : function( as, reqinfo, sec ) {
+    _checkBasicAuth( as, reqinfo, sec ) {
         // TODO: check for credentials auth
         // Temporary use of "basicauth" service
-        var _this = this;
 
         as.add(
-            function( as ) {
-                var basicauth = _this._ccm.iface( '#basicauth' );
-                var reqinfo_info = reqinfo.info;
+            ( as ) => {
+                const basicauth = this._ccm.iface( '#basicauth' );
+                const reqinfo_info = reqinfo.info;
 
                 if ( reqinfo_info.RAW_REQUEST.obf &&
                      ( reqinfo.info.CHANNEL_CONTEXT.type() === 'INTERNAL' ) ) {
-                    _this._stepReqinfoUser( as, reqinfo_info, { seclvl : RequestInfo.SL_SYSTEM } );
+                    this._stepReqinfoUser( as, reqinfo_info, { seclvl : RequestInfo.SL_SYSTEM } );
                 } else {
                     basicauth.call( as, 'auth',
                         {
@@ -726,31 +687,28 @@ var ExecutorProto =
                             is_secure : reqinfo_info.SECURE_CHANNEL,
                         } );
 
-                    as.add( function( as, rsp ) {
-                        _this._stepReqinfoUser( as, reqinfo_info, rsp );
+                    as.add( ( as, rsp ) => {
+                        this._stepReqinfoUser( as, reqinfo_info, rsp );
                     } );
                 }
             },
-            function( as, err ) {
-                void err;
+            ( as, err ) => {
                 // console.log( err, as.state.error_info );
                 // console.log( as.state.last_exception.stack );
                 as.success(); // check in constraints
             }
         );
-    },
+    }
 
-    _checkAuthHMAC : function( as, reqinfo, user, algo, sig ) {
+    _checkAuthHMAC( as, reqinfo, user, algo, sig ) {
         // TODO: check "sec" for HMAC . MasterService
 
         // Temporary use of "basicauth" service
-        var _this = this;
-
         as.add(
-            function( as ) {
-                var basicauth = _this._ccm.iface( '#basicauth' );
-                var reqinfo_info = reqinfo.info;
-                var req = _clone( reqinfo.info.RAW_REQUEST );
+            ( as ) => {
+                const basicauth = this._ccm.iface( '#basicauth' );
+                const reqinfo_info = reqinfo.info;
+                const req = Object.assign( {}, reqinfo.info.RAW_REQUEST );
 
                 delete req.sec;
 
@@ -764,29 +722,28 @@ var ExecutorProto =
                         is_secure : reqinfo_info.SECURE_CHANNEL,
                     } );
 
-                as.add( function( as, rsp ) {
-                    _this._stepReqinfoUser( as, reqinfo_info, rsp );
+                as.add( ( as, rsp ) => {
+                    this._stepReqinfoUser( as, reqinfo_info, rsp );
                     reqinfo_info._hmac_algo = algo;
                     reqinfo_info._hmac_user = user;
                 } );
             },
-            function( as, err ) {
-                void err;
+            ( as, err ) => {
                 // console.log( err, as.state.error_info );
                 // console.log( as.state.last_exception.stack );
                 as.error( FutoInError.SecurityError, "Signature Verification Failed" );
             }
         );
-    },
+    }
 
-    _checkInternalAuth : function( as, reqinfo ) {
-        var reqinfo_info = reqinfo.info;
+    _checkInternalAuth( as, reqinfo ) {
+        const reqinfo_info = reqinfo.info;
 
         if ( reqinfo.info.CHANNEL_CONTEXT.type() !== 'INTERNAL' ) {
             as.error( FutoInError.SecurityError, "Not internal channel" );
         }
 
-        var obf = reqinfo_info.RAW_REQUEST.obf;
+        const obf = reqinfo_info.RAW_REQUEST.obf;
 
         if ( obf ) {
             reqinfo_info.SECURITY_LEVEL = obf.slvl;
@@ -803,22 +760,23 @@ var ExecutorProto =
                 '-internal',
                 null );
         }
-    },
+    }
 
-    _seclvl_list : [
-        "Anonymous",
-        "Info",
-        "SafeOps",
-        "PrivilegedOps",
-        "ExceptionalOps",
-        "ExceptionalOps",
-        "System",
-    ],
+    get _seclvl_list() {
+        return {
+            Anonymous : 1,
+            Info : 2,
+            SafeOps : 3,
+            PrivilegedOps : 4,
+            ExceptionalOps : 5,
+            System : 6,
+        };
+    }
 
-    _checkConstraints : function( as, reqinfo ) {
-        var reqinfo_info = reqinfo.info;
-        var constraints = reqinfo_info._iface_info.constraints;
-        var finfo = reqinfo_info._func_info;
+    _checkConstraints( as, reqinfo ) {
+        const reqinfo_info = reqinfo.info;
+        const constraints = reqinfo_info._iface_info.constraints;
+        const finfo = reqinfo_info._func_info;
 
         if ( ( 'SecureChannel' in constraints ) &&
              !reqinfo_info.SECURE_CHANNEL ) {
@@ -836,46 +794,45 @@ var ExecutorProto =
             as.error( FutoInError.SecurityError, "Anonymous not allowed" );
         }
 
-        var context = reqinfo_info.CHANNEL_CONTEXT;
+        const context = reqinfo_info.CHANNEL_CONTEXT;
 
         if ( ( 'BiDirectChannel' in constraints ) &&
-             ( !context ||
-               !context.isStateful() ) ) {
+             ( !context || !context.isStateful() )
+        ) {
             as.error( FutoInError.InvalidRequest, "Bi-Direct Channel is required" );
         }
 
         if ( finfo.seclvl ) {
-            var finfo_index = this._seclvl_list.indexOf( finfo.seclvl );
-            var current_index = this._seclvl_list.indexOf( reqinfo_info.SECURITY_LEVEL );
+            const seclvl_list = this._seclvl_list;
+            const finfo_index = seclvl_list[ finfo.seclvl ];
+            const current_index = seclvl_list[ reqinfo_info.SECURITY_LEVEL ];
 
-            if ( ( finfo_index < 0 ) ||
-                 ( current_index < finfo_index ) ) {
+            if ( !finfo_index || ( current_index < finfo_index ) ) {
                 as.error( FutoInError.PleaseReauth, finfo.seclvl );
             }
         }
-    },
+    }
 
-    _checkParams : function( as, reqinfo ) {
-        var reqinfo_info = reqinfo.info;
-        var rawreq = reqinfo_info.RAW_REQUEST;
-        var finfo = reqinfo_info._func_info;
+    _checkParams( as, reqinfo ) {
+        const reqinfo_info = reqinfo.info;
+        const rawreq = reqinfo_info.RAW_REQUEST;
+        const finfo = reqinfo_info._func_info;
 
         if ( reqinfo.HAVE_RAW_UPLOAD &&
              !finfo.rawupload ) {
             as.error( FutoInError.InvalidRequest, "Raw upload is not allowed" );
         }
 
-        if ( 'p' in rawreq ) {
-            var reqparams = rawreq.p;
-            var k;
+        const reqparams = rawreq.p;
 
+        if ( reqparams ) {
             // Check params
-            for ( k in reqparams ) {
+            for ( let k in reqparams ) {
                 if ( !( k in finfo.params ) ) {
                     as.error( FutoInError.InvalidRequest, "Unknown parameter" );
                 }
 
-                var check_res = invoker.SpecTools.checkParameterType(
+                let check_res = invoker.SpecTools.checkParameterType(
                     reqinfo_info._iface_info,
                     reqinfo_info._func,
                     k,
@@ -911,12 +868,13 @@ var ExecutorProto =
             }
 
             // Check missing params
-            for ( k in finfo.params ) {
+            for ( let k in finfo.params ) {
                 if ( !( k in reqparams ) ) {
-                    var pinfo = finfo.params[ k ];
+                    const pinfo = finfo.params[ k ];
+                    const defval = pinfo.default;
 
-                    if ( 'default' in pinfo ) {
-                        reqparams[ k ] = pinfo.default;
+                    if ( defval ) {
+                        reqparams[ k ] = defval;
                     } else {
                         as.error( FutoInError.InvalidRequest, "Missing parameter: " + k );
                     }
@@ -925,15 +883,15 @@ var ExecutorProto =
         } else if ( Object.keys( finfo.params ).length > 0 ) {
             as.error( FutoInError.InvalidRequest, "Missing parameter (any)" );
         }
-    },
+    }
 
-    _getImpl : function( as, reqinfo ) {
-        var reqinfo_info = reqinfo.info;
-        var iface_info = reqinfo_info._iface_info;
+    _getImpl( as, reqinfo ) {
+        const reqinfo_info = reqinfo.info;
+        const iface_info = reqinfo_info._iface_info;
 
-        var iname = iface_info.iface;
-        var imjr = iface_info.mjrver;
-        var impl = this._impls[ iname ][ imjr ];
+        const iname = iface_info.iface;
+        const imjr = iface_info.mjrver;
+        let impl = this._impls[ iname ][ imjr ];
 
         if ( typeof impl !== "object" ) {
             if ( typeof impl === "function" ) {
@@ -950,16 +908,16 @@ var ExecutorProto =
         }
 
         return impl;
-    },
+    }
 
-    _checkResponse : function( as, reqinfo ) {
+    _checkResponse( as, reqinfo ) {
         if ( !this._dev_checks ) {
             return;
         }
 
-        var reqinfo_info = reqinfo.info;
-        var rsp = reqinfo_info.RAW_RESPONSE;
-        var finfo = reqinfo_info._func_info;
+        const reqinfo_info = reqinfo.info;
+        const rsp = reqinfo_info.RAW_RESPONSE;
+        const finfo = reqinfo_info._func_info;
 
         // Check raw result
         if ( finfo.rawresult ) {
@@ -982,24 +940,23 @@ var ExecutorProto =
         }
 
         // check result variables
-        var resvars = finfo.result;
-        var result = rsp.r;
-        var iface_info = reqinfo_info._iface_info;
+        const resvars = finfo.result;
+        const result = rsp.r;
+        const iface_info = reqinfo_info._iface_info;
 
         if ( typeof resvars === 'string' ) {
             if ( !invoker.SpecTools.checkType( iface_info, resvars, result ) ) {
                 as.error( FutoInError.InternalError, "Invalid result type: " + result );
             }
         } else if ( Object.keys( resvars ).length > 0 ) {
-            var c = 0;
-            var k;
-            var func = reqinfo_info._func;
+            let c = 0;
+            const func = reqinfo_info._func;
 
             // NOTE: there must be no unknown result variables on executor side as exactly the
             // specified interface version must be implemented
-            for ( k in result ) {
+            for ( let k in result ) {
                 if ( !( k in resvars ) ) {
-                    as.error( FutoInError.InternalError, "Unknown result variable '" + k + "'" );
+                    as.error( FutoInError.InternalError, `Unknown result variable '${k}'` );
                 }
 
                 invoker.SpecTools.checkResultType(
@@ -1018,11 +975,11 @@ var ExecutorProto =
         } else if ( Object.keys( result ).length > 0 ) {
             as.error( FutoInError.InternalError, "No result variables are expected" );
         }
-    },
+    }
 
-    _signResponse : function( as, reqinfo ) {
-        var reqinfo_info = reqinfo.info;
-        var rawrsp = reqinfo_info.RAW_RESPONSE;
+    _signResponse( as, reqinfo ) {
+        const reqinfo_info = reqinfo.info;
+        const rawrsp = reqinfo_info.RAW_RESPONSE;
 
         if ( !rawrsp ) {
             // Nothing to sign
@@ -1037,12 +994,9 @@ var ExecutorProto =
         }
 
         if ( reqinfo_info._hmac_user ) {
-            // Temporary use of "basicauth" service
-            var _this = this;
-
             as.add(
-                function( as ) {
-                    var basicauth = _this._ccm.iface( '#basicauth' );
+                ( as ) => {
+                    const basicauth = this._ccm.iface( '#basicauth' );
 
                     basicauth.call( as, 'genHMAC',
                         {
@@ -1051,14 +1005,13 @@ var ExecutorProto =
                             algo : reqinfo_info._hmac_algo,
                         } );
 
-                    as.add( function( as, rsp ) {
+                    as.add( ( as, rsp ) => {
                         rawrsp.sec = rsp.sig;
-                        _this.emit( 'response', reqinfo, rawrsp );
+                        this.emit( 'response', reqinfo, rawrsp );
                     } );
                 },
-                function( as, err ) {
-                    void err;
-                    _this.emit( 'response', reqinfo, rawrsp );
+                ( as, err ) => {
+                    this.emit( 'response', reqinfo, rawrsp );
                     as.success();
                 }
             );
@@ -1068,20 +1021,20 @@ var ExecutorProto =
 
         // Default
         this.emit( 'response', reqinfo, rawrsp );
-    },
+    }
 
     /**
      * Shutdown Executor and stop whole processing
      * @param {callable} [close_cb=null] - callback to execute after Executor shutdown
      * @fires Executor#close
      */
-    close : function( close_cb ) {
+    close( close_cb ) {
         this.emit( 'close' );
 
         if ( close_cb ) {
             close_cb();
         }
-    },
+    }
 
     /**
      * Not standard. Pack message object into JSON representation.
@@ -1091,8 +1044,8 @@ var ExecutorProto =
      * @returns {string} string representation of the message
      * @fires Executor#notExpected
      */
-    packPayloadJSON : function( msg ) {
-        var rawmsg = JSON.stringify( msg );
+    packPayloadJSON( msg ) {
+        const rawmsg = JSON.stringify( msg );
 
         if ( this._byteLength( rawmsg, 'utf8' ) > this.SAFE_PAYLOAD_LIMIT ) {
             this.emit( 'notExpected', FutoInError.InternalError,
@@ -1102,10 +1055,8 @@ var ExecutorProto =
         }
 
         return rawmsg;
-    },
-};
-
-Executor.prototype = ExecutorProto;
+    }
+}
 
 module.exports = Executor;
 

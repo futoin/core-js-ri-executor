@@ -28,33 +28,28 @@
  * @param {integer} sequence_id - sequence number of the derived key
  * @class
  */
-var DerivedKey = function( ccm, base_id, sequence_id ) {
-    this._ccm = ccm;
-    this._base_id = base_id;
-    this._sequence_id = sequence_id;
-};
-
-var DerivedKeyProto =
-{
-    _ccm : null,
-    _base_id : null,
-    _sequence_id : null,
+class DerivedKey {
+    constructor( ccm, base_id, sequence_id ) {
+        this._ccm = ccm;
+        this._base_id = base_id;
+        this._sequence_id = sequence_id;
+    }
 
     /**
      * Get master key ID
      * @returns {integer} Base ID
      */
-    baseID : function() {
+    baseID() {
         return this._base_id;
-    },
+    }
 
     /**
      * Get derived key sequence ID
      * @returns {integer} Sequence ID
      */
-    sequenceID : function() {
+    sequenceID() {
         return this._sequence_id;
-    },
+    }
 
     /**
      * Encrypt data with current derived key. Useful
@@ -63,12 +58,11 @@ var DerivedKeyProto =
      * @param {string|Buffer} data to encrypt
      * @returns {Buffer} encrypted data
      */
-    encrypt : function( as, data ) {
-        void as;
+    encrypt( as, data ) {
         void data;
         as.error( 'NotImplemented', 'Derived key encryption is not supported yet' );
         return null;
-    },
+    }
 
     /**
      * Decrypt data using current derived key
@@ -76,17 +70,15 @@ var DerivedKeyProto =
      * @param {Buffer} data to decrypt
      * @returns {Buffer} decrypted data
      */
-    decrypt : function( as, data ) {
-        void as;
+    decrypt( as, data ) {
         void data;
         as.error( 'NotImplemented', 'Derived key decryption is not supported yet' );
         return null;
-    },
+    }
 
-    _cleanup : function() {
+    _cleanup() {
         this._ccm = null;
-    },
-};
+    }
+}
 
-DerivedKey.prototype = DerivedKeyProto;
 module.exports = DerivedKey;

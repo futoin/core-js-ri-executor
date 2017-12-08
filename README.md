@@ -453,22 +453,33 @@ The concept is described in FutoIn specification: [FTN6: Interface Executor Conc
 <dd><p>BasicAuth is not official spec - it is a temporary solution
 until FTN8 Security Concept is finalized</p>
 </dd>
+<dt><a href="#BasicAuthService">BasicAuthService</a></dt>
+<dd><p>BasicService is not official spec - it is a temporary solution
+until FTN8 Security Concept is finalized</p>
+</dd>
 <dt><a href="#BrowserExecutorOptions">BrowserExecutorOptions</a> ⇐ <code><a href="#ExecutorOptions">ExecutorOptions</a></code></dt>
 <dd></dd>
 <dt><a href="#BrowserExecutor">BrowserExecutor</a></dt>
-<dd></dd>
+<dd><p>Browser Executor with HTML5 Web Messaging as incoming transport.</p>
+<p>It allows communication across open pages (frames/tabs/windows) inside client browser.</p>
+</dd>
 <dt><a href="#ChannelContext">ChannelContext</a></dt>
-<dd></dd>
+<dd><p>Channel Context normally accessible through RequestInfo object.</p>
+</dd>
 <dt><a href="#DerivedKey">DerivedKey</a></dt>
-<dd></dd>
+<dd><p>Derived Key interface for planned FTN8 Master key management.</p>
+<p>A dummy so far.</p>
+</dd>
 <dt><a href="#ExecutorOptions">ExecutorOptions</a></dt>
 <dd></dd>
 <dt><a href="#Executor">Executor</a></dt>
-<dd></dd>
+<dd><p>An abstract core implementing pure FTN6 Executor logic.</p>
+</dd>
 <dt><a href="#NodeExecutorOptions">NodeExecutorOptions</a> ⇐ <code><a href="#ExecutorOptions">ExecutorOptions</a></code></dt>
 <dd></dd>
 <dt><a href="#NodeExecutor">NodeExecutor</a></dt>
-<dd></dd>
+<dd><p>Executor implementation for Node.js/io.js with HTTP and WebSockets transport</p>
+</dd>
 <dt><a href="#PingService">PingService</a></dt>
 <dd><p>Implementation of futoin.ping &amp; futoin.anonping interface</p>
 <p>Designed to be used as imported part of larger interfaces.</p>
@@ -476,20 +487,19 @@ until FTN8 Security Concept is finalized</p>
 <dt><a href="#RequestInfoConst">RequestInfoConst</a></dt>
 <dd></dd>
 <dt><a href="#RequestInfo">RequestInfo</a></dt>
-<dd></dd>
+<dd><p>RequestInfo object as defined in FTN6</p>
+</dd>
 <dt><a href="#SourceAddress">SourceAddress</a></dt>
-<dd></dd>
+<dd><p>Source Address representation</p>
+</dd>
 <dt><a href="#UserInfo">UserInfo</a></dt>
-<dd></dd>
+<dd><p>Class representing user information</p>
+</dd>
 </dl>
 
 ## Members
 
 <dl>
-<dt><a href="#UserInfoConst">UserInfoConst</a></dt>
-<dd><p>Pseudo-class for documenting UserInfo detail fields as
-defined in FTN8 spec</p>
-</dd>
 <dt><a href="#FutoInExecutor">FutoInExecutor</a></dt>
 <dd><p><strong>window.FutoInExecutor</strong> - Browser-only reference to futoin-executor</p>
 </dd>
@@ -502,12 +512,12 @@ futoin-executor.BrowserExecutor</p>
 </dd>
 </dl>
 
-## Functions
+## Constants
 
 <dl>
-<dt><a href="#BasicAuthService">BasicAuthService()</a></dt>
-<dd><p>BasicService is not official spec - it is a temporary solution
-until FTN8 Security Concept is finalized</p>
+<dt><a href="#UserInfoConst">UserInfoConst</a></dt>
+<dd><p>Pseudo-class for documenting UserInfo detail fields as
+defined in FTN8 spec</p>
 </dd>
 </dl>
 
@@ -536,6 +546,75 @@ BasicAuth interface registration helper
 | [credentials] | <code>\*</code> | <code></code> | see CCM register() |
 | [options] | <code>object</code> | <code>{}</code> | registration options |
 | [options.version] | <code>string</code> | <code>&quot;1.0&quot;</code> | iface version |
+
+<a name="BasicAuthService"></a>
+
+## BasicAuthService
+BasicService is not official spec - it is a temporary solution
+until FTN8 Security Concept is finalized
+
+**Kind**: global class  
+
+* [BasicAuthService](#BasicAuthService)
+    * _instance_
+        * [.addUser(user, secret, details, [system_user])](#BasicAuthService+addUser)
+        * [._getUser(as, user)](#BasicAuthService+_getUser)
+        * [._getUserByID(as, local_id)](#BasicAuthService+_getUserByID)
+    * _static_
+        * [.register(as, executor)](#BasicAuthService.register) ⇒ [<code>BasicAuthService</code>](#BasicAuthService)
+
+<a name="BasicAuthService+addUser"></a>
+
+### basicAuthService.addUser(user, secret, details, [system_user])
+Register users statically right after registration
+
+**Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| user | <code>string</code> | user name |
+| secret | <code>string</code> | user secret (either password or raw key for HMAC) |
+| details | <code>object</code> | user details the way as defined in FTN8 |
+| [system_user] | <code>boolean</code> | is system user |
+
+<a name="BasicAuthService+_getUser"></a>
+
+### basicAuthService._getUser(as, user)
+Get by name. Override, if needed.
+
+**Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
+**Note**: as result: {object} user object or null (through as)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+| user | <code>string</code> | user name |
+
+<a name="BasicAuthService+_getUserByID"></a>
+
+### basicAuthService._getUserByID(as, local_id)
+Get by ID. Override, if needed.
+
+**Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
+**Note**: as result: {object} user object or null (through as)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interfaces |
+| local_id | <code>number</code> | local ID |
+
+<a name="BasicAuthService.register"></a>
+
+### BasicAuthService.register(as, executor) ⇒ [<code>BasicAuthService</code>](#BasicAuthService)
+BasicAuthService registration helper
+
+**Kind**: static method of [<code>BasicAuthService</code>](#BasicAuthService)  
+**Returns**: [<code>BasicAuthService</code>](#BasicAuthService) - reference to implementation instance (to register users)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+| executor | [<code>Executor</code>](#Executor) | executor instance |
 
 <a name="BrowserExecutorOptions"></a>
 
@@ -575,79 +654,173 @@ Example:
 <a name="BrowserExecutor"></a>
 
 ## BrowserExecutor
-**Kind**: global class  
-
-* [BrowserExecutor](#BrowserExecutor)
-    * [new BrowserExecutor(ccm, opts)](#new_BrowserExecutor_new)
-    * [.allowed_origins](#BrowserExecutor.allowed_origins)
-
-<a name="new_BrowserExecutor_new"></a>
-
-### new BrowserExecutor(ccm, opts)
 Browser Executor with HTML5 Web Messaging as incoming transport.
 
 It allows communication across open pages (frames/tabs/windows) inside client browser.
 
+**Kind**: global class  
+<a name="new_BrowserExecutor_new"></a>
+
+### new BrowserExecutor(ccm, opts)
 
 | Param | Type | Description |
 | --- | --- | --- |
 | ccm | <code>AdvancedCCM</code> | CCM ref |
 | opts | [<code>BrowserExecutorOptions</code>](#BrowserExecutorOptions) | executor options |
 
-<a name="BrowserExecutor.allowed_origins"></a>
-
-### BrowserExecutor.allowed_origins
-Current list of allowed origins for modifications. Please note that
-it is an object, where field is actual origin and value must evaluate
-to true.
-
-**Kind**: static property of [<code>BrowserExecutor</code>](#BrowserExecutor)  
 <a name="ChannelContext"></a>
 
 ## ChannelContext
+Channel Context normally accessible through RequestInfo object.
+
 **Kind**: global class  
 
 * [ChannelContext](#ChannelContext)
     * [new ChannelContext(executor)](#new_ChannelContext_new)
-    * [.state](#ChannelContext.state) ⇒ <code>object</code>
+    * *[.type()](#ChannelContext+type) ⇒ <code>string</code>*
+    * [.isStateful()](#ChannelContext+isStateful) ⇒ <code>Boolean</code>
+    * [.onInvokerAbort(callable, [user_data])](#ChannelContext+onInvokerAbort)
+    * [.register(as, ifacever, options)](#ChannelContext+register)
+    * [.iface(ifacever)](#ChannelContext+iface) ⇒ <code>NativeIface</code>
 
 <a name="new_ChannelContext_new"></a>
 
 ### new ChannelContext(executor)
-Channel Context normally accessible through RequestInfo object.
-
 
 | Param | Type | Description |
 | --- | --- | --- |
 | executor | [<code>Executor</code>](#Executor) | reference to associated executor |
 
-<a name="ChannelContext.state"></a>
+<a name="ChannelContext+type"></a>
 
-### ChannelContext.state ⇒ <code>object</code>
-Persistent storage for arbitrary user variables.
-Please make sure variable names a prefixed.
+### *channelContext.type() ⇒ <code>string</code>*
+Get type of channel
 
-NOTE: context.state === context.state()
+Standard values: HTTP, WS, BROWSER, TCP, UDP, UNIX
 
-**Kind**: static property of [<code>ChannelContext</code>](#ChannelContext)  
-**Returns**: <code>object</code> - this.state  
+**Kind**: instance abstract method of [<code>ChannelContext</code>](#ChannelContext)  
+**Returns**: <code>string</code> - arbitrary string, see FTN6  
+<a name="ChannelContext+isStateful"></a>
+
+### channelContext.isStateful() ⇒ <code>Boolean</code>
+Check if transport is stateful (e.g. WebSockets)
+
+**Kind**: instance method of [<code>ChannelContext</code>](#ChannelContext)  
+**Returns**: <code>Boolean</code> - true, if context object is persistent across
+requests in the same session  
+<a name="ChannelContext+onInvokerAbort"></a>
+
+### channelContext.onInvokerAbort(callable, [user_data])
+Set invoker abort handler.
+
+NOTE: It should be possible to call multiple times setting
+multiple callbacks
+
+**Kind**: instance method of [<code>ChannelContext</code>](#ChannelContext)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| callable | <code>function</code> | callback |
+| [user_data] | <code>any</code> | optional parameter to pass to callable |
+
+<a name="ChannelContext+register"></a>
+
+### channelContext.register(as, ifacever, options)
+Register Invoker interface on bi-directional channels to make
+calls from Server to Client.
+
+**Kind**: instance method of [<code>ChannelContext</code>](#ChannelContext)  
+**See**: AdvancedCCM.register  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+| ifacever | <code>string</code> | standard iface:version notation |
+| options | <code>object</code> | standard Invoker options |
+
+<a name="ChannelContext+iface"></a>
+
+### channelContext.iface(ifacever) ⇒ <code>NativeIface</code>
+Get previously registered interface on bi-directional channel.
+
+NOTE: unlike CCM, there is no point for local alias name as Invoker
+can have only a single ClientExecutor which can have only a single
+instance implementing specified iface:version.
+
+**Kind**: instance method of [<code>ChannelContext</code>](#ChannelContext)  
+**Returns**: <code>NativeIface</code> - - native interface  
+**See**: AdvancedCCM.iface  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ifacever | <code>string</code> | standard iface:version notation |
+
 <a name="DerivedKey"></a>
 
 ## DerivedKey
-**Kind**: global class  
-<a name="new_DerivedKey_new"></a>
-
-### new DerivedKey(ccm, base_id, sequence_id)
 Derived Key interface for planned FTN8 Master key management.
 
 A dummy so far.
 
+**Kind**: global class  
+
+* [DerivedKey](#DerivedKey)
+    * [new DerivedKey(ccm, base_id, sequence_id)](#new_DerivedKey_new)
+    * [.baseID()](#DerivedKey+baseID) ⇒ <code>integer</code>
+    * [.sequenceID()](#DerivedKey+sequenceID) ⇒ <code>integer</code>
+    * [.encrypt(as, data)](#DerivedKey+encrypt) ⇒ <code>Buffer</code>
+    * [.decrypt(as, data)](#DerivedKey+decrypt) ⇒ <code>Buffer</code>
+
+<a name="new_DerivedKey_new"></a>
+
+### new DerivedKey(ccm, base_id, sequence_id)
 
 | Param | Type | Description |
 | --- | --- | --- |
 | ccm | <code>AdvancedCCM</code> | reference to CCM |
 | base_id | <code>integer</code> | master key ID |
 | sequence_id | <code>integer</code> | sequence number of the derived key |
+
+<a name="DerivedKey+baseID"></a>
+
+### derivedKey.baseID() ⇒ <code>integer</code>
+Get master key ID
+
+**Kind**: instance method of [<code>DerivedKey</code>](#DerivedKey)  
+**Returns**: <code>integer</code> - Base ID  
+<a name="DerivedKey+sequenceID"></a>
+
+### derivedKey.sequenceID() ⇒ <code>integer</code>
+Get derived key sequence ID
+
+**Kind**: instance method of [<code>DerivedKey</code>](#DerivedKey)  
+**Returns**: <code>integer</code> - Sequence ID  
+<a name="DerivedKey+encrypt"></a>
+
+### derivedKey.encrypt(as, data) ⇒ <code>Buffer</code>
+Encrypt data with current derived key. Useful
+for very senstive information.
+
+**Kind**: instance method of [<code>DerivedKey</code>](#DerivedKey)  
+**Returns**: <code>Buffer</code> - encrypted data  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+| data | <code>string</code> \| <code>Buffer</code> | to encrypt |
+
+<a name="DerivedKey+decrypt"></a>
+
+### derivedKey.decrypt(as, data) ⇒ <code>Buffer</code>
+Decrypt data using current derived key
+
+**Kind**: instance method of [<code>DerivedKey</code>](#DerivedKey)  
+**Returns**: <code>Buffer</code> - decrypted data  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+| data | <code>Buffer</code> | to decrypt |
 
 <a name="ExecutorOptions"></a>
 
@@ -709,12 +882,22 @@ Useful for audit logging.
 <a name="Executor"></a>
 
 ## Executor
+An abstract core implementing pure FTN6 Executor logic.
+
 **Kind**: global class  
 
 * [Executor](#Executor)
     * [new Executor(ccm, opts)](#new_Executor_new)
     * [.ccm()](#Executor+ccm) ⇒ <code>AdvancedCCM</code>
     * [.register(as, ifacever, impl, specdirs)](#Executor+register)
+    * [.onEndpointRequest(info, ftnreq, send_executor_rsp)](#Executor+onEndpointRequest)
+    * [.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream])](#Executor+onInternalRequest)
+    * [.process(as)](#Executor+process)
+    * [.checkAccess(as, acd)](#Executor+checkAccess)
+    * [.initFromCache(as)](#Executor+initFromCache)
+    * [.cacheInit(as)](#Executor+cacheInit)
+    * [.close([close_cb])](#Executor+close)
+    * [.packPayloadJSON(msg)](#Executor+packPayloadJSON) ⇒ <code>string</code>
     * ["request"](#Executor+event_request)
     * ["response"](#Executor+event_response)
     * ["notExpected"](#Executor+event_notExpected)
@@ -723,8 +906,6 @@ Useful for audit logging.
 <a name="new_Executor_new"></a>
 
 ### new Executor(ccm, opts)
-An abstract core implementing pure FTN6 Executor logic.
-
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -751,6 +932,116 @@ Register implementation of specific interface
 | ifacever | <code>string</code> | standard iface:version notation of interface        to be implemented. |
 | impl | <code>object</code> \| <code>function</code> | either iface implementation or func( impl, executor ) |
 | specdirs | <code>object</code> \| <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
+
+<a name="Executor+onEndpointRequest"></a>
+
+### executor.onEndpointRequest(info, ftnreq, send_executor_rsp)
+Entry point for Server-originated requests when acting as ClientExecutor
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Emits**: [<code>notExpected</code>](#Executor+event_notExpected), [<code>request</code>](#Executor+event_request), [<code>response</code>](#Executor+event_response)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| info | <code>object</code> | raw Invoker interface info |
+| ftnreq | <code>object</code> | FutoIn request object |
+| send_executor_rsp | <code>function</code> | callback( ftnrsp ) |
+
+<a name="Executor+onInternalRequest"></a>
+
+### executor.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream])
+Entry point for in-program originated requests. Process with maximum efficiency (not yet ;)
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Emits**: [<code>notExpected</code>](#Executor+event_notExpected), [<code>request</code>](#Executor+event_request), [<code>response</code>](#Executor+event_response)  
+**Note**: AS result: ftnrsp, content-type  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+| info | <code>object</code> | raw Invoker interface info |
+| ftnreq | <code>object</code> | FutoIn request object |
+| [upload_data] | <code>object</code> | upload stream, if any |
+| [download_stream] | <code>object</code> | download stream, if any |
+
+<a name="Executor+process"></a>
+
+### executor.process(as)
+Standard entry point used by subclasses.
+Do full cycle of request processing, including all security checks
+
+NOTE: as.state.reqinfo must point to valid instance of RequestInfo
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Emits**: [<code>notExpected</code>](#Executor+event_notExpected), [<code>request</code>](#Executor+event_request), [<code>response</code>](#Executor+event_response)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+
+<a name="Executor+checkAccess"></a>
+
+### executor.checkAccess(as, acd)
+Shortcut to check access through #acl interface.
+
+NOTE: as.state.reqinfo must point to valid instance of RequestInfo
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+| acd | <code>string</code> | access control descriptor |
+
+<a name="Executor+initFromCache"></a>
+
+### executor.initFromCache(as)
+NOT IMPLEMENTED, DO NOT USE. Just a compliance with the Executor interface
+from spec.
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+
+<a name="Executor+cacheInit"></a>
+
+### executor.cacheInit(as)
+NOT IMPLEMENTED, DO NOT USE. Just a compliance with the Executor interface
+from spec.
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+
+<a name="Executor+close"></a>
+
+### executor.close([close_cb])
+Shutdown Executor and stop whole processing
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Emits**: [<code>close</code>](#Executor+event_close)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [close_cb] | <code>callable</code> | <code></code> | callback to execute after Executor shutdown |
+
+<a name="Executor+packPayloadJSON"></a>
+
+### executor.packPayloadJSON(msg) ⇒ <code>string</code>
+Not standard. Pack message object into JSON representation.
+If safe limit of 64K is exceeded  then error is raised.
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Returns**: <code>string</code> - string representation of the message  
+**Emits**: [<code>notExpected</code>](#Executor+event_notExpected)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| msg | <code>object</code> | message to encode into JSON |
 
 <a name="Executor+event_request"></a>
 
@@ -859,17 +1150,48 @@ If true, X-Forwarded-For will be used as Source Address, if present
 <a name="NodeExecutor"></a>
 
 ## NodeExecutor
+Executor implementation for Node.js/io.js with HTTP and WebSockets transport
+
 **Kind**: global class  
+
+* [NodeExecutor](#NodeExecutor)
+    * [new NodeExecutor(ccm, opts)](#new_NodeExecutor_new)
+    * [.handleHTTPRequest(req, rsp)](#NodeExecutor+handleHTTPRequest) ⇒ <code>Boolean</code>
+    * [.handleWSConnection(upgrade_req, ws)](#NodeExecutor+handleWSConnection)
+
 <a name="new_NodeExecutor_new"></a>
 
 ### new NodeExecutor(ccm, opts)
-Executor implementation for Node.js/io.js with HTTP and WebSockets transport
-
 
 | Param | Type | Description |
 | --- | --- | --- |
 | ccm | <code>AdvancedCCM</code> | CCM for internal requests |
 | opts | [<code>NodeExecutorOptions</code>](#NodeExecutorOptions) | executor options |
+
+<a name="NodeExecutor+handleHTTPRequest"></a>
+
+### nodeExecutor.handleHTTPRequest(req, rsp) ⇒ <code>Boolean</code>
+Entry point to process HTTP request
+
+**Kind**: instance method of [<code>NodeExecutor</code>](#NodeExecutor)  
+**Returns**: <code>Boolean</code> - true on success  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| req | <code>http.IncomingMessage</code> | incoming HTTP request |
+| rsp | <code>http.ServerResponse</code> | response object |
+
+<a name="NodeExecutor+handleWSConnection"></a>
+
+### nodeExecutor.handleWSConnection(upgrade_req, ws)
+Entry point to process HTTP upgrade request with WebSocket
+
+**Kind**: instance method of [<code>NodeExecutor</code>](#NodeExecutor)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| upgrade_req | <code>http.IncomingMessage</code> | original HTTP upgrade request |
+| ws | <code>WebSocket</code> | WebSockets connection object |
 
 <a name="PingService"></a>
 
@@ -1094,11 +1416,12 @@ such security level.
 <a name="RequestInfo"></a>
 
 ## RequestInfo
+RequestInfo object as defined in FTN6
+
 **Kind**: global class  
 
 * [RequestInfo](#RequestInfo)
     * [new RequestInfo(executor, rawreq)](#new_RequestInfo_new)
-    * [.info](#RequestInfo+info) ⇒ <code>object</code>
     * [.params()](#RequestInfo+params) ⇒ <code>object</code>
     * [.result(replace)](#RequestInfo+result) ⇒ <code>object</code>
     * [.rawInput()](#RequestInfo+rawInput) ⇒ <code>object</code>
@@ -1110,22 +1433,12 @@ such security level.
 <a name="new_RequestInfo_new"></a>
 
 ### new RequestInfo(executor, rawreq)
-RequestInfo object as defined in FTN6
-
 
 | Param | Type | Description |
 | --- | --- | --- |
 | executor | [<code>Executor</code>](#Executor) | _ |
 | rawreq | <code>object</code> \| <code>string</code> | raw request |
 
-<a name="RequestInfo+info"></a>
-
-### requestInfo.info ⇒ <code>object</code>
-Get reference to info map object
-
-NOTE: reqInfo.info() === reqInfo.info
-
-**Kind**: instance property of [<code>RequestInfo</code>](#RequestInfo)  
 <a name="RequestInfo+params"></a>
 
 ### requestInfo.params() ⇒ <code>object</code>
@@ -1197,20 +1510,17 @@ NOTE: repeat calls override previous value
 <a name="SourceAddress"></a>
 
 ## SourceAddress
+Source Address representation
+
 **Kind**: global class  
 
 * [SourceAddress](#SourceAddress)
     * [new SourceAddress(type, [host], port)](#new_SourceAddress_new)
-    * [.host](#SourceAddress+host)
-    * [.port](#SourceAddress+port)
-    * [.type](#SourceAddress+type)
     * [.asString()](#SourceAddress+asString) ⇒ <code>string</code>
 
 <a name="new_SourceAddress_new"></a>
 
 ### new SourceAddress(type, [host], port)
-Source Address representation
-
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1218,24 +1528,6 @@ Source Address representation
 | [host] | <code>string</code> | machine address, if applicable |
 | port | <code>integer</code> \| <code>string</code> | port or path, if applicable |
 
-<a name="SourceAddress+host"></a>
-
-### sourceAddress.host
-Host field
-
-**Kind**: instance property of [<code>SourceAddress</code>](#SourceAddress)  
-<a name="SourceAddress+port"></a>
-
-### sourceAddress.port
-Port field
-
-**Kind**: instance property of [<code>SourceAddress</code>](#SourceAddress)  
-<a name="SourceAddress+type"></a>
-
-### sourceAddress.type
-Type field
-
-**Kind**: instance property of [<code>SourceAddress</code>](#SourceAddress)  
 <a name="SourceAddress+asString"></a>
 
 ### sourceAddress.asString() ⇒ <code>string</code>
@@ -1246,6 +1538,8 @@ Get a stable string representation
 <a name="UserInfo"></a>
 
 ## UserInfo
+Class representing user information
+
 **Kind**: global class  
 
 * [UserInfo](#UserInfo)
@@ -1257,8 +1551,6 @@ Get a stable string representation
 <a name="new_UserInfo_new"></a>
 
 ### new UserInfo(ccm, local_id, global_id, details)
-Class representing user information
-
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1294,13 +1586,227 @@ Get user info details
 | as | <code>AsyncSteps</code> | steps interface |
 | [user_field_identifiers] | <code>object</code> | field list to get |
 
+<a name="FutoInExecutor"></a>
+
+## FutoInExecutor
+**window.FutoInExecutor** - Browser-only reference to futoin-executor
+
+**Kind**: global variable  
+<a name="Executor"></a>
+
+## Executor
+**window.futoin.Executor** - Browser-only reference to futoin-executor
+
+**Kind**: global variable  
+
+* [Executor](#Executor)
+    * [new Executor(ccm, opts)](#new_Executor_new)
+    * [.ccm()](#Executor+ccm) ⇒ <code>AdvancedCCM</code>
+    * [.register(as, ifacever, impl, specdirs)](#Executor+register)
+    * [.onEndpointRequest(info, ftnreq, send_executor_rsp)](#Executor+onEndpointRequest)
+    * [.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream])](#Executor+onInternalRequest)
+    * [.process(as)](#Executor+process)
+    * [.checkAccess(as, acd)](#Executor+checkAccess)
+    * [.initFromCache(as)](#Executor+initFromCache)
+    * [.cacheInit(as)](#Executor+cacheInit)
+    * [.close([close_cb])](#Executor+close)
+    * [.packPayloadJSON(msg)](#Executor+packPayloadJSON) ⇒ <code>string</code>
+    * ["request"](#Executor+event_request)
+    * ["response"](#Executor+event_response)
+    * ["notExpected"](#Executor+event_notExpected)
+    * ["close"](#Executor+event_close)
+
+<a name="new_Executor_new"></a>
+
+### new Executor(ccm, opts)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> | instance of AdvancedCCM |
+| opts | <code>objects</code> | see ExecutorOptions |
+
+<a name="Executor+ccm"></a>
+
+### executor.ccm() ⇒ <code>AdvancedCCM</code>
+Get reference to associated AdvancedCCM instance
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Returns**: <code>AdvancedCCM</code> - CCM ref  
+<a name="Executor+register"></a>
+
+### executor.register(as, ifacever, impl, specdirs)
+Register implementation of specific interface
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+| ifacever | <code>string</code> | standard iface:version notation of interface        to be implemented. |
+| impl | <code>object</code> \| <code>function</code> | either iface implementation or func( impl, executor ) |
+| specdirs | <code>object</code> \| <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
+
+<a name="Executor+onEndpointRequest"></a>
+
+### executor.onEndpointRequest(info, ftnreq, send_executor_rsp)
+Entry point for Server-originated requests when acting as ClientExecutor
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Emits**: [<code>notExpected</code>](#Executor+event_notExpected), [<code>request</code>](#Executor+event_request), [<code>response</code>](#Executor+event_response)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| info | <code>object</code> | raw Invoker interface info |
+| ftnreq | <code>object</code> | FutoIn request object |
+| send_executor_rsp | <code>function</code> | callback( ftnrsp ) |
+
+<a name="Executor+onInternalRequest"></a>
+
+### executor.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream])
+Entry point for in-program originated requests. Process with maximum efficiency (not yet ;)
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Emits**: [<code>notExpected</code>](#Executor+event_notExpected), [<code>request</code>](#Executor+event_request), [<code>response</code>](#Executor+event_response)  
+**Note**: AS result: ftnrsp, content-type  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+| info | <code>object</code> | raw Invoker interface info |
+| ftnreq | <code>object</code> | FutoIn request object |
+| [upload_data] | <code>object</code> | upload stream, if any |
+| [download_stream] | <code>object</code> | download stream, if any |
+
+<a name="Executor+process"></a>
+
+### executor.process(as)
+Standard entry point used by subclasses.
+Do full cycle of request processing, including all security checks
+
+NOTE: as.state.reqinfo must point to valid instance of RequestInfo
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Emits**: [<code>notExpected</code>](#Executor+event_notExpected), [<code>request</code>](#Executor+event_request), [<code>response</code>](#Executor+event_response)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+
+<a name="Executor+checkAccess"></a>
+
+### executor.checkAccess(as, acd)
+Shortcut to check access through #acl interface.
+
+NOTE: as.state.reqinfo must point to valid instance of RequestInfo
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+| acd | <code>string</code> | access control descriptor |
+
+<a name="Executor+initFromCache"></a>
+
+### executor.initFromCache(as)
+NOT IMPLEMENTED, DO NOT USE. Just a compliance with the Executor interface
+from spec.
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+
+<a name="Executor+cacheInit"></a>
+
+### executor.cacheInit(as)
+NOT IMPLEMENTED, DO NOT USE. Just a compliance with the Executor interface
+from spec.
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | steps interface |
+
+<a name="Executor+close"></a>
+
+### executor.close([close_cb])
+Shutdown Executor and stop whole processing
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Emits**: [<code>close</code>](#Executor+event_close)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [close_cb] | <code>callable</code> | <code></code> | callback to execute after Executor shutdown |
+
+<a name="Executor+packPayloadJSON"></a>
+
+### executor.packPayloadJSON(msg) ⇒ <code>string</code>
+Not standard. Pack message object into JSON representation.
+If safe limit of 64K is exceeded  then error is raised.
+
+**Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Returns**: <code>string</code> - string representation of the message  
+**Emits**: [<code>notExpected</code>](#Executor+event_notExpected)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| msg | <code>object</code> | message to encode into JSON |
+
+<a name="Executor+event_request"></a>
+
+### "request"
+Fired when request processing is started.
+( reqinfo, rawreq )
+
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
+<a name="Executor+event_response"></a>
+
+### "response"
+Fired when request processing is started.
+( reqinfo, rawreq )
+
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
+<a name="Executor+event_notExpected"></a>
+
+### "notExpected"
+Fired when not expected error occurs
+( errmsg, error_info, last_exception, async_stack )
+
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
+<a name="Executor+event_close"></a>
+
+### "close"
+Fired when Executor is shutting down.
+()
+
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
+<a name="BrowserExecutor"></a>
+
+## BrowserExecutor
+**window.BrowserExecutor** - Browser-only reference to
+futoin-executor.BrowserExecutor
+
+**Kind**: global variable  
+<a name="new_BrowserExecutor_new"></a>
+
+### new BrowserExecutor(ccm, opts)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ccm | <code>AdvancedCCM</code> | CCM ref |
+| opts | [<code>BrowserExecutorOptions</code>](#BrowserExecutorOptions) | executor options |
+
 <a name="UserInfoConst"></a>
 
 ## UserInfoConst
 Pseudo-class for documenting UserInfo detail fields as
 defined in FTN8 spec
 
-**Kind**: global variable  
+**Kind**: global constant  
 
 * [UserInfoConst](#UserInfoConst)
     * [.INFO_Login](#UserInfoConst.INFO_Login)
@@ -1408,190 +1914,6 @@ URL of avatar image
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>AvatarURL</code>  
-<a name="FutoInExecutor"></a>
-
-## FutoInExecutor
-**window.FutoInExecutor** - Browser-only reference to futoin-executor
-
-**Kind**: global variable  
-<a name="Executor"></a>
-
-## Executor
-**window.futoin.Executor** - Browser-only reference to futoin-executor
-
-**Kind**: global variable  
-
-* [Executor](#Executor)
-    * [new Executor(ccm, opts)](#new_Executor_new)
-    * [.ccm()](#Executor+ccm) ⇒ <code>AdvancedCCM</code>
-    * [.register(as, ifacever, impl, specdirs)](#Executor+register)
-    * ["request"](#Executor+event_request)
-    * ["response"](#Executor+event_response)
-    * ["notExpected"](#Executor+event_notExpected)
-    * ["close"](#Executor+event_close)
-
-<a name="new_Executor_new"></a>
-
-### new Executor(ccm, opts)
-An abstract core implementing pure FTN6 Executor logic.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| ccm | <code>AdvancedCCM</code> | instance of AdvancedCCM |
-| opts | <code>objects</code> | see ExecutorOptions |
-
-<a name="Executor+ccm"></a>
-
-### executor.ccm() ⇒ <code>AdvancedCCM</code>
-Get reference to associated AdvancedCCM instance
-
-**Kind**: instance method of [<code>Executor</code>](#Executor)  
-**Returns**: <code>AdvancedCCM</code> - CCM ref  
-<a name="Executor+register"></a>
-
-### executor.register(as, ifacever, impl, specdirs)
-Register implementation of specific interface
-
-**Kind**: instance method of [<code>Executor</code>](#Executor)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| as | <code>AsyncSteps</code> | steps interface |
-| ifacever | <code>string</code> | standard iface:version notation of interface        to be implemented. |
-| impl | <code>object</code> \| <code>function</code> | either iface implementation or func( impl, executor ) |
-| specdirs | <code>object</code> \| <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
-
-<a name="Executor+event_request"></a>
-
-### "request"
-Fired when request processing is started.
-( reqinfo, rawreq )
-
-**Kind**: event emitted by [<code>Executor</code>](#Executor)  
-<a name="Executor+event_response"></a>
-
-### "response"
-Fired when request processing is started.
-( reqinfo, rawreq )
-
-**Kind**: event emitted by [<code>Executor</code>](#Executor)  
-<a name="Executor+event_notExpected"></a>
-
-### "notExpected"
-Fired when not expected error occurs
-( errmsg, error_info, last_exception, async_stack )
-
-**Kind**: event emitted by [<code>Executor</code>](#Executor)  
-<a name="Executor+event_close"></a>
-
-### "close"
-Fired when Executor is shutting down.
-()
-
-**Kind**: event emitted by [<code>Executor</code>](#Executor)  
-<a name="BrowserExecutor"></a>
-
-## BrowserExecutor
-**window.BrowserExecutor** - Browser-only reference to
-futoin-executor.BrowserExecutor
-
-**Kind**: global variable  
-
-* [BrowserExecutor](#BrowserExecutor)
-    * [new BrowserExecutor(ccm, opts)](#new_BrowserExecutor_new)
-    * [.allowed_origins](#BrowserExecutor.allowed_origins)
-
-<a name="new_BrowserExecutor_new"></a>
-
-### new BrowserExecutor(ccm, opts)
-Browser Executor with HTML5 Web Messaging as incoming transport.
-
-It allows communication across open pages (frames/tabs/windows) inside client browser.
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| ccm | <code>AdvancedCCM</code> | CCM ref |
-| opts | [<code>BrowserExecutorOptions</code>](#BrowserExecutorOptions) | executor options |
-
-<a name="BrowserExecutor.allowed_origins"></a>
-
-### BrowserExecutor.allowed_origins
-Current list of allowed origins for modifications. Please note that
-it is an object, where field is actual origin and value must evaluate
-to true.
-
-**Kind**: static property of [<code>BrowserExecutor</code>](#BrowserExecutor)  
-<a name="BasicAuthService"></a>
-
-## BasicAuthService()
-BasicService is not official spec - it is a temporary solution
-until FTN8 Security Concept is finalized
-
-**Kind**: global function  
-
-* [BasicAuthService()](#BasicAuthService)
-    * _instance_
-        * [.addUser(user, secret, details, [system_user])](#BasicAuthService+addUser)
-        * [._getUser(as, user)](#BasicAuthService+_getUser)
-        * [._getUserByID(as, local_id)](#BasicAuthService+_getUserByID)
-    * _static_
-        * [.register(as, executor)](#BasicAuthService.register) ⇒ [<code>BasicAuthService</code>](#BasicAuthService)
-
-<a name="BasicAuthService+addUser"></a>
-
-### basicAuthService.addUser(user, secret, details, [system_user])
-Register users statically right after registration
-
-**Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| user | <code>string</code> | user name |
-| secret | <code>string</code> | user secret (either password or raw key for HMAC) |
-| details | <code>object</code> | user details the way as defined in FTN8 |
-| [system_user] | <code>boolean</code> | is system user |
-
-<a name="BasicAuthService+_getUser"></a>
-
-### basicAuthService._getUser(as, user)
-Get by name. Override, if needed.
-
-**Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
-**Note**: as result: {object} user object or null (through as)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| as | <code>AsyncSteps</code> | steps interface |
-| user | <code>string</code> | user name |
-
-<a name="BasicAuthService+_getUserByID"></a>
-
-### basicAuthService._getUserByID(as, local_id)
-Get by ID. Override, if needed.
-
-**Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
-**Note**: as result: {object} user object or null (through as)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| as | <code>AsyncSteps</code> | steps interfaces |
-| local_id | <code>number</code> | local ID |
-
-<a name="BasicAuthService.register"></a>
-
-### BasicAuthService.register(as, executor) ⇒ [<code>BasicAuthService</code>](#BasicAuthService)
-BasicAuthService registration helper
-
-**Kind**: static method of [<code>BasicAuthService</code>](#BasicAuthService)  
-**Returns**: [<code>BasicAuthService</code>](#BasicAuthService) - reference to implementation instance (to register users)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| as | <code>AsyncSteps</code> | steps interface |
-| executor | [<code>Executor</code>](#Executor) | executor instance |
-
 
 
 *documented by [jsdoc-to-markdown](https://github.com/75lb/jsdoc-to-markdown)*.

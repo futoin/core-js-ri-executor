@@ -19,17 +19,16 @@
  * limitations under the License.
  */
 
-var _clone = require( 'lodash/clone' );
-var _zipObject = require( 'lodash/zipObject' );
-var _defaults = require( 'lodash/defaults' );
-var async_steps = require( 'futoin-asyncsteps' );
-var performance_now = require( "performance-now" );
-var browser_window = window;
+const _zipObject = require( 'lodash/zipObject' );
+const _defaults = require( 'lodash/defaults' );
+const async_steps = require( 'futoin-asyncsteps' );
+const performance_now = require( "performance-now" );
+const browser_window = window;
 
-var Executor = require( './Executor' );
-var ChannelContext = require( './ChannelContext' );
-var SourceAddress = require( './SourceAddress' );
-var RequestInfo = require( './RequestInfo' );
+const Executor = require( './Executor' );
+const ChannelContext = require( './ChannelContext' );
+const SourceAddress = require( './SourceAddress' );
+const RequestInfo = require( './RequestInfo' );
 
 /**
  * Browser Channel Context
@@ -37,72 +36,65 @@ var RequestInfo = require( './RequestInfo' );
  * @param {BrowserExecutor} executor - _
  * @param {object} event - browser event
  */
-var BrowserChannelContext = function( executor, event ) {
-    ChannelContext.call( this, executor );
+class BrowserChannelContext extends ChannelContext {
+    constructor( executor, event ) {
+        super( executor );
 
-    this._event_origin = event.origin;
-    this._event_source = event.source;
-    this._last_used = performance_now();
-    this._is_secure_channel = true;
-};
+        this._event_origin = event.origin;
+        this._event_source = event.source;
+        this._last_used = performance_now();
+        this._is_secure_channel = true;
+    }
 
-var BrowserChannelContextProto = _clone( ChannelContext.prototype );
+    type() {
+        return "BROWSER";
+    }
 
-BrowserChannelContext.prototype = BrowserChannelContextProto;
+    isStateful() {
+        return true;
+    }
 
-BrowserChannelContextProto._event_origin = null;
-BrowserChannelContextProto._event_source = null;
+    _getPerformRequest() {
+        const evt_origin = this._event_origin;
+        const evt_source = this._event_source;
+        const revreq = this._executor._reverse_requests;
+        const sniffer = this._executor._msg_sniffer;
 
-BrowserChannelContextProto.type = function() {
-    return "BROWSER";
-};
+        return ( as, ctx, ftnreq ) => {
+            as.add( ( as ) => {
+                const rid = 'S' + revreq.rid++;
 
-BrowserChannelContextProto.isStateful = function() {
-    return true;
-};
+                ftnreq.rid = rid;
 
-BrowserChannelContextProto._getPerformRequest = function() {
-    var evt_origin = this._event_origin;
-    var evt_source = this._event_source;
-    var revreq = this._executor._reverse_requests;
-    var sniffer = this._executor._msg_sniffer;
+                //
+                if ( ctx.expect_response ) {
+                    const sentreqs = revreq.sentreqs;
 
-    return function( as, ctx, ftnreq ) {
-        as.add( function( as ) {
-            var rid = 'S' + revreq.rid++;
+                    sentreqs[ rid ] = {
+                        reqas : as,
+                        evt_origin : evt_origin,
+                        evt_source : evt_source,
+                    };
 
-            ftnreq.rid = rid;
-
-            //
-            if ( ctx.expect_response ) {
-                var sentreqs = revreq.sentreqs;
-
-                sentreqs[ rid ] = {
-                    reqas : as,
-                    evt_origin : evt_origin,
-                    evt_source : evt_source,
-                };
-
-                as.setCancel(
-                    function( ) {
+                    as.setCancel( ( as ) => {
                         delete sentreqs[ rid ];
-                    }
-                );
-            }
+                    } );
+                }
 
-            //
-            sniffer( evt_origin, ftnreq, false );
-            evt_source.postMessage( ftnreq, evt_origin );
-        } );
-    };
-};
+                //
+                sniffer( evt_origin, ftnreq, false );
+                evt_source.postMessage( ftnreq, evt_origin );
+            } );
+        };
+    }
+}
 
 /**
  * Pseudo-class for BrowserExecutor options documentation
  * @class
  * @extends ExecutorOptions
  */
-var BrowserExecutorOptions =
+const BrowserExecutorOptions =
 {
     /**
      * Client timeout MS
@@ -130,202 +122,191 @@ var BrowserExecutorOptions =
  * @param {BrowserExecutorOptions} opts - executor options
  * @class
  */
-var BrowserExecutor = function( ccm, opts ) {
-    Executor.call( this, ccm, opts );
+class BrowserExecutor extends Executor {
+    constructor( ccm, opts ) {
+        super( ccm, opts );
 
-    opts = opts || {};
-    _defaults( opts, BrowserExecutorOptions );
+        opts = opts || {};
+        _defaults( opts, BrowserExecutorOptions );
 
-    this._msg_sniffer = opts.messageSniffer;
-    this._contexts = [];
-    this._reverse_requests = {
-        rid : 1,
-        sentreqs : {},
-    };
+        this._msg_sniffer = opts.messageSniffer;
+        this._contexts = [];
+        this._reverse_requests = {
+            rid : 1,
+            sentreqs : {},
+        };
 
-    var _this = this;
+        // --
+        let allowed_origins = opts.allowedOrigins || {};
 
-    // --
-    var allowed_origins = opts.allowedOrigins || {};
+        if ( allowed_origins instanceof Array ) {
+            allowed_origins = _zipObject( allowed_origins, allowed_origins );
+        }
 
-    if ( allowed_origins instanceof Array ) {
-        allowed_origins = _zipObject( allowed_origins, allowed_origins );
+        this.allowed_origins = allowed_origins;
+
+        // --
+        const client_timeout = opts.clientTimeoutMS;
+
+        const connection_cleanup = () => {
+            const ctx_list = this._contexts;
+            const remove_time = performance_now() - client_timeout;
+
+            for ( let i = ctx_list.length - 1; i >= 0; --i ) {
+                const ctx = ctx_list[ i ];
+
+                if ( ctx._last_used < remove_time ) {
+                    ctx._cleanup();
+                    ctx_list.splice( i, 1 );
+                }
+            }
+
+            setTimeout( connection_cleanup, client_timeout * 1e3 );
+        };
+
+        connection_cleanup();
+
+        // --
+        this._event_listener = ( event ) => this.handleMessage( event );
+
+        browser_window.addEventListener( 'message', this._event_listener );
     }
 
-    this.allowed_origins = allowed_origins;
+    handleMessage( event ) {
+        this._msg_sniffer( event, event.data, true );
 
-    // --
-    var client_timeout = opts.clientTimeoutMS;
+        const ftnreq = event.data;
+        const source = event.source;
+        const origin = event.origin;
 
-    var connection_cleanup = function() {
-        var ctx_list = _this._contexts;
-        var remove_time = performance_now() - client_timeout;
+        // Not valid request
+        // ---
+        if ( ( typeof ftnreq !== 'object' ) ||
+            !( 'rid' in ftnreq ) ) {
+            return;
+        }
 
-        for ( var i = ctx_list.length - 1; i >= 0; --i ) {
-            var ctx = ctx_list[ i ];
+        const rid = ftnreq.rid;
 
-            if ( ctx._last_used < remove_time ) {
-                ctx._cleanup();
-                ctx_list.splice( i, 1 );
+        // Handle response to server-initiated request
+        // ---
+        if ( !( 'f' in ftnreq ) && ( rid.charAt( 0 ) === 'S' ) ) {
+            const sentreqs = this._reverse_requests.sentreqs;
+            const sreq = sentreqs[ rid ];
+
+            if ( sreq &&
+                ( source === sreq.evt_source ) &&
+                ( origin === sreq.evt_origin )
+            ) {
+                sreq.reqas.success( ftnreq, 'application/futoin+json' );
+                delete sentreqs[ rid ];
+            }
+
+            if ( event.stopPropagation ) {
+                event.stopPropagation();
+            }
+
+            return;
+        }
+
+        // ---
+        if ( !( 'f' in ftnreq ) ||
+             ( rid.charAt( 0 ) !== 'C' ) ||
+             !( origin in this.allowed_origins )
+        ) {
+            // ignore, not client request
+            return;
+        }
+
+        let context = null;
+        const ctx_list = this._contexts;
+
+        for ( let i = 0, c = ctx_list.length; i < c; ++i ) {
+            const ctx = ctx_list[ i ];
+
+            if ( ( ctx._event_source === source ) &&
+                 ( ctx._event_origin === origin )
+            ) {
+                context = ctx;
+                break;
             }
         }
 
-        setTimeout( connection_cleanup, client_timeout * 1e3 );
-    };
-
-    connection_cleanup();
-
-    // --
-    this._event_listener = function( event ) {
-        _this.handleMessage( event );
-    };
-
-    browser_window.addEventListener( 'message', this._event_listener );
-};
-
-var BrowserExecutorProto = _clone( Executor.prototype );
-
-BrowserExecutor.prototype = BrowserExecutorProto;
-
-/**
- * Current list of allowed origins for modifications. Please note that
- * it is an object, where field is actual origin and value must evaluate
- * to true.
- * @alias BrowserExecutor.allowed_origins
- */
-BrowserExecutorProto.allowed_origins = null;
-
-BrowserExecutorProto.handleMessage = function( event ) {
-    this._msg_sniffer( event, event.data, true );
-
-    var ftnreq = event.data;
-    var source = event.source;
-    var origin = event.origin;
-
-    // Not valid request
-    // ---
-    if ( ( typeof ftnreq !== 'object' ) ||
-         !( 'rid' in ftnreq ) ) {
-        return;
-    }
-
-    var rid = ftnreq.rid;
-
-    // Handle response to server-initiated request
-    // ---
-    if ( !( 'f' in ftnreq ) &&
-         ( rid.charAt( 0 ) === 'S' ) ) {
-        var sentreqs = this._reverse_requests.sentreqs;
-        var sreq = sentreqs[ rid ];
-
-        if ( sreq &&
-             ( source === sreq.evt_source ) &&
-             ( origin === sreq.evt_origin ) ) {
-            sreq.reqas.success( ftnreq, 'application/futoin+json' );
-            delete sentreqs[ rid ];
+        if ( context ) {
+            context._last_used = performance_now();
+        } else {
+            context = new BrowserChannelContext( this, event );
+            ctx_list.push( context );
         }
+
+        // ---
+        const source_addr = new SourceAddress(
+            'LOCAL',
+            source,
+            origin
+        );
+
+        // ---
+        const reqinfo = new RequestInfo( this, ftnreq );
+
+        const reqinfo_info = reqinfo.info;
+
+        reqinfo_info.CHANNEL_CONTEXT = context;
+        reqinfo_info.CLIENT_ADDR = source_addr;
+        reqinfo_info.SECURE_CHANNEL = this._is_secure_channel;
+
+        const as = async_steps();
+
+        as.state.reqinfo = reqinfo;
+
+        reqinfo._as = as;
+
+        const cancel_req = ( as ) => {
+            reqinfo._cleanup();
+
+            const ftnrsp = {
+                e : 'InternalError',
+                rid : rid,
+            };
+
+            this._msg_sniffer( event, ftnrsp, false );
+            context._event_source.postMessage( ftnrsp, context._event_origin );
+        };
+
+        as.add( ( as ) => {
+            as.setCancel( cancel_req );
+            this.process( as );
+
+            as.add( ( as ) => {
+                const ftnrsp = reqinfo_info.RAW_RESPONSE;
+
+                reqinfo._cleanup();
+
+                if ( ftnrsp !== null ) {
+                    this._msg_sniffer( event, ftnrsp, false );
+                    context._event_source.postMessage( ftnrsp, context._event_origin );
+                }
+            } );
+        } );
+        as.execute();
 
         if ( event.stopPropagation ) {
             event.stopPropagation();
         }
-
-        return;
     }
 
-    // ---
-    if ( !( 'f' in ftnreq ) ||
-         ( rid.charAt( 0 ) !== 'C' ) ||
-         !( origin in this.allowed_origins ) ) {
-        // ignore, not client request
-        return;
+    close( close_cb ) {
+        browser_window.removeEventListener( 'message', this._event_listener );
+        super.close( close_cb );
     }
 
-    var context = null;
-    var ctx_list = this._contexts;
-
-    for ( var i = 0, c = ctx_list.length; i < c; ++i ) {
-        var ctx = ctx_list[ i ];
-
-        if ( ( ctx._event_source === source ) &&
-             ( ctx._event_origin === origin ) ) {
-            context = ctx;
-            break;
-        }
-    }
-
-    if ( context ) {
-        context._last_used = performance_now();
-    } else {
-        context = new BrowserChannelContext( this, event );
-        ctx_list.push( context );
-    }
-
-    // ---
-    var source_addr = new SourceAddress(
-        'LOCAL',
-        source,
-        origin
-    );
-
-    // ---
-    var reqinfo = new RequestInfo( this, ftnreq );
-
-    var reqinfo_info = reqinfo.info;
-
-    reqinfo_info.CHANNEL_CONTEXT = context;
-    reqinfo_info.CLIENT_ADDR = source_addr;
-    reqinfo_info.SECURE_CHANNEL = this._is_secure_channel;
-
-    var _this = this;
-
-    var as = async_steps();
-
-    as.state.reqinfo = reqinfo;
-
-    reqinfo._as = as;
-
-    var cancel_req = function( as ) {
-        void as;
-        reqinfo._cleanup();
-
-        var ftnrsp = {
-            e : 'InternalError',
-            rid : rid,
-        };
-
-        _this._msg_sniffer( event, ftnrsp, false );
-        context._event_source.postMessage( ftnrsp, context._event_origin );
-    };
-
-    as.add(
-        function( as ) {
-            as.setCancel( cancel_req );
-            _this.process( as );
-
-            as.add(
-                function( as ) {
-                    void as;
-                    var ftnrsp = reqinfo_info.RAW_RESPONSE;
-
-                    reqinfo._cleanup();
-
-                    if ( ftnrsp !== null ) {
-                        _this._msg_sniffer( event, ftnrsp, false );
-                        context._event_source.postMessage( ftnrsp, context._event_origin );
-                    }
-                }
-            );
-        }
-    ).execute();
-
-    if ( event.stopPropagation ) {
-        event.stopPropagation();
-    }
-};
-
-BrowserExecutorProto.close = function( close_cb ) {
-    browser_window.removeEventListener( 'message', this._event_listener );
-    Executor.prototype.close.apply( this, [ close_cb ] );
-};
+    /**
+    * Current list of allowed origins for modifications. Please note that
+    * it is an object, where field is actual origin and value must evaluate
+    * to true.
+    * @alias BrowserExecutor.allowed_origins
+    * @member {object}
+    */
+}
 
 module.exports = BrowserExecutor;
