@@ -58,6 +58,31 @@ NodeExecutor - available only if used in Node.js
 *Note: Invoker and Executor are platform/technology-neutral concepts. The implementation
 is already available in JS and PHP. Hopefully, others are upcoming*
 
+# Features
+
+* Microservice implementation with zero boilerplates
+* Easy scaling from single monolithic process to cluster per microservice
+* Universal in-process, WebSockets and HTTP request handling
+* REST-like HTTP integration (mapping of path components and parameters to message structure)
+* Raw data for request and response (with HTTP fallback)
+* Callback requests for bi-directional channels like (WebSockets, in-process)
+* Advanced fair resource usage / DoS protection limits based on client source address
+    * message limit control
+    * max concurrent requests with queuing limits
+    * max requests per period with queuing limits
+    * optional limit aggregation per network address prefix
+    * advanced efficient limit config selection using [futoin-ipset](https://github.com/futoin/util-js-ipset)
+* API specification enforcement (defined in human-friendly FTN3 format)
+    * works even for in-process calls and covers JS type safety issues
+    * checks parameters with optional default value substitution
+    * checks result
+    * checks advanced message lengths as per FTN3 v1.8
+    * checks exception types to avoid exposure of internal information
+    * strict semver-like interface versioning - implicit backward compatibility support
+    * transport security, authentication and authorization are integrated as well
+    * optional HMAC signing
+* High performance and low memory usage
+
 
 # Installation for Node.js
 
@@ -93,7 +118,13 @@ ES6->ES5 transpiler is enabled.
 
 # Examples
 
-Please note that the examples expect interface definition files
+The best examples are live projects:
+
+* [futoin-database](https://github.com/futoin/core-js-ri-database) - neutral database query & transaction concept
+* [futoin-eventstream](https://github.com/futoin/core-js-ri-eventstream) - DB transaction focused event system
+* [futoin-xferengine](https://github.com/futoin/core-js-ri-xferengine) - very complex bank-grade financial transaction engine
+
+Please note that the examples here expect interface definition files
 listed below. All sources are available under examples/ folder.
 
 ## Server implementation example

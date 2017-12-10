@@ -64,7 +64,7 @@ model_as.add(
 
         as.add(
             function( as ) {
-                ccm.register( as, 'test', 'spi.test:0.1', url, creds );
+                ccm.register( as, 'test', 'spi.test:0.1', url, creds, { limitZone: 'unlimited' } );
             },
             function( as, err ) {
                 console.log( err );
@@ -74,7 +74,7 @@ model_as.add(
         as.loop( function( as ) {
             var iface = ccm.iface( 'test' );
 
-            as.parallel().add(
+            const p = as.parallel().add(
                 function( as ) {
                     iface.call( as, 'normalCall', { a : 'a' } );
                     ++made_calls;

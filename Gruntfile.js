@@ -12,7 +12,13 @@ module.exports = function( grunt ) {
             target: [ '*.js', 'lib/**/*.js', 'test/**/*.js' ],
         },
         mocha_istanbul: {
-            coverage: { src: [ 'test/integration.js', 'test/unittest.js' ] },
+            coverage: {
+                src: [
+                    'test/integration.js',
+                    'test/unittest.js',
+                    'test/limittest.js',
+                ],
+            },
             options: {
                 mochaOptions: [ '--exit' ],
             },

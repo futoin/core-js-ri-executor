@@ -2,6 +2,8 @@
 === (next) ===
 BREAKING CHANGE: converted all code to ES6
 NEW: webpack-based UMD dist entry point
+NEW: FTN6 v1.7 client limits support (disabled by default)
+NEW: X-Real-IP header support for trusted proxy
 
 === 1.6.2 (2017-12-06) ===
 FIXED: potential DoS with newer stricter Node.js and corrupted request message

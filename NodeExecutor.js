@@ -19,19 +19,23 @@
  * limitations under the License.
  */
 
-const _defaults = require( 'lodash/defaults' );
+const _defaultsDeep = require( 'lodash/defaultsDeep' );
 const WebSocket = require( 'faye-websocket' );
 const http = require( 'http' );
 const url = require( 'url' );
 const async_steps = require( 'futoin-asyncsteps' );
 const Cookies = require( "cookies" );
+const posix = require( 'posix' );
+const lruCache = require( 'lru-cache' );
+
+const { IPSet, Address6 } = require( 'futoin-ipset' );
+const performance_now = require( "performance-now" );
+const Limiter = require( 'futoin-asyncsteps/Limiter' );
 
 const Executor = require( './Executor' );
 const ChannelContext = require( './ChannelContext' );
 const SourceAddress = require( './SourceAddress' );
 const RequestInfo = require( './RequestInfo' );
-
-// TODO: message size limit @security
 
 // ---
 class HTTPChannelContext extends ChannelContext {
@@ -177,6 +181,28 @@ class WSChannelContext extends ChannelContext {
     }
 }
 
+// ---
+class ExecutorLimiter extends Limiter {
+    constructor( options, stale_ms ) {
+        super( options );
+        this._stale_ms = Math.max( ( options.period_ms || 1e3 ) * 3, stale_ms );
+        this.touch();
+    }
+
+    touch() {
+        this._last_used = performance_now();
+    }
+
+    isStale() {
+        if ( ( this._last_used + this._stale_ms ) > performance_now() ) {
+            return false;
+        }
+
+        // TODO: extend AsyncSteps API
+        return ( !this._mutex._locked && !this._throttle._current );
+    }
+}
+
 /**
  * Pseudo-class for NodeExecutor options documentation
  * @class
@@ -227,10 +253,46 @@ const NodeExecutorOptions =
     secureChannel : false,
 
     /**
-     * If true, X-Forwarded-For will be used as Source Address, if present
+     * If true, X-Real-IP and X-Forwarded-For will be used as Source Address, if present
      * @default
      */
     trustProxy : false,
+
+    /**
+     * If true, then request limiter is enabled by default
+     * @default
+     */
+    enableLimiter : false,
+
+    /**
+     * Interval to run limiter cleanup task for better cache performance and
+     * correct reflection of active memory usage.
+     * @default
+     */
+    cleanupLimitsMS: 60e3,
+
+    /**
+     * Startup configuration for NodeExecutor#limitConf().
+     * Please mind it's per v4/v6 scope (prefix length).
+     * @default
+     */
+    limitConf : {
+        default: {
+            concurrent: 8,
+            max_queue: 32,
+            rate: 10,
+            period_ms: 1e3,
+            bust: 8, // force to concurrent max
+            v4scope: 24, // class C
+            v6scope: 48, // End Site default
+        },
+    },
+
+    /**
+     * Startup configuration for NodeExecutor#addressLimitMap()
+     * @default
+     */
+    addressLimitMap : {},
 };
 
 /**
@@ -244,9 +306,10 @@ class NodeExecutor extends Executor {
         super( ccm, opts );
 
         opts = opts || {};
-        _defaults( opts, NodeExecutorOptions );
+        _defaultsDeep( opts, NodeExecutorOptions );
 
         this._msg_sniffer = opts.messageSniffer;
+        this._initLimits( opts );
 
         // ---
         if ( !opts.httpPath ) {
@@ -443,23 +506,45 @@ class NodeExecutor extends Executor {
         return true;
     }
 
+    _clientAddress( req ) {
+        if ( this._trust_proxy ) {
+            // ---
+            const real_ip = req.headers[ 'x-real-ip' ];
+
+            if ( real_ip ) {
+                return real_ip;
+            }
+
+            // ---
+            const forwarded_for = req.headers[ 'x-forwarded-for' ];
+
+            if ( forwarded_for ) {
+                return forwarded_for.split( ',' )[0];
+            }
+        }
+
+        return req.connection.remoteAddress;
+    }
+
+    _isSecureChannel( req ) {
+        return (
+            this._is_secure_channel ||
+            ( this._trust_proxy && ( req.headers['x-forwarded-proto'] === 'https' ) )
+        );
+    }
+
     _handleHTTPRequestCommon( ftnreq, req, rsp, raw_upload, from_query ) {
         const reqinfo = new RequestInfo( this, ftnreq );
 
         // ---
         const context = new HTTPChannelContext( this, req, rsp );
 
-        context._is_secure_channel = this._is_secure_channel;
+        const is_secure_channel = this._isSecureChannel( req );
+        context._is_secure_channel = is_secure_channel;
 
         // ---
-        let source_address = req.connection.remoteAddress;
-
-        if ( this._trust_proxy &&
-                req.headers[ 'x-forwarded-for' ] ) {
-            source_address = req.headers[ 'x-forwarded-for' ];
-        }
-
-        source_address = new SourceAddress( null, source_address, req.connection.remotePort );
+        const source_host = this._clientAddress( req );
+        const source_address = new SourceAddress( null, source_host, req.connection.remotePort );
 
         // ---
         this._msg_sniffer( source_address, ftnreq, true );
@@ -469,7 +554,7 @@ class NodeExecutor extends Executor {
 
         reqinfo_info.CHANNEL_CONTEXT = context;
         reqinfo_info.CLIENT_ADDR = source_address;
-        reqinfo_info.SECURE_CHANNEL = this._is_secure_channel;
+        reqinfo_info.SECURE_CHANNEL = is_secure_channel;
         reqinfo_info.HAVE_RAW_UPLOAD = raw_upload;
         reqinfo_info._from_query_string = from_query;
 
@@ -501,7 +586,8 @@ class NodeExecutor extends Executor {
             rsp.end( ftnrsp, 'utf8' );
         };
 
-        as.add(
+        as.sync(
+            this._fake_limiter || this._addressToLimiter( source_address.host ),
             ( as ) => {
                 as.setCancel( cancel_req );
 
@@ -548,22 +634,17 @@ class NodeExecutor extends Executor {
     */
     handleWSConnection( upgrade_req, ws ) {
         // ---
-        let source_addr = upgrade_req.connection.remoteAddress;
-
-        if ( this._trust_proxy &&
-            upgrade_req.headers[ 'x-forwarded-for' ] ) {
-            source_addr = upgrade_req.headers[ 'x-forwarded-for' ];
-        }
-
-        source_addr = new SourceAddress(
+        const source_host = this._clientAddress( upgrade_req );
+        const source_addr = new SourceAddress(
             null,
-            source_addr,
+            source_host,
             upgrade_req.connection.remotePort
         );
 
         const context = new WSChannelContext( this, ws );
 
         context._source_addr = source_addr;
+        context._is_secure_channel = this._isSecureChannel( upgrade_req );
         ws._source_addr = source_addr;
         ws._sniffer = this._msg_sniffer;
 
@@ -608,10 +689,11 @@ class NodeExecutor extends Executor {
         const reqinfo = new RequestInfo( this, ftnreq );
 
         const reqinfo_info = reqinfo.info;
+        const source_addr = context._source_addr;
 
         reqinfo_info.CHANNEL_CONTEXT = context;
-        reqinfo_info.CLIENT_ADDR = context._source_addr;
-        reqinfo_info.SECURE_CHANNEL = this._is_secure_channel;
+        reqinfo_info.CLIENT_ADDR = source_addr;
+        reqinfo_info.SECURE_CHANNEL = context._is_secure_channel;
 
         const as = async_steps();
 
@@ -639,14 +721,15 @@ class NodeExecutor extends Executor {
             try {
                 const rawmsg = JSON.stringify( ftnrsp );
 
-                this._msg_sniffer( context._source_addr, rawmsg, false );
+                this._msg_sniffer( source_addr, rawmsg, false );
                 ws_conn.send( rawmsg );
             } catch ( e ) {
                 // ignore
             }
         };
 
-        as.add(
+        as.sync(
+            this._fake_limiter || this._addressToLimiter( source_addr.host ),
             ( as ) => {
                 as.setCancel( cancel_req );
 
@@ -678,9 +761,172 @@ class NodeExecutor extends Executor {
     }
 
     close( close_cb ) {
-        Executor.prototype.close.apply( this, [] );
-        this._http_server.close( close_cb );
+        super.close();
+
+        if ( this._http_server ) {
+            this._http_server.close( close_cb );
+        }
     }
+
+
+    //=================================
+    // Limits processing
+    //=================================
+
+    _initLimits( opts ) {
+        this._limit_conf = {};
+
+        if ( opts.enableLimiter ) {
+            this._fake_limiter = null;
+
+            for ( let k in opts.limitConf ) {
+                this.limitConf( k, opts.limitConf[k] );
+            }
+
+            this.addressLimitMap( opts.addressLimitMap );
+
+            if ( this._limit_timer ) {
+                // just in case of double invocation
+                clearInterval( this._limit_timer );
+            }
+
+            this._stale_limit = opts.cleanupLimitsMS * 1.5;
+            this._limit_timer = setInterval( () => this._cleanupLimits(), opts.cleanupLimitsMS );
+
+            this.once( 'close', () => {
+                clearInterval( this._limit_timer );
+                this._limit_timer = null;
+            } );
+        } else {
+            this._fake_limiter = {
+                sync : ( as, a, b ) => as.add( a, b ),
+            };
+        }
+    }
+
+    /**
+     * Configure named limits to be used for client's request limiting.
+     * @param {string} name - name of limit configuration
+     * @param {object} options - see AsyncSteps Limiter class
+     */
+    limitConf( name, options ) {
+        options = _defaultsDeep( options, NodeExecutorOptions.limitConf.default );
+        options.burst = options.concurrent; // just force it
+        this._limit_conf[name] = options;
+    }
+
+    /**
+     * Configure static address to limit name map
+     * @param {object} map - limit-name => list of CIDR addresses pairs
+     */
+    addressLimitMap( map ) {
+        const address_limit_map = new IPSet();
+        this._address_limit_map = address_limit_map;
+
+        for ( let k in map ) {
+            map[k].forEach( ( v ) => address_limit_map.add( v, k ) );
+        }
+
+        // also reset current limits
+        const max = this._limitCacheMax();
+        this._host2lim = lruCache( max );
+        this._scope2lim = lruCache( max );
+    }
+
+    /**
+     * Access address-limit name ipset for efficient dynamic manipulation
+     * @return {IPSet} - ref to static address to limit mapping
+     */
+    get limitsIPSet() {
+        return this._address_limit_map;
+    }
+
+    _limitCacheMax() {
+        return posix.getrlimit( 'nofile' );
+    }
+
+    _addressToLimiter( host ) {
+        // Fixed IPv4-mapped IPv6
+        // ---
+        {
+            const t = new Address6( host );
+
+            if ( t.v4 && t.valid ) {
+                host = host.split( ':' );
+                host = host[host.length - 1 ];
+            }
+        }
+
+        // Fast path
+        // ---
+        const host2lim = this._host2lim;
+        let lim = host2lim.get( host );
+
+        if ( lim ) {
+            lim.touch();
+            return lim;
+        }
+
+        // Slow path
+        // ---
+        const addr2lim_name = this._address_limit_map;
+        const conf_name = addr2lim_name.match( host ) || 'default';
+        const scope2lim = this._scope2lim;
+
+        const conf = this._limit_conf[ conf_name ];
+
+        if ( !conf ) {
+            throw new Error( `Unknown limit ${conf_name}` );
+        }
+
+        let scope_key = null;
+
+        {
+            const host_addr = addr2lim_name.convertAddress( host );
+            const addr_type = host_addr.v4 ? 'v4scope' : 'v6scope';
+            const scope_prefix_len = conf[ addr_type ];
+
+            if ( scope_prefix_len ) {
+                scope_key = addr2lim_name.convertAddress( `${host}/${scope_prefix_len}` )
+                    .startAddress().correctForm();
+            }
+
+            if ( scope_key && ( conf_name !== 'default' ) ) {
+                scope_key = `${scope_key}:${conf_name}`;
+            }
+        }
+
+        if ( scope_key ) {
+            lim = scope2lim.get( scope_key );
+        }
+
+        if ( lim ) {
+            lim.touch();
+        } else {
+            lim = new ExecutorLimiter( conf, this._stale_limit );
+
+            if ( scope_key ) {
+                scope2lim.set( scope_key, lim );
+            }
+        }
+
+        host2lim.set( host, lim );
+        return lim;
+    }
+
+    _cleanupLimits() {
+        // NOTE: we can not use LRU TTL as:
+        //       a) the same limiter object is accessed through two different caches/keys
+        //       b) each limiter has own period -> TTL varies
+        for ( let cache of [ this._host2lim, this._scope2lim ] ) {
+            cache.forEach( ( v, k ) => {
+                if ( v.isStale() ) {
+                    cache.del( k );
+                }
+            } );
+        }
+    }
+    //=================================
 }
 
 module.exports = NodeExecutor;

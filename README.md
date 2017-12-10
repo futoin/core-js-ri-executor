@@ -58,6 +58,31 @@ NodeExecutor - available only if used in Node.js
 *Note: Invoker and Executor are platform/technology-neutral concepts. The implementation
 is already available in JS and PHP. Hopefully, others are upcoming*
 
+# Features
+
+* Microservice implementation with zero boilerplates
+* Easy scaling from single monolithic process to cluster per microservice
+* Universal in-process, WebSockets and HTTP request handling
+* REST-like HTTP integration (mapping of path components and parameters to message structure)
+* Raw data for request and response (with HTTP fallback)
+* Callback requests for bi-directional channels like (WebSockets, in-process)
+* Advanced fair resource usage / DoS protection limits based on client source address
+    * message limit control
+    * max concurrent requests with queuing limits
+    * max requests per period with queuing limits
+    * optional limit aggregation per network address prefix
+    * advanced efficient limit config selection using [futoin-ipset](https://github.com/futoin/util-js-ipset)
+* API specification enforcement (defined in human-friendly FTN3 format)
+    * works even for in-process calls and covers JS type safety issues
+    * checks parameters with optional default value substitution
+    * checks result
+    * checks advanced message lengths as per FTN3 v1.8
+    * checks exception types to avoid exposure of internal information
+    * strict semver-like interface versioning - implicit backward compatibility support
+    * transport security, authentication and authorization are integrated as well
+    * optional HMAC signing
+* High performance and low memory usage
+
 
 # Installation for Node.js
 
@@ -93,7 +118,13 @@ ES6->ES5 transpiler is enabled.
 
 # Examples
 
-Please note that the examples expect interface definition files
+The best examples are live projects:
+
+* [futoin-database](https://github.com/futoin/core-js-ri-database) - neutral database query & transaction concept
+* [futoin-eventstream](https://github.com/futoin/core-js-ri-eventstream) - DB transaction focused event system
+* [futoin-xferengine](https://github.com/futoin/core-js-ri-xferengine) - very complex bank-grade financial transaction engine
+
+Please note that the examples here expect interface definition files
 listed below. All sources are available under examples/ folder.
 
 ## Server implementation example
@@ -1086,6 +1117,10 @@ Fired when Executor is shutting down.
     * [.httpBacklog](#NodeExecutorOptions.httpBacklog)
     * [.secureChannel](#NodeExecutorOptions.secureChannel)
     * [.trustProxy](#NodeExecutorOptions.trustProxy)
+    * [.enableLimiter](#NodeExecutorOptions.enableLimiter)
+    * [.cleanupLimitsMS](#NodeExecutorOptions.cleanupLimitsMS)
+    * [.limitConf](#NodeExecutorOptions.limitConf)
+    * [.addressLimitMap](#NodeExecutorOptions.addressLimitMap)
 
 <a name="new_NodeExecutorOptions_new"></a>
 
@@ -1143,10 +1178,40 @@ Useful with reverse proxy and local connections.
 <a name="NodeExecutorOptions.trustProxy"></a>
 
 ### NodeExecutorOptions.trustProxy
-If true, X-Forwarded-For will be used as Source Address, if present
+If true, X-Real-IP and X-Forwarded-For will be used as Source Address, if present
 
 **Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code>false</code>  
+<a name="NodeExecutorOptions.enableLimiter"></a>
+
+### NodeExecutorOptions.enableLimiter
+If true, then request limiter is enabled by default
+
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
+**Default**: <code>false</code>  
+<a name="NodeExecutorOptions.cleanupLimitsMS"></a>
+
+### NodeExecutorOptions.cleanupLimitsMS
+Interval to run limiter cleanup task for better cache performance and
+correct reflection of active memory usage.
+
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
+**Default**: <code>60000</code>  
+<a name="NodeExecutorOptions.limitConf"></a>
+
+### NodeExecutorOptions.limitConf
+Startup configuration for NodeExecutor#limitConf().
+Please mind it's per v4/v6 scope (prefix length).
+
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
+**Default**: <code>{&quot;default&quot;:&quot;&quot;}</code>  
+<a name="NodeExecutorOptions.addressLimitMap"></a>
+
+### NodeExecutorOptions.addressLimitMap
+Startup configuration for NodeExecutor#addressLimitMap()
+
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
+**Default**: <code>{}</code>  
 <a name="NodeExecutor"></a>
 
 ## NodeExecutor
@@ -1156,8 +1221,11 @@ Executor implementation for Node.js/io.js with HTTP and WebSockets transport
 
 * [NodeExecutor](#NodeExecutor)
     * [new NodeExecutor(ccm, opts)](#new_NodeExecutor_new)
+    * [.limitsIPSet](#NodeExecutor+limitsIPSet) ⇒ <code>IPSet</code>
     * [.handleHTTPRequest(req, rsp)](#NodeExecutor+handleHTTPRequest) ⇒ <code>Boolean</code>
     * [.handleWSConnection(upgrade_req, ws)](#NodeExecutor+handleWSConnection)
+    * [.limitConf(name, options)](#NodeExecutor+limitConf)
+    * [.addressLimitMap(map)](#NodeExecutor+addressLimitMap)
 
 <a name="new_NodeExecutor_new"></a>
 
@@ -1168,6 +1236,13 @@ Executor implementation for Node.js/io.js with HTTP and WebSockets transport
 | ccm | <code>AdvancedCCM</code> | CCM for internal requests |
 | opts | [<code>NodeExecutorOptions</code>](#NodeExecutorOptions) | executor options |
 
+<a name="NodeExecutor+limitsIPSet"></a>
+
+### nodeExecutor.limitsIPSet ⇒ <code>IPSet</code>
+Access address-limit name ipset for efficient dynamic manipulation
+
+**Kind**: instance property of [<code>NodeExecutor</code>](#NodeExecutor)  
+**Returns**: <code>IPSet</code> - - ref to static address to limit mapping  
 <a name="NodeExecutor+handleHTTPRequest"></a>
 
 ### nodeExecutor.handleHTTPRequest(req, rsp) ⇒ <code>Boolean</code>
@@ -1193,6 +1268,29 @@ Entry point to process HTTP upgrade request with WebSocket
 | upgrade_req | <code>http.IncomingMessage</code> | original HTTP upgrade request |
 | ws | <code>WebSocket</code> | WebSockets connection object |
 
+<a name="NodeExecutor+limitConf"></a>
+
+### nodeExecutor.limitConf(name, options)
+Configure named limits to be used for client's request limiting.
+
+**Kind**: instance method of [<code>NodeExecutor</code>](#NodeExecutor)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| name | <code>string</code> | name of limit configuration |
+| options | <code>object</code> | see AsyncSteps Limiter class |
+
+<a name="NodeExecutor+addressLimitMap"></a>
+
+### nodeExecutor.addressLimitMap(map)
+Configure static address to limit name map
+
+**Kind**: instance method of [<code>NodeExecutor</code>](#NodeExecutor)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| map | <code>object</code> | limit-name => list of CIDR addresses pairs |
+
 <a name="PingService"></a>
 
 ## PingService
@@ -1203,10 +1301,11 @@ Designed to be used as imported part of larger interfaces.
 **Kind**: global class  
 <a name="PingService.register"></a>
 
-### PingService.register(as, executor)
+### PingService.register(as, executor) ⇒ [<code>PingService</code>](#PingService)
 Register futoin.ping interface with Executor
 
 **Kind**: static method of [<code>PingService</code>](#PingService)  
+**Returns**: [<code>PingService</code>](#PingService) - instance by convention  
 
 | Param | Type | Description |
 | --- | --- | --- |
