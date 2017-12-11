@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.7.2 (2017-12-11) ===
 CHANGE: "posix" dep is optional now with fallback to 10240 for limit cache size
 NEW: added .limitCacheSize NodeExecutor options
 
