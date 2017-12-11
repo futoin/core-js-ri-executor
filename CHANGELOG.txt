@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.7.1 (2017-12-11) ===
 FIXED: default=null parameter definition case (broken after ES6 conversion)
 FIXED: to register in-channel callback interfaces as 'unlimited' by default
 
