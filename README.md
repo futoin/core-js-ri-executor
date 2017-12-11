@@ -1119,6 +1119,7 @@ Fired when Executor is shutting down.
     * [.trustProxy](#NodeExecutorOptions.trustProxy)
     * [.enableLimiter](#NodeExecutorOptions.enableLimiter)
     * [.cleanupLimitsMS](#NodeExecutorOptions.cleanupLimitsMS)
+    * [.limitCacheSize](#NodeExecutorOptions.limitCacheSize)
     * [.limitConf](#NodeExecutorOptions.limitConf)
     * [.addressLimitMap](#NodeExecutorOptions.addressLimitMap)
 
@@ -1197,6 +1198,13 @@ correct reflection of active memory usage.
 
 **Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code>60000</code>  
+<a name="NodeExecutorOptions.limitCacheSize"></a>
+
+### NodeExecutorOptions.limitCacheSize
+Auto-detected based posix.getrlimit('nofiles')
+
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
+**Default**: <code></code>  
 <a name="NodeExecutorOptions.limitConf"></a>
 
 ### NodeExecutorOptions.limitConf

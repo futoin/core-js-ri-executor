@@ -25,7 +25,6 @@ const http = require( 'http' );
 const url = require( 'url' );
 const async_steps = require( 'futoin-asyncsteps' );
 const Cookies = require( "cookies" );
-const posix = require( 'posix' );
 const lruCache = require( 'lru-cache' );
 
 const { IPSet, Address6 } = require( 'futoin-ipset' );
@@ -270,6 +269,12 @@ const NodeExecutorOptions =
      * @default
      */
     cleanupLimitsMS: 60e3,
+
+    /**
+     * Auto-detected based posix.getrlimit('nofiles')
+     * @default
+     */
+    limitCacheSize: null,
 
     /**
      * Startup configuration for NodeExecutor#limitConf().
@@ -775,6 +780,7 @@ class NodeExecutor extends Executor {
 
     _initLimits( opts ) {
         this._limit_conf = {};
+        this._limit_cache_size = opts.limitCacheSize;
 
         if ( opts.enableLimiter ) {
             this._fake_limiter = null;
@@ -842,7 +848,23 @@ class NodeExecutor extends Executor {
     }
 
     _limitCacheMax() {
-        return posix.getrlimit( 'nofile' );
+        {
+            const conf_limit = this._limit_cache_size;
+
+            if ( conf_limit ) {
+                return conf_limit;
+            }
+        }
+
+        try {
+            const posix = require( 'posix' );
+            return posix.getrlimit( 'nofile' );
+        } catch ( _ ) {
+            const default_lim = 10240; // more or less safe default
+            // eslint-disable-next-line no-console
+            console.warn( `Fallback to default cache size: ${default_lim}` );
+            return default_lim;
+        }
     }
 
     _addressToLimiter( host ) {

@@ -1,4 +1,8 @@
 
+=== (next) ===
+CHANGE: "posix" dep is optional now with fallback to 10240 for limit cache size
+NEW: added .limitCacheSize NodeExecutor options
+
 === 1.7.1 (2017-12-11) ===
 FIXED: default=null parameter definition case (broken after ES6 conversion)
 FIXED: to register in-channel callback interfaces as 'unlimited' by default
