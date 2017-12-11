@@ -115,6 +115,10 @@ class ChannelContext {
             options.sendOnBehalfOf = false;
         }
 
+        if ( !( 'limitZone' in options ) ) {
+            options.limitZone = 'unlimited';
+        }
+
         this._executor.ccm().register( as, null, ifacever, this._getPerformRequest(), null, options );
 
         as.add( ( as, info, impl ) => {
