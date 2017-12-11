@@ -70,7 +70,7 @@
     "chai": "^4.1.2",
     "eslint": "^4.13.0",
     "futoin-asyncsteps": "^1.10.4",
-    "futoin-invoker": "^1.7.2",
+    "futoin-invoker": "^1.7.3",
     "grunt": "^1.0.1",
     "grunt-contrib-connect": "^1.0.2",
     "grunt-eslint": "^20.1.0",
@@ -91,6 +91,6 @@
   ],
   "peerDependencies": {
     "futoin-asyncsteps": "^1.10.4",
-    "futoin-invoker": "^1.7.2"
+    "futoin-invoker": "^1.7.3"
   }
 }
