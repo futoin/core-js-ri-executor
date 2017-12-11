@@ -873,7 +873,7 @@ class Executor {
                     const pinfo = finfo.params[ k ];
                     const defval = pinfo.default;
 
-                    if ( defval ) {
+                    if ( defval !== undefined ) {
                         reqparams[ k ] = defval;
                     } else {
                         as.error( FutoInError.InvalidRequest, "Missing parameter: " + k );

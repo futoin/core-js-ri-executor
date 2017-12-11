@@ -44,6 +44,10 @@ var impl = {
 
     noResult : function( as, reqinfo ) {
     },
+
+    nullDefault: function( as, reqinfo ) {
+        as.success( reqinfo.params() );
+    },
 };
 
 describe( 'Executor', function() {
@@ -295,6 +299,32 @@ describe( 'Executor', function() {
             );
             as.add( function( as ) {
                 done();
+            } );
+            as.execute();
+        } );
+
+        it( 'should correctly handle "null" parameter default', function( done ) {
+            as.add(
+                function( as ) {
+                    reqinfo = new executor_module.RequestInfo( executor, {
+                        f : "fileface.derived:2.3:nullDefault",
+                        p : {},
+                        forcersp : true,
+                    } );
+
+                    as.state.reqinfo = reqinfo;
+                    executor.process( as );
+                },
+                function( as, err ) {
+                    done( new Error( err + ": " + as.state.error_info ) );
+                }
+            ).add( function( as ) {
+                try {
+                    as.state.reqinfo.info()[ reqinfo.INFO_RAW_RESPONSE ].should.eql( { r:{ arg: null } } );
+                    done();
+                } catch ( e ) {
+                    done( e );
+                }
             } );
             as.execute();
         } );
