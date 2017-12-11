@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.7.0 (2017-12-11) ===
 BREAKING CHANGE: converted all code to ES6
 NEW: webpack-based UMD dist entry point
 NEW: FTN6 v1.7 client limits support (disabled by default)
