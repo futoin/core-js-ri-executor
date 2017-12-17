@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.7.3 (2017-12-17) ===
 CHANGED: to build dist/ folder from es5/ folder
 CHANGED: not to include futoin-asyncsteps in dist/ build
 NEW: added ES5 transpiled modules under es5/ folder
