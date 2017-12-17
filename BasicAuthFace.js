@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 
-const NativeIface = require( 'futoin-invoker/NativeIface' );
+const { NativeIface } = require( 'futoin-invoker' );
 
 /**
  * BasicAuth is not official spec - it is a temporary solution

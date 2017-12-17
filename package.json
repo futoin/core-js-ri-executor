@@ -3,9 +3,12 @@
   "version": "1.7.2",
   "description": "FutoIn Service base with strict API definition for Node and Browser",
   "main": "lib/main.js",
-  "browser": "lib/browser.js",
+  "browser": "es5/lib/browser.js",
   "files": [
     "dist/",
+    "es5/",
+    "es5/lib/",
+    "es5/*.js",
     "examples/",
     "lib/",
     "BasicAuthFace.js",
@@ -68,8 +71,8 @@
     "babel-preset-env": "^1.6.1",
     "chai": "^4.1.2",
     "eslint": "^4.13.1",
-    "futoin-asyncsteps": "^1.10.4",
-    "futoin-invoker": "^1.7.3",
+    "futoin-asyncsteps": "^1.10.7",
+    "futoin-invoker": "^1.7.4",
     "grunt": "^1.0.1",
     "grunt-contrib-connect": "^1.0.2",
     "grunt-eslint": "^20.1.0",
@@ -89,8 +92,8 @@
     "test/**"
   ],
   "peerDependencies": {
-    "futoin-asyncsteps": "^1.10.4",
-    "futoin-invoker": "^1.7.3"
+    "futoin-asyncsteps": "^1.10.7",
+    "futoin-invoker": "^1.7.4"
   },
   "optionalDependencies": {
     "posix": "^4.1.1"

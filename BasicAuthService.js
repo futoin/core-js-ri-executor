@@ -20,7 +20,7 @@
  */
 
 const BasicAuthFace = require( './BasicAuthFace' );
-const SpecTools = require( 'futoin-invoker/SpecTools' );
+const { SpecTools } = require( 'futoin-invoker' );
 
 /**
  * BasicService is not official spec - it is a temporary solution

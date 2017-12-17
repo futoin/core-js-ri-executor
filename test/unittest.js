@@ -10,7 +10,7 @@ var as;
 var reqinfo;
 var thisDir;
 
-if ( typeof chai !== 'undefined' ) {
+if ( typeof window !== 'undefined' ) {
     // Browser test
     chai.should();
     assert = chai.assert;
@@ -21,16 +21,14 @@ if ( typeof chai !== 'undefined' ) {
     thisDir = '.';
 } else {
     // Node test
-    var chai_module = require( 'chai' );
+    var chai_module = module.require( 'chai' );
 
     chai_module.should();
     assert = chai_module.assert;
 
-    var hidereq = require;
-
-    executor_module = hidereq( '../lib/main' );
-    invoker = hidereq( 'futoin-invoker' );
-    async_steps = hidereq( 'futoin-asyncsteps' );
+    executor_module = module.require( '../lib/main' );
+    invoker = module.require( 'futoin-invoker' );
+    async_steps = module.require( 'futoin-asyncsteps' );
 
     thisDir = __dirname;
 }

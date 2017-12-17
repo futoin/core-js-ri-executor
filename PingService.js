@@ -19,7 +19,7 @@
  * limitations under the License.
  */
 
-const PingFace = require( 'futoin-invoker/PingFace' );
+const { PingFace } = require( 'futoin-invoker' );
 
 /**
  * Implementation of futoin.ping & futoin.anonping interface

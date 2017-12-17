@@ -29,7 +29,7 @@ const lruCache = require( 'lru-cache' );
 
 const { IPSet, Address6 } = require( 'futoin-ipset' );
 const performance_now = require( "performance-now" );
-const Limiter = require( 'futoin-asyncsteps/Limiter' );
+const Limiter = async_steps.Limiter;
 
 const Executor = require( './Executor' );
 const ChannelContext = require( './ChannelContext' );

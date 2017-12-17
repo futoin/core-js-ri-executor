@@ -1,4 +1,9 @@
 
+=== (next) ===
+CHANGED: to build dist/ folder from es5/ folder
+CHANGED: not to include futoin-asyncsteps in dist/ build
+NEW: added ES5 transpiled modules under es5/ folder
+
 === 1.7.2 (2017-12-11) ===
 CHANGE: "posix" dep is optional now with fallback to 10240 for limit cache size
 NEW: added .limitCacheSize NodeExecutor options

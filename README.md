@@ -90,6 +90,12 @@ Command line:
 ```sh
 $ npm install futoin-executor --save
 ```
+or
+```sh
+$ yarn add futoin-executor
+```
+
+*Hint: checkout [FutoIn CID](https://github.com/futoin/cid-tool) for all tools setup.*
 
 All public classes can be accessed through module:
 ```javascript
@@ -104,10 +110,14 @@ var Executor = require('futoin-executor/Executor');
 
 # Browser installation
 
-Pre-packed modules are available in dist/ folder.
+Pre-built ES5 CJS modules are available under `es5/` are available. These modules
+can be used with `webpack` without transpiler - default "browser" entry point
+points to ES5 version.
 
-The module can be used directly with `webpack` or any other CommonJS packer, if
-ES6->ES5 transpiler is enabled.
+Webpack dists are also available under dist/ folder, but their usage should be limited
+to sites without build process.
+
+*Warning: older browsers require WeakMap polyfill for synchronization primitives.*
 
 *The following globals are available*:
 

@@ -18,13 +18,23 @@
       
       <iframe src="./iframe.html" id="server_frame"></iframe>
       
+      <script src="../node_modules/futoin-asyncsteps/dist/futoin-asyncsteps.js"></script>
+      <script src="../node_modules/futoin-invoker/dist/futoin-invoker.js"></script>
       <script src="../dist/futoin-executor.js"></script>
       <script src="../dist/unittest.js"></script>
       <script src="../dist/integration_test.js"></script>
 
       <script>
-        if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
-        else { mocha.run(); }
+        function run_on_load(event) {
+            if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
+            else { mocha.run(); }
+        };
+
+        if (document.readyState === "complete") {
+            run_on_load();
+        } else {
+            window.addEventListener("load", run_on_load);
+        }
       </script>
   </body>
 </html>

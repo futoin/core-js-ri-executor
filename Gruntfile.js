@@ -28,6 +28,33 @@ module.exports = function( grunt ) {
             dist: require( './webpack.dist' ),
             test: require( './webpack.test' ),
         },
+        babel: {
+            options: {
+                sourceMap: true,
+                presets: [ 'env' ],
+                plugins: [ "transform-object-assign" ],
+            },
+            es5: {
+                expand: true,
+                src: [
+                    "lib/**/*.js",
+                    "test/*.js",
+                    "BasicAuthFace.js",
+                    "BasicAuthService.js",
+                    "BrowserExecutor.js",
+                    "ChannelContext.js",
+                    "DerivedKey.js",
+                    "Executor.js",
+                    "Gruntfile.js",
+                    "NodeExecutor.js",
+                    "PingService.js",
+                    "RequestInfo.js",
+                    "SourceAddress.js",
+                    "UserInfo.js",
+                ],
+                dest: 'es5/',
+            },
+        },
         connect: {
             server: {
                 options: {
@@ -60,6 +87,7 @@ module.exports = function( grunt ) {
     } );
 
     grunt.loadNpmTasks( 'grunt-eslint' );
+    grunt.loadNpmTasks( 'grunt-babel' );
     grunt.loadNpmTasks( 'grunt-webpack' );
     grunt.loadNpmTasks( 'grunt-contrib-connect' );
     grunt.loadNpmTasks( 'grunt-mocha-phantomjs' );
@@ -67,7 +95,7 @@ module.exports = function( grunt ) {
 
     grunt.registerTask( 'check', [ 'eslint' ] );
 
-    grunt.registerTask( 'build-browser', [ 'webpack:dist' ] );
+    grunt.registerTask( 'build-browser', [ 'babel', 'webpack:dist' ] );
     grunt.registerTask( 'test-browser', [ 'webpack:test', 'connect', 'mocha_phantomjs' ] );
 
     grunt.registerTask( 'node', [ 'mocha_istanbul' ] );
