@@ -71,7 +71,7 @@
     "babel-preset-env": "^1.6.1",
     "chai": "^4.1.2",
     "eslint": "^4.13.1",
-    "futoin-asyncsteps": "^1.10.7",
+    "futoin-asyncsteps": "^1.10.8",
     "futoin-invoker": "^1.7.4",
     "grunt": "^1.0.1",
     "grunt-contrib-connect": "^1.0.2",
@@ -92,7 +92,7 @@
     "test/**"
   ],
   "peerDependencies": {
-    "futoin-asyncsteps": "^1.10.7",
+    "futoin-asyncsteps": "^1.10.8",
     "futoin-invoker": "^1.7.4"
   },
   "optionalDependencies": {

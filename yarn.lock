@@ -1915,9 +1915,9 @@ functional-red-black-tree@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
 
-futoin-asyncsteps@^1.10.7:
-  version "1.10.7"
-  resolved "https://registry.yarnpkg.com/futoin-asyncsteps/-/futoin-asyncsteps-1.10.7.tgz#378fcfefc19e28e4c3928c0b009a9c566a9f9954"
+futoin-asyncsteps@^1.10.8:
+  version "1.10.8"
+  resolved "https://registry.yarnpkg.com/futoin-asyncsteps/-/futoin-asyncsteps-1.10.8.tgz#dce54a695534875c3c403fe04eb72396a1ae89f6"
   dependencies:
     grunt-babel "^7.0.0"
     performance-now "^2.1.0"
