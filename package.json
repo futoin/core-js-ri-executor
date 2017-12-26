@@ -7,8 +7,6 @@
   "files": [
     "dist/",
     "es5/",
-    "es5/lib/",
-    "es5/*.js",
     "examples/",
     "lib/",
     "BasicAuthFace.js",
@@ -56,7 +54,6 @@
   "dependencies": {
     "cookies": "^0.7.1",
     "detect-node": "^2.0.3",
-    "event-emitter": "^0.3.5",
     "faye-websocket": "^0.11.1",
     "futoin-ipset": "^1.0.1",
     "lodash": "^4.17.4",
@@ -67,13 +64,14 @@
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-plugin-transform-object-assign": "^6.22.0",
-    "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "chai": "^4.1.2",
-    "eslint": "^4.13.1",
-    "futoin-asyncsteps": "^1.10.8",
-    "futoin-invoker": "^1.7.4",
+    "eslint": "^4.14.0",
+    "futoin-asyncevent": "^1.0.0",
+    "futoin-asyncsteps": "^1.10.11",
+    "futoin-invoker": "^1.7.6",
     "grunt": "^1.0.1",
+    "grunt-babel": "^7.0.0",
     "grunt-contrib-connect": "^1.0.2",
     "grunt-eslint": "^20.1.0",
     "grunt-jsdoc-to-markdown": "^3.0.0",
@@ -88,12 +86,10 @@
     "request": "^2.83.0",
     "webpack": "^3.10.0"
   },
-  "eslintIgnore": [
-    "test/**"
-  ],
   "peerDependencies": {
-    "futoin-asyncsteps": "^1.10.8",
-    "futoin-invoker": "^1.7.4"
+    "futoin-asyncevent": "^1.0.0",
+    "futoin-asyncsteps": "^1.10.11",
+    "futoin-invoker": "^1.7.6"
   },
   "optionalDependencies": {
     "posix": "^4.1.1"

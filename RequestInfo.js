@@ -332,6 +332,15 @@ class RequestInfo {
     }
 
     /**
+    * Get reference to associated Executor's CCM instance
+    * @returns {AdvancedCCM} _
+    * @alias RequestInfo#ccm
+    */
+    ccm() {
+        return this._executor.ccm();
+    }
+
+    /**
     * Get reference to channel context
     * @returns {ChannelContext} _
     * @alias RequestInfo#channel

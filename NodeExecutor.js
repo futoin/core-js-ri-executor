@@ -766,11 +766,13 @@ class NodeExecutor extends Executor {
     }
 
     close( close_cb ) {
-        super.close();
-
-        if ( this._http_server ) {
-            this._http_server.close( close_cb );
-        }
+        super.close( () => {
+            if ( this._http_server ) {
+                this._http_server.close( close_cb );
+            } else {
+                close_cb();
+            }
+        } );
     }
 
 

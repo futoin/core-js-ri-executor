@@ -110,14 +110,14 @@ var Executor = require('futoin-executor/Executor');
 
 # Browser installation
 
-Pre-built ES5 CJS modules are available under `es5/` are available. These modules
+Pre-built ES5 CJS modules are available under `es5/`. These modules
 can be used with `webpack` without transpiler - default "browser" entry point
 points to ES5 version.
 
-Webpack dists are also available under dist/ folder, but their usage should be limited
+Webpack dists are also available under `dist/` folder, but their usage should be limited
 to sites without build process.
 
-*Warning: older browsers require WeakMap polyfill for synchronization primitives.*
+*Warning: check AsyncSteps and AsyncEvent polyfill for older browsers.*
 
 *The following globals are available*:
 
@@ -557,8 +557,8 @@ futoin-executor.BrowserExecutor</p>
 
 <dl>
 <dt><a href="#UserInfoConst">UserInfoConst</a></dt>
-<dd><p>Pseudo-class for documenting UserInfo detail fields as
-defined in FTN8 spec</p>
+<dd><p>Pseudo-class for documenting UserInfo detail fields as</p>
+<p>defined in FTN8 spec</p>
 </dd>
 </dl>
 
@@ -939,6 +939,7 @@ An abstract core implementing pure FTN6 Executor logic.
     * [.cacheInit(as)](#Executor+cacheInit)
     * [.close([close_cb])](#Executor+close)
     * [.packPayloadJSON(msg)](#Executor+packPayloadJSON) ⇒ <code>string</code>
+    * ["ready"](#Executor+event_ready)
     * ["request"](#Executor+event_request)
     * ["response"](#Executor+event_response)
     * ["notExpected"](#Executor+event_notExpected)
@@ -1084,6 +1085,13 @@ If safe limit of 64K is exceeded  then error is raised.
 | --- | --- | --- |
 | msg | <code>object</code> | message to encode into JSON |
 
+<a name="Executor+event_ready"></a>
+
+### "ready"
+May be fired in derived Executors to signal readiness
+()
+
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="Executor+event_request"></a>
 
 ### "request"
@@ -1544,6 +1552,7 @@ RequestInfo object as defined in FTN6
     * [.rawInput()](#RequestInfo+rawInput) ⇒ <code>object</code>
     * [.rawOutput()](#RequestInfo+rawOutput) ⇒ <code>object</code>
     * [.executor()](#RequestInfo+executor) ⇒ [<code>Executor</code>](#Executor)
+    * [.ccm()](#RequestInfo+ccm) ⇒ <code>AdvancedCCM</code>
     * [.channel()](#RequestInfo+channel) ⇒ [<code>ChannelContext</code>](#ChannelContext)
     * [.cancelAfter(time_ms)](#RequestInfo+cancelAfter)
 
@@ -1604,6 +1613,13 @@ Get reference to associated Executor instance
 
 **Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
 **Returns**: [<code>Executor</code>](#Executor) - _  
+<a name="RequestInfo+ccm"></a>
+
+### requestInfo.ccm() ⇒ <code>AdvancedCCM</code>
+Get reference to associated Executor's CCM instance
+
+**Kind**: instance method of [<code>RequestInfo</code>](#RequestInfo)  
+**Returns**: <code>AdvancedCCM</code> - _  
 <a name="RequestInfo+channel"></a>
 
 ### requestInfo.channel() ⇒ [<code>ChannelContext</code>](#ChannelContext)
@@ -1728,6 +1744,7 @@ Get user info details
     * [.cacheInit(as)](#Executor+cacheInit)
     * [.close([close_cb])](#Executor+close)
     * [.packPayloadJSON(msg)](#Executor+packPayloadJSON) ⇒ <code>string</code>
+    * ["ready"](#Executor+event_ready)
     * ["request"](#Executor+event_request)
     * ["response"](#Executor+event_response)
     * ["notExpected"](#Executor+event_notExpected)
@@ -1873,6 +1890,13 @@ If safe limit of 64K is exceeded  then error is raised.
 | --- | --- | --- |
 | msg | <code>object</code> | message to encode into JSON |
 
+<a name="Executor+event_ready"></a>
+
+### "ready"
+May be fired in derived Executors to signal readiness
+()
+
+**Kind**: event emitted by [<code>Executor</code>](#Executor)  
 <a name="Executor+event_request"></a>
 
 ### "request"

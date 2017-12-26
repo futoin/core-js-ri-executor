@@ -24,7 +24,7 @@ const _defaults = require( 'lodash/defaults' );
 const invoker = require( 'futoin-invoker' );
 const FutoInError = invoker.FutoInError;
 const async_steps = require( 'futoin-asyncsteps' );
-const ee = require( 'event-emitter' );
+const $asyncevent = require( 'futoin-asyncevent' );
 
 const ChannelContext = require( './ChannelContext' );
 const SourceAddress = require( './SourceAddress' );
@@ -130,7 +130,13 @@ const ExecutorOptions =
  */
 class Executor {
     constructor( ccm, opts ) {
-        ee( this );
+        $asyncevent( this, [
+            'ready',
+            'request',
+            'response',
+            'notExpected',
+            'close',
+        ] );
 
         this._ccm = ccm;
         this._ifaces = {};
@@ -170,7 +176,9 @@ class Executor {
         }
 
         // Ensure to close executor on CCM close
-        ccm.once( 'close', this.close.bind( this ) );
+        const close_listener = () => this.close;
+        ccm.once( 'close', close_listener );
+        this.once( 'close', () => ccm.off( 'close', close_listener ) );
     }
 
     get SAFE_PAYLOAD_LIMIT() {
@@ -1029,11 +1037,11 @@ class Executor {
      * @fires Executor#close
      */
     close( close_cb ) {
-        this.emit( 'close' );
-
         if ( close_cb ) {
-            close_cb();
+            this.once( 'close', close_cb );
         }
+
+        this.emit( 'close' );
     }
 
     /**
@@ -1059,6 +1067,12 @@ class Executor {
 }
 
 module.exports = Executor;
+
+/**
+ * May be fired in derived Executors to signal readiness
+ * ()
+ * @event Executor#ready
+ */
 
 /**
  * Fired when request processing is started.

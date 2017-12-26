@@ -2,18 +2,17 @@
 
 var assert;
 
-var executor_module = require( '../lib/main' );
+var executor_module;
 var invoker_module = require( 'futoin-invoker' );
 var async_steps = require( 'futoin-asyncsteps' );
 var BasicAuthFace = require( '../BasicAuthFace' );
 var BasicAuthService = require( '../BasicAuthService' );
 var _ = require( 'lodash' );
 
-var is_in_browser = ( 'BrowserExecutor' in executor_module );
+var is_in_browser = ( typeof window !== 'undefined' );
 
 var NodeExecutor;
 var BrowserExecutor;
-var ClientExecutor = executor_module.ClientExecutor;
 var MemoryStream;
 var thisDir;
 var request;
@@ -22,10 +21,12 @@ if ( is_in_browser ) {
     assert = chai.assert;
     thisDir = '.';
 
+    executor_module = window.futoin.Executor;
     BrowserExecutor = executor_module.BrowserExecutor;
 } else {
     thisDir = __dirname;
 
+    executor_module = module.require( '../lib/main' );
     NodeExecutor = executor_module.NodeExecutor;
     MemoryStream = module.require( 'memorystream' );
 
@@ -37,6 +38,7 @@ if ( is_in_browser ) {
     request = module.require( 'request' );
 }
 
+var ClientExecutor = executor_module.ClientExecutor;
 var integration_iface = require( './integration_iface' );
 var test_if_anon = integration_iface.test_if_anon;
 var test_if_anon_secure = integration_iface.test_if_anon_secure;
@@ -138,8 +140,6 @@ model_as.add(
             executor.on( 'ready', function() {
                 as.success();
             } );
-            executor.on( 'error', function() {
-            } );
         } ).add( function( as ) {
             if ( !node_test ) return;
 
@@ -154,8 +154,6 @@ model_as.add(
             as.setTimeout( execopts.callTimeoutMS );
             secexecutor.on( 'ready', function() {
                 as.success();
-            } );
-            secexecutor.on( 'error', function() {
             } );
         } ).add( function( as ) {
             if ( !internal_test ) return;

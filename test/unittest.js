@@ -1,3 +1,4 @@
+'use strict';
 
 var invoker;
 var async_steps;
@@ -148,6 +149,10 @@ describe( 'Executor', function() {
             as.add( function( as ) {
                 executor.register( as, 'fileface.derived:2.3', impl );
             } );
+        } );
+
+        afterEach( function( done ) {
+            executor.close( done );
         } );
 
         it( 'should process request', function( done ) {

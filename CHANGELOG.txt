@@ -1,3 +1,7 @@
+=== (next) ===
+FIXED: to use FTN15-compliant `futoin-asyncevent` instead of `event-emitter`
+FIXED: to cleanup CCM event listeners on Executor#close()
+NEW: added RequestInfo#ccm() shortcut
 
 === 1.7.3 (2017-12-17) ===
 CHANGED: to build dist/ folder from es5/ folder
