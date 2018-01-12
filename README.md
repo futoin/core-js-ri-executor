@@ -557,8 +557,8 @@ futoin-executor.BrowserExecutor</p>
 
 <dl>
 <dt><a href="#UserInfoConst">UserInfoConst</a></dt>
-<dd><p>Pseudo-class for documenting UserInfo detail fields as</p>
-<p>defined in FTN8 spec</p>
+<dd><p>Pseudo-class for documenting UserInfo detail fields as
+defined in FTN8 spec</p>
 </dd>
 </dl>
 

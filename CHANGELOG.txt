@@ -1,3 +1,8 @@
+
+=== (next) ===
+FIXED: to compare legacy HMAC and legacy BasicAuth with protection from timining attacks
+CHANGED: moved futoin-asyncevent from peer to regular deps
+
 === 1.7.4 (2017-12-26) ===
 FIXED: to use FTN15-compliant `futoin-asyncevent` instead of `event-emitter`
 FIXED: to cleanup CCM event listeners on Executor#close()

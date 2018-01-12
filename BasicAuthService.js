@@ -112,7 +112,8 @@ class BasicAuthService {
         as.add( ( as, u ) => {
             // Vulnerable to time attacks
             if ( u &&
-                 ( u.secret === p.pwd ) ) {
+                 SpecTools.secureEquals( u.secret, p.pwd )
+            ) {
                 reqinfo.result().seclvl = u.system_user ?
                     reqinfo.SL_SYSTEM :
                     reqinfo.SL_SAFE_OPS;
