@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.7.5 (2018-01-12) ===
 FIXED: to compare legacy HMAC and legacy BasicAuth with protection from timining attacks
 CHANGED: moved futoin-asyncevent from peer to regular deps
 
