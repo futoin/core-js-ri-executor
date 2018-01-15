@@ -1045,7 +1045,11 @@ class Executor {
      * @fires Executor#notExpected
      */
     packPayload( coder, msg ) {
-        const rawmsg = coder.encode( msg );
+        let rawmsg = coder.encode( msg );
+
+        if ( typeof rawmsg === 'string' ) {
+            rawmsg = Buffer.from( rawmsg );
+        }
 
         if ( rawmsg.length > this.SAFE_PAYLOAD_LIMIT ) {
             this.emit( 'notExpected', FutoInError.InternalError,

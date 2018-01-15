@@ -582,7 +582,7 @@ class NodeExecutor extends Executor {
         reqinfo._as = as;
 
         const cancel_req = ( as ) => {
-            const ftnrsp = '{"e":"InternalError"}';
+            const ftnrsp = Buffer.from( '{"e":"InternalError"}' );
 
             reqinfo._cleanup();
             req.removeListener( 'close', close_req );
@@ -593,10 +593,10 @@ class NodeExecutor extends Executor {
                 200,
                 {
                     'Content-Type' : 'application/futoin+json',
-                    'Content-Length' : Buffer.byteLength( ftnrsp, 'utf8' ),
+                    'Content-Length' : ftnrsp.length,
                 }
             );
-            rsp.end( ftnrsp, 'utf8' );
+            rsp.end( ftnrsp );
         };
 
         as.sync(
@@ -620,11 +620,11 @@ class NodeExecutor extends Executor {
                         rsp.writeHead(
                             200,
                             {
-                                'Content-Type' : 'application/futoin+json',
-                                'Content-Length' : Buffer.byteLength( rawmsg, 'utf8' ),
+                                'Content-Type' : coder.contentType(),
+                                'Content-Length' : rawmsg.length,
                             }
                         );
-                        rsp.end( rawmsg, 'utf8' );
+                        rsp.end( rawmsg );
                     } else {
                         if ( reqinfo_info.HAVE_RAW_RESULT ) {
                             this._msg_sniffer( source_address, '%DATA%', false );
@@ -687,7 +687,7 @@ class NodeExecutor extends Executor {
                     const reqas = ws._ftn_reqas[ rid ];
 
                     if ( reqas ) {
-                        reqas.success( ftnreq, 'application/futoin+json' );
+                        reqas.success( ftnreq, true );
                         delete ws._ftn_reqas[ rid ];
                     }
 
