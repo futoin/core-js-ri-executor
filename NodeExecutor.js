@@ -31,6 +31,8 @@ const { IPSet, Address6 } = require( 'futoin-ipset' );
 const performance_now = require( "performance-now" );
 const Limiter = async_steps.Limiter;
 
+const MessageCoder = require( 'futoin-invoker' ).MessageCoder;
+
 const Executor = require( './Executor' );
 const ChannelContext = require( './ChannelContext' );
 const SourceAddress = require( './SourceAddress' );
@@ -470,16 +472,17 @@ class NodeExecutor extends Executor {
             req.on(
                 'end',
                 () => {
-                    let ftnreq = data.join( '' );
+                    let ftnreq = Buffer.concat( data );
+                    const coder = MessageCoder.detect( ftnreq );
 
                     try {
-                        ftnreq = JSON.parse( ftnreq );
+                        ftnreq = coder.decode( ftnreq );
                     } catch ( e ) {
                         ftnreq = {};
                         // fail through standard path
                     }
 
-                    this._handleHTTPRequestCommon( ftnreq, req, rsp, false );
+                    this._handleHTTPRequestCommon( { ftnreq, req, rsp, coder } );
                 }
             );
             return true;
@@ -507,7 +510,12 @@ class NodeExecutor extends Executor {
             }
         }
 
-        this._handleHTTPRequestCommon( ftnreq, req, rsp, ( req.method === 'POST' ), true );
+        this._handleHTTPRequestCommon( {
+            ftnreq, req, rsp,
+            coder: MessageCoder.get( 'JSON' ),
+            raw_upload: ( req.method === 'POST' ),
+            from_query: true,
+        } );
         return true;
     }
 
@@ -538,7 +546,7 @@ class NodeExecutor extends Executor {
         );
     }
 
-    _handleHTTPRequestCommon( ftnreq, req, rsp, raw_upload, from_query ) {
+    _handleHTTPRequestCommon( { ftnreq, req, rsp, coder, raw_upload=false, from_query=false } ) {
         const reqinfo = new RequestInfo( this, ftnreq );
 
         // ---
@@ -605,7 +613,7 @@ class NodeExecutor extends Executor {
                     req.removeListener( 'close', close_req );
 
                     if ( ftnrsp !== null ) {
-                        const rawmsg = this.packPayloadJSON( ftnrsp );
+                        const rawmsg = this.packPayload( coder, ftnrsp );
 
                         this._msg_sniffer( source_address, rawmsg, false );
 
@@ -663,10 +671,11 @@ class NodeExecutor extends Executor {
             ( event ) => {
                 this._msg_sniffer( source_addr, event.data, true );
 
-                let ftnreq;
+                let ftnreq = event.data;
+                const coder = MessageCoder.detect( ftnreq );
 
                 try {
-                    ftnreq = JSON.parse( event.data );
+                    ftnreq = coder.decode( ftnreq );
                 } catch ( e ) {
                     return; // ignore
                 }
@@ -685,12 +694,12 @@ class NodeExecutor extends Executor {
                     return;
                 }
 
-                this._handleWSRequest( context, ftnreq );
+                this._handleWSRequest( context, ftnreq, coder );
             }
         );
     }
 
-    _handleWSRequest( context, ftnreq ) {
+    _handleWSRequest( context, ftnreq, coder ) {
         const reqinfo = new RequestInfo( this, ftnreq );
 
         const reqinfo_info = reqinfo.info;
@@ -724,7 +733,7 @@ class NodeExecutor extends Executor {
             reqinfo._cleanup();
 
             try {
-                const rawmsg = JSON.stringify( ftnrsp );
+                const rawmsg = coder.encode( ftnrsp );
 
                 this._msg_sniffer( source_addr, rawmsg, false );
                 ws_conn.send( rawmsg );
@@ -749,7 +758,7 @@ class NodeExecutor extends Executor {
                     context._message_count -= 1;
 
                     if ( ftnrsp !== null ) {
-                        const rawmsg = this.packPayloadJSON( ftnrsp );
+                        const rawmsg = this.packPayload( coder, ftnrsp );
 
                         this._msg_sniffer( context._source_addr, rawmsg, false );
                         ws_conn.send( rawmsg );

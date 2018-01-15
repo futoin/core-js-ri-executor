@@ -1,4 +1,8 @@
 
+=== (next) ===
+NEW: FTN3 v1.9 BinaryData
+NEW: CBOR & MessagePack support as coding formats
+
 === 1.7.5 (2018-01-12) ===
 FIXED: to compare legacy HMAC and legacy BasicAuth with protection from timining attacks
 CHANGED: moved futoin-asyncevent from peer to regular deps

@@ -166,15 +166,6 @@ class Executor {
         this._maxRspSize = this.SAFE_PAYLOAD_LIMIT;
         this._maxAnySize = this.SAFE_PAYLOAD_LIMIT;
 
-        //
-        if ( typeof Buffer !== 'undefined' && Buffer.byteLength ) {
-            this._byteLength = Buffer.byteLength;
-        } else {
-            this._byteLength = ( data ) => {
-                return data.length; // Yes, it does not work for multi-byte correctly
-            };
-        }
-
         // Ensure to close executor on CCM close
         const close_listener = () => this.close;
         ccm.once( 'close', close_listener );
@@ -414,7 +405,7 @@ class Executor {
                         reqinfo._cleanup();
 
                         if ( ftnrsp !== null ) {
-                            orig_as.success( ftnrsp, invoker.SimpleCCM.FUTOIN_CONTENT_TYPE );
+                            orig_as.success( ftnrsp, true );
                         } else {
                             orig_as.success();
                         }
@@ -1048,14 +1039,15 @@ class Executor {
      * Not standard. Pack message object into JSON representation.
      * If safe limit of 64K is exceeded  then error is raised.
      *
+     * @param {MessageCoder} coder - message coder instance
      * @param {object} msg - message to encode into JSON
      * @returns {string} string representation of the message
      * @fires Executor#notExpected
      */
-    packPayloadJSON( msg ) {
-        const rawmsg = JSON.stringify( msg );
+    packPayload( coder, msg ) {
+        const rawmsg = coder.encode( msg );
 
-        if ( this._byteLength( rawmsg, 'utf8' ) > this.SAFE_PAYLOAD_LIMIT ) {
+        if ( rawmsg.length > this.SAFE_PAYLOAD_LIMIT ) {
             this.emit( 'notExpected', FutoInError.InternalError,
                 "Response size has exceeded safety limit",
                 null, null );

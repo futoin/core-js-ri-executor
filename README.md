@@ -17,10 +17,10 @@ Reference implementation of:
     Version: 1.7
 
     FTN3: FutoIn Interface Definition
-    Version: 1.8
+    Version: 1.9
 
     FTN5: FutoIn HTTP integration
-    Version: 1.2
+    Version: 1.3
 
     FTN4: FutoIn Interface - Ping-Pong
     Version: 1.0 (service)
@@ -938,7 +938,7 @@ An abstract core implementing pure FTN6 Executor logic.
     * [.initFromCache(as)](#Executor+initFromCache)
     * [.cacheInit(as)](#Executor+cacheInit)
     * [.close([close_cb])](#Executor+close)
-    * [.packPayloadJSON(msg)](#Executor+packPayloadJSON) ⇒ <code>string</code>
+    * [.packPayload(coder, msg)](#Executor+packPayload) ⇒ <code>string</code>
     * ["ready"](#Executor+event_ready)
     * ["request"](#Executor+event_request)
     * ["response"](#Executor+event_response)
@@ -1071,9 +1071,9 @@ Shutdown Executor and stop whole processing
 | --- | --- | --- | --- |
 | [close_cb] | <code>callable</code> | <code></code> | callback to execute after Executor shutdown |
 
-<a name="Executor+packPayloadJSON"></a>
+<a name="Executor+packPayload"></a>
 
-### executor.packPayloadJSON(msg) ⇒ <code>string</code>
+### executor.packPayload(coder, msg) ⇒ <code>string</code>
 Not standard. Pack message object into JSON representation.
 If safe limit of 64K is exceeded  then error is raised.
 
@@ -1083,6 +1083,7 @@ If safe limit of 64K is exceeded  then error is raised.
 
 | Param | Type | Description |
 | --- | --- | --- |
+| coder | <code>MessageCoder</code> | message coder instance |
 | msg | <code>object</code> | message to encode into JSON |
 
 <a name="Executor+event_ready"></a>
@@ -1743,7 +1744,7 @@ Get user info details
     * [.initFromCache(as)](#Executor+initFromCache)
     * [.cacheInit(as)](#Executor+cacheInit)
     * [.close([close_cb])](#Executor+close)
-    * [.packPayloadJSON(msg)](#Executor+packPayloadJSON) ⇒ <code>string</code>
+    * [.packPayload(coder, msg)](#Executor+packPayload) ⇒ <code>string</code>
     * ["ready"](#Executor+event_ready)
     * ["request"](#Executor+event_request)
     * ["response"](#Executor+event_response)
@@ -1876,9 +1877,9 @@ Shutdown Executor and stop whole processing
 | --- | --- | --- | --- |
 | [close_cb] | <code>callable</code> | <code></code> | callback to execute after Executor shutdown |
 
-<a name="Executor+packPayloadJSON"></a>
+<a name="Executor+packPayload"></a>
 
-### executor.packPayloadJSON(msg) ⇒ <code>string</code>
+### executor.packPayload(coder, msg) ⇒ <code>string</code>
 Not standard. Pack message object into JSON representation.
 If safe limit of 64K is exceeded  then error is raised.
 
@@ -1888,6 +1889,7 @@ If safe limit of 64K is exceeded  then error is raised.
 
 | Param | Type | Description |
 | --- | --- | --- |
+| coder | <code>MessageCoder</code> | message coder instance |
 | msg | <code>object</code> | message to encode into JSON |
 
 <a name="Executor+event_ready"></a>

@@ -381,6 +381,10 @@ class RequestInfo {
         this._as = null;
         this.info = null;
 
+        if ( !info ) {
+            return;
+        }
+
         const context = info.CHANNEL_CONTEXT;
 
         if ( context &&

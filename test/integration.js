@@ -387,7 +387,7 @@ model_as.add(
                 as.success( 'TestDownloadЯ' );
             }
         } ).add( function( as, res ) {
-            res.should.equal( 'TestDownloadЯ' );
+            res.toString().should.equal( 'TestDownloadЯ' );
             // ---
         } ).add( function( as ) {
             set_step( "rawUploadResult" );
