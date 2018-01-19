@@ -1,4 +1,8 @@
 
+=== (next) ===
+CHANGED: NodeExecutor to emit 'close' after HTTP server shutdown
+FIXED: to gracefully shutdown WebSockets on executor close()
+
 === 1.8.0 (2018-01-15) ===
 NEW: FTN3 v1.9 BinaryData
 NEW: CBOR & MessagePack support as coding formats

@@ -312,6 +312,9 @@ class NodeExecutor extends Executor {
     constructor( ccm, opts ) {
         super( ccm, opts );
 
+        this._closing = false;
+        this._ws_contexts = new Set();
+
         opts = opts || {};
         _defaultsDeep( opts, NodeExecutorOptions );
 
@@ -663,8 +666,13 @@ class NodeExecutor extends Executor {
 
         ws.on(
             'close',
-            ( ) => context._cleanup()
+            ( ) => {
+                this._ws_contexts.delete( context );
+                context._cleanup();
+            }
         );
+
+        this._ws_contexts.add( context );
 
         ws.on(
             'message',
@@ -715,22 +723,32 @@ class NodeExecutor extends Executor {
 
         const close_req = () => as.cancel();
 
-        context._message_count = context._message_count || 10;
+        context._message_count = context._message_count || 0;
         context._message_count += 1;
 
-        context._ws_conn.setMaxListeners( context._message_count << 1 );
-        context._ws_conn.once( 'close', close_req );
+        const ws_conn = context._ws_conn;
+        ws_conn.setMaxListeners( context._message_count << 1 );
+        ws_conn.once( 'close', close_req );
 
         reqinfo._as = as;
 
+        const generic_cleanup = () => {
+            reqinfo._cleanup();
+            ws_conn.removeListener( 'close', close_req );
+            context._message_count -= 1;
+
+            if ( ( context._message_count === 0 ) && this._closing ) {
+                ws_conn.close();
+            }
+        };
+
         const cancel_req = ( as ) => {
-            const ws_conn = context._ws_conn;
             const ftnrsp = {
                 rid : reqinfo._rawreq.rid,
                 e : "InternalError",
             };
 
-            reqinfo._cleanup();
+            generic_cleanup();
 
             try {
                 const rawmsg = coder.encode( ftnrsp );
@@ -751,11 +769,8 @@ class NodeExecutor extends Executor {
 
                 as.add( ( as ) => {
                     const ftnrsp = reqinfo_info.RAW_RESPONSE;
-                    const ws_conn = context._ws_conn;
 
-                    reqinfo._cleanup();
-                    ws_conn.removeListener( 'close', close_req );
-                    context._message_count -= 1;
+                    generic_cleanup();
 
                     if ( ftnrsp !== null ) {
                         const rawmsg = this.packPayload( coder, ftnrsp );
@@ -766,8 +781,6 @@ class NodeExecutor extends Executor {
                 } );
             },
             ( as, err ) => {
-                context._ws_conn.removeListener( 'close', close_req );
-                context._message_count -= 1;
                 this.emit( 'error', reqinfo, 'Internal Server Error' );
             }
         );
@@ -775,13 +788,21 @@ class NodeExecutor extends Executor {
     }
 
     close( close_cb ) {
-        super.close( () => {
-            if ( this._http_server ) {
-                this._http_server.close( close_cb );
-            } else {
-                close_cb();
+        this._closing = true;
+
+        this._ws_contexts.forEach( ( c ) => {
+            if ( c._message_count === 0 ) {
+                c._ws_conn.close();
             }
         } );
+
+        const close_common = () => super.close( close_cb );
+
+        if ( this._http_server ) {
+            this._http_server.close( close_common );
+        } else {
+            close_common();
+        }
     }
 
 
