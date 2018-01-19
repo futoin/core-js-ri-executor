@@ -1,4 +1,7 @@
 
+=== (next) ===
+CHANGED: to ignore new WebSockets requests in closing state
+
 === 1.8.1 (2018-01-19) ===
 CHANGED: NodeExecutor to emit 'close' after HTTP server shutdown
 FIXED: to gracefully shutdown WebSockets on executor close()

@@ -702,6 +702,11 @@ class NodeExecutor extends Executor {
                     return;
                 }
 
+                if ( this._closing ) {
+                    // ignore
+                    return;
+                }
+
                 this._handleWSRequest( context, ftnreq, coder );
             }
         );
