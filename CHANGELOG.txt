@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.8.2 (2018-01-19) ===
 CHANGED: to ignore new WebSockets requests in closing state
 
 === 1.8.1 (2018-01-19) ===
