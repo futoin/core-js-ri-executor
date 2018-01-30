@@ -130,7 +130,7 @@ describe( 'Request Limiter', function() {
 
                 for ( let i = 0; i < total; ++i ) make_ping( done );
 
-                as.setCancel( ( as ) => {} );
+                as.waitExternal();
 
                 setTimeout( () => {
                     try {
@@ -181,7 +181,7 @@ describe( 'Request Limiter', function() {
                     } );
                 }
 
-                as.setCancel( ( as ) => {} );
+                as.waitExternal();
 
                 setTimeout( () => {
                     try {
@@ -274,7 +274,7 @@ describe( 'Request Limiter', function() {
                     } );
                 }
 
-                as.setCancel( ( as ) => {} );
+                as.waitExternal();
 
                 setTimeout( () => {
                     try {
