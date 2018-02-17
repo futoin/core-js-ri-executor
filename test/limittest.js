@@ -1,3 +1,6 @@
+'use strict';
+
+require( './prepare' );
 
 const $as = require( 'futoin-asyncsteps' );
 const AdvancedCCM = require( 'futoin-invoker/AdvancedCCM' );

@@ -1,5 +1,7 @@
 'use strict';
 
+require( './prepare' );
+
 var chai;
 
 if ( typeof window !== 'undefined' ) {

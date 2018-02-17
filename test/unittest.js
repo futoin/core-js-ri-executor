@@ -1,5 +1,7 @@
 'use strict';
 
+require( './prepare' );
+
 var invoker;
 var async_steps;
 var executor_module;
