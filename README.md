@@ -1141,6 +1141,7 @@ Fired when Executor is shutting down.
     * [.limitCacheSize](#NodeExecutorOptions.limitCacheSize)
     * [.limitConf](#NodeExecutorOptions.limitConf)
     * [.addressLimitMap](#NodeExecutorOptions.addressLimitMap)
+    * [.secureObjectPrototype](#NodeExecutorOptions.secureObjectPrototype)
 
 <a name="new_NodeExecutorOptions_new"></a>
 
@@ -1239,6 +1240,13 @@ Startup configuration for NodeExecutor#addressLimitMap()
 
 **Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code>{}</code>  
+<a name="NodeExecutorOptions.secureObjectPrototype"></a>
+
+### NodeExecutorOptions.secureObjectPrototype
+Controls if SpecTools.secureObjectPrototype() is called upon startup.
+
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
+**Default**: <code>true</code>  
 <a name="NodeExecutor"></a>
 
 ## NodeExecutor

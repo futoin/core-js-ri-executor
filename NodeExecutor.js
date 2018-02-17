@@ -37,6 +37,7 @@ const Executor = require( './Executor' );
 const ChannelContext = require( './ChannelContext' );
 const SourceAddress = require( './SourceAddress' );
 const RequestInfo = require( './RequestInfo' );
+const SpecTools = require( 'futoin-invoker/SpecTools' );
 
 // ---
 class HTTPChannelContext extends ChannelContext {
@@ -302,6 +303,12 @@ const NodeExecutorOptions =
      * @default
      */
     addressLimitMap : {},
+
+    /**
+     * Controls if SpecTools.secureObjectPrototype() is called upon startup.
+     * @default
+     */
+    secureObjectPrototype : true,
 };
 
 /**
@@ -372,6 +379,11 @@ class NodeExecutor extends Executor {
         }
 
         this._http_server = http_server;
+
+        // Ensure publicly exposed executor is secure
+        if ( opts.secureObjectPrototype ) {
+            SpecTools.secureObjectPrototype();
+        }
 
         // HTTP
         // ---

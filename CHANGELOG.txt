@@ -1,4 +1,8 @@
 
+=== (next) ===
+CHANGED: Object.prototype is frozen after any `NodeExecutor` is created.
+NEW: Object.prototype freezing can be controlled with NodeExecutor option now.
+
 === 1.8.3 (2018-02-17) ===
 FIXED: CVE-2018-3721 mitigation with futoin-invoker v1.8.2+
 
