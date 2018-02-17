@@ -24,7 +24,7 @@ const WebSocket = require( 'faye-websocket' );
 const http = require( 'http' );
 const url = require( 'url' );
 const async_steps = require( 'futoin-asyncsteps' );
-const Cookies = require( "cookies" );
+const cookie = require( "cookie" );
 const lruCache = require( 'lru-cache' );
 
 const { IPSet, Address6 } = require( 'futoin-ipset' );
@@ -92,7 +92,7 @@ class HTTPChannelContext extends ChannelContext {
         let cookies = this._cookies;
 
         if ( !cookies ) {
-            cookies = new Cookies( this._http_req, this._http_rsp );
+            cookies = cookie.parse( this._http_req.headers.cookie || '' );
             this._cookies = cookies;
         }
 
@@ -102,19 +102,21 @@ class HTTPChannelContext extends ChannelContext {
     getCookie( name ) {
         const cookies = this._initCookies();
 
-        return cookies.get( name );
+        return cookies[ name ];
     }
 
-    setCookie( name, value, options ) {
-        const cookies = this._initCookies();
-
-        options = options || {};
+    setCookie( name, value, options={} ) {
+        options = Object.assign( {}, options );
         options.maxAge = options.max_age || undefined;
-        options.httpOnly = options.http_only || undefined;
+        options.httpOnly = options.http_only || true;
         options.secure = options.secure || this._is_secure_channel;
-        options.overwrite = true;
 
-        return cookies.set( name, value, options );
+        const to_set = cookie.serialize( name, value, options );
+
+        const rsp = this._http_rsp;
+        const cookies = rsp.getHeader['set-cookie'] || [];
+        cookies.push( to_set );
+        rsp.setHeader( 'set-cookie', cookies );
     }
 }
 

@@ -118,6 +118,7 @@ describe( 'Request Limiter', function() {
     } );
 
     afterEach( function( done ) {
+        this.timeout( 10e3 );
         ccm.close();
         as.cancel();
         executor.close( () => done() );
@@ -137,7 +138,10 @@ describe( 'Request Limiter', function() {
                         expect( impl._total ).to.equal( CONN_LIMIT );
                         expect( impl._max ).to.equal( CONN_LIMIT );
                     } catch ( e ) {
-                        done( e );
+                        if ( as.state ) {
+                            as.state.last_exception = e;
+                            as._root._handle_error( 'Fail' );
+                        }
                     }
                 }, PERIOD_MS / 2 );
 
@@ -148,7 +152,10 @@ describe( 'Request Limiter', function() {
 
                         if ( as.state ) as.success();
                     } catch ( e ) {
-                        done( e );
+                        if ( as.state ) {
+                            as.state.last_exception = e;
+                            as._root._handle_error( 'Fail' );
+                        }
                     }
                 }, PERIOD_MS * 1.5 );
             },

@@ -1,4 +1,7 @@
 
+=== (next) ===
+FIXED: CVE-2018-3721 mitigation with futoin-invoker v1.8.2+
+
 === 1.8.2 (2018-01-19) ===
 CHANGED: to ignore new WebSockets requests in closing state
 

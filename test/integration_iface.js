@@ -1,10 +1,18 @@
+'use strict';
+
+var chai;
 
 if ( typeof window !== 'undefined' ) {
     exports = window.integrationFace = {
         in_browser : true,
     };
     module.exports = exports;
+    chai = window.chai;
+} else {
+    chai = module.require( 'chai' );
 }
+
+var expect = chai.expect;
 
 // ---
 exports.test_if_anon = {
@@ -271,11 +279,11 @@ exports.interface_impl = {
 
     testAuth : function( as, reqinfo ) {
         try {
-            reqinfo.info[ reqinfo.INFO_SECURITY_LEVEL ].should.equal(
+            expect( reqinfo.info[ reqinfo.INFO_SECURITY_LEVEL ] ).equal(
                 reqinfo.info._hmac_user ?
                     reqinfo.SL_PRIVILEGED_OPS :
                     reqinfo.SL_SAFE_OPS );
-            reqinfo.info[ reqinfo.INFO_USER_INFO ].should.not.be.null;
+            expect( reqinfo.info[ reqinfo.INFO_USER_INFO ] ).not.be.null;
         } catch ( e ) {
             as.error( 'InternalError', e.message );
         }
@@ -383,7 +391,7 @@ exports.interface_impl = {
             var channel = reqinfo.channel();
 
             if ( channel.type() === "HTTP" ) {
-                channel.getRequestHeaders()['content-type'].should.equal( 'application/futoin+json' );
+                expect( channel.getRequestHeaders()['content-type'] ).equal( 'application/futoin+json' );
                 channel.setResponseHeader( 'MyHeader', 'value' );
                 channel.setStatusCode( 201 );
                 channel.setCookie( 'MyCookie', 'MyValue' );
@@ -414,7 +422,7 @@ exports.interface_impl = {
 
     testOnBehalfOfSub : function( as, reqinfo ) {
         try {
-            reqinfo.info.RAW_REQUEST.sec.should.equal( 'system:pass' );
+            expect( reqinfo.info.RAW_REQUEST.sec ).equal( 'system:pass' );
 
             reqinfo.info.USER_INFO
                 .details( as )
@@ -423,7 +431,7 @@ exports.interface_impl = {
                         try {
                             var login = user_details.Login;
 
-                            ( login === 'user' || login === 'hmacuser' ).should.be.true;
+                            expect( ( login === 'user' || login === 'hmacuser' ) ).be.true;
                         } catch ( e ) {
                             console.log( e.stack );
                             as.error( 'InternalError', e.message );

@@ -1,6 +1,10 @@
 "use strict";
 
 var assert;
+var expect;
+
+var is_in_browser = ( typeof window !== 'undefined' );
+var MemoryStream = is_in_browser ? null : module.require( 'memorystream' );
 
 var executor_module;
 var invoker_module = require( 'futoin-invoker' );
@@ -9,16 +13,14 @@ var BasicAuthFace = require( '../BasicAuthFace' );
 var BasicAuthService = require( '../BasicAuthService' );
 var _ = require( 'lodash' );
 
-var is_in_browser = ( typeof window !== 'undefined' );
-
 var NodeExecutor;
 var BrowserExecutor;
-var MemoryStream;
 var thisDir;
 var request;
 
 if ( is_in_browser ) {
     assert = chai.assert;
+    expect = chai.expect;
     thisDir = '.';
 
     executor_module = window.futoin.Executor;
@@ -28,12 +30,11 @@ if ( is_in_browser ) {
 
     executor_module = module.require( '../lib/main' );
     NodeExecutor = executor_module.NodeExecutor;
-    MemoryStream = module.require( 'memorystream' );
 
     var chai_module = module.require( 'chai' );
 
-    chai_module.should();
     assert = chai_module.assert;
+    expect = chai_module.expect;
 
     request = module.require( 'request' );
 }
@@ -196,7 +197,7 @@ model_as.add(
                 clientExecutor.register( as, 'test.int.bidirect:1.0', {
                     clientCallback : function( as, reqinfo ) {
                         try {
-                            reqinfo.info.RAW_REQUEST.should.not.have.property( 'sec' );
+                            expect( reqinfo.info.RAW_REQUEST ).not.have.property( 'sec' );
                             return { a: 'ClientResult' };
                         } catch ( e ) {
                             as.error( 'InternalError', e.message );
@@ -234,14 +235,14 @@ model_as.add(
 
                         as.add( function( as ) {
                             if ( as.state.CCMImpl === invoker_module.AdvancedCCM ) {
-                                is_bidirect.should.be.true;
+                                expect( is_bidirect ).be.true;
                             }
                         } );
                     },
                     function( as, err ) {
                         if ( !is_bidirect ) {
-                            err.should.equal( 'InvokerError' );
-                            as.state.error_info.should.equal( "BiDirectChannel is required" );
+                            expect( err ).equal( 'InvokerError' );
+                            expect( as.state.error_info ).equal( "BiDirectChannel is required" );
                             as.success();
                         }
                     }
@@ -272,12 +273,12 @@ model_as.add(
                 a : [ true, 'value', 123.456, 123456, { field : 'value' }, [ 1, 2, 3 ] ],
             } );
         } ).add( function( as, res ) {
-            res.rb.should.be.true;
-            res.rs.should.equal( 'Value' );
-            res.rn.should.equal( 123.456 );
-            res.ri.should.equal( 123456 );
-            res.rm.should.eql( { field : 'value' } );
-            res.ra.should.eql( [ true, 'value', 123.456, 123456, { field : 'value' }, [ 1, 2, 3 ] ] );
+            expect( res.rb ).be.true;
+            expect( res.rs ).equal( 'Value' );
+            expect( res.rn ).equal( 123.456 );
+            expect( res.ri ).equal( 123456 );
+            expect( res.rm ).eql( { field : 'value' } );
+            expect( res.ra ).eql( [ true, 'value', 123.456, 123456, { field : 'value' }, [ 1, 2, 3 ] ] );
             // ---
         } ).add( function( as ) {
             set_step( "noResult" );
@@ -286,20 +287,20 @@ model_as.add(
             } );
         } ).add( function( as, res ) {
             if ( res !== undefined ) {
-                res.should.be.empty;
+                expect( res ).be.empty;
             }
             // ---
         } ).add( function( as ) {
             set_step( "customResult" );
             anon_iface.call( as, 'customResult' );
         } ).add( function( as, res ) {
-            res.should.be.true;
+            expect( res ).be.true;
             // ---
         } ).add( function( as ) {
             set_step( "noParams" );
             anon_iface.call( as, 'noParams' );
         } ).add( function( as, res ) {
-            res.a.should.equal( 'test' );
+            expect( res.a ).equal( 'test' );
             // ---
         } ).add( function( as ) {
             if ( is_in_browser ) {
@@ -310,7 +311,7 @@ model_as.add(
             set_step( "testAuth" );
             anon_iface.call( as, 'testAuth' );
         } ).add( function( as, res ) {
-            res.a.should.equal( 'test' );
+            expect( res.a ).equal( 'test' );
             // ---
         } ).add( function( as ) {
             set_step( "rawUpload" );
@@ -322,7 +323,7 @@ model_as.add(
 
             anon_iface.call( as, 'rawUpload', null, 'TestUpload' );
         } ).add( function( as, res ) {
-            res.a.should.equal( 'TestUpload' );
+            expect( res.a ).equal( 'TestUpload' );
             // ---
         } ).add( function( as ) {
             set_step( "rawUpload + buffer" );
@@ -336,7 +337,7 @@ model_as.add(
 
             anon_iface.call( as, 'rawUpload', null, upload_data );
         } ).add( function( as, res ) {
-            res.a.should.equal( 'TestUploadBuffer' );
+            expect( res.a ).equal( 'TestUploadBuffer' );
             // ---
         } ).add( function( as ) {
             set_step( "rawUpload + stream" );
@@ -360,7 +361,7 @@ model_as.add(
 
             anon_iface.call( as, 'rawUpload', null, upload_data );
         } ).add( function( as, res ) {
-            res.a.should.equal( 'TestUploadStreamЯ' );
+            expect( res.a ).equal( 'TestUploadStreamЯ' );
             // ---
         } ).add( function( as ) {
             set_step( "rawResult" );
@@ -372,7 +373,7 @@ model_as.add(
         } ).add( function( as, res ) {
             if ( is_in_browser|| internal_test ) return;
 
-            as.state.membuf.toString().should.equal( 'TestDownloadЯ' );
+            expect( as.state.membuf.toString() ).equal( 'TestDownloadЯ' );
             // ---
         } ).add( function( as ) {
             if ( is_in_browser || internal_test ) {
@@ -387,7 +388,7 @@ model_as.add(
                 as.success( 'TestDownloadЯ' );
             }
         } ).add( function( as, res ) {
-            res.toString().should.equal( 'TestDownloadЯ' );
+            expect( res.toString() ).equal( 'TestDownloadЯ' );
             // ---
         } ).add( function( as ) {
             set_step( "rawUploadResult" );
@@ -401,7 +402,7 @@ model_as.add(
         } ).add( function( as ) {
             if ( is_in_browser || internal_test ) return;
 
-            as.state.membuf.toString().should.equal( 'TestUploadBuffer' );
+            expect( as.state.membuf.toString() ).equal( 'TestUploadBuffer' );
             // ---
         } ).add( function( as ) {
             set_step( "rawUploadResultParams" );
@@ -426,7 +427,7 @@ model_as.add(
         } ).add( function( as ) {
             if ( is_in_browser || internal_test ) return;
 
-            as.state.membuf.toString().should.equal( 'start{TestUploadBuffer}end' );
+            expect( as.state.membuf.toString() ).equal( 'start{TestUploadBuffer}end' );
             // ---
         } ).add(
             function( as ) {
@@ -440,13 +441,13 @@ model_as.add(
             },
             function( as, err ) {
                 if ( as.state.proto === 'http' ) {
-                    err.should.equal( 'InvalidRequest' );
-                    as.state.error_info.should.equal( "Bi-Direct Channel is required" );
+                    expect( err ).equal( 'InvalidRequest' );
+                    expect( as.state.error_info ).equal( "Bi-Direct Channel is required" );
                     as.success( { a: 'OK' } );
                 }
             }
         ).add( function( as, res ) {
-            res.a.should.equal( 'OK' );
+            expect( res.a ).equal( 'OK' );
         // --
         } ).add(
             function( as ) {
@@ -454,11 +455,11 @@ model_as.add(
                 anon_iface.call( as, 'cancelAfterTimeout' );
             },
             function( as, err ) {
-                err.should.equal( as.state.creds ? 'SecurityError' : 'InternalError' );
+                expect( err ).equal( as.state.creds ? 'SecurityError' : 'InternalError' );
                 as.success( 'OK' );
             }
         ).add( function( as, res ) {
-            res.should.equal( 'OK' );
+            expect( res ).equal( 'OK' );
         // --
         } ).add(
             function( as ) {
@@ -471,7 +472,7 @@ model_as.add(
                 bidirect_iface.call( as, 'clientCallback' );
             }
         ).add( function( as, res ) {
-            res.a.should.equal( 'ClientResult' );
+            expect( res.a ).equal( 'ClientResult' );
         // --
         } ).add(
             function( as ) {
@@ -480,7 +481,7 @@ model_as.add(
             }
         ).add(
             function( as, res ) {
-                res.r.should.equal( as.state.proto.match( /^http/ ) ? 'OK' : 'IGNORE' );
+                expect( res.r ).equal( as.state.proto.match( /^http/ ) ? 'OK' : 'IGNORE' );
             }
         // --
         ).add(
@@ -490,7 +491,7 @@ model_as.add(
             }
         ).add(
             function( as, res ) {
-                res.r.should.equal( 'OK' );
+                expect( res.r ).equal( 'OK' );
             }
         // --
         ).add(
@@ -499,13 +500,13 @@ model_as.add(
                 anon_iface.call( as, 'testSecLevel' );
             },
             function( as, err ) {
-                err.should.equal( 'PleaseReauth' );
-                as.state.error_info.split( ' ' )[0].should.equal( 'ExceptionalOps' );
+                expect( err ).equal( 'PleaseReauth' );
+                expect( as.state.error_info.split( ' ' )[0] ).equal( 'ExceptionalOps' );
                 as.success( 'ReauthOK' );
             }
         ).add(
             function( as, res ) {
-                res.should.equal( 'ReauthOK' );
+                expect( res ).equal( 'ReauthOK' );
             }
         // --
         ).add(
@@ -514,7 +515,7 @@ model_as.add(
                 anon_iface.call( as, 'clientTimeout', null, null, null, 1 );
             },
             function( as, err ) {
-                err.should.equal( 'Timeout' );
+                expect( err ).equal( 'Timeout' );
                 assert.equal( undefined, as.state.error_info );
                 as.success();
             }
@@ -526,7 +527,7 @@ model_as.add(
                 } );
             },
             function( as, err ) {
-                err.should.equal( 'ValidError' );
+                expect( err ).equal( 'ValidError' );
                 assert.equal( undefined, as.state.error_info );
                 as.success();
             }
@@ -538,8 +539,8 @@ model_as.add(
                 } );
             },
             function( as, err ) {
-                err.should.equal( 'InternalError' );
-                as.state.error_info.should.equal( 'Not expected error' );
+                expect( err ).equal( 'InternalError' );
+                expect( as.state.error_info ).equal( 'Not expected error' );
                 as.success();
             }
         ).add( function( as ) {
@@ -551,7 +552,7 @@ model_as.add(
 
                 // One message difference for client timeout test is possible
                 if ( diff < 0 || diff > 1 ) {
-                    as.state.ccm_msgs.length.should.equal( as.state.exec_msgs.length );
+                    expect( as.state.ccm_msgs.length ).equal( as.state.exec_msgs.length );
                 }
             }
         } ).add( function( as ) {
@@ -577,7 +578,7 @@ model_as.add(
                 } );
             } );
             as.add( function( as, res ) {
-                res.should.equal( '{"e":"InvalidRequest","edesc":"Missing req.f"}' );
+                expect( res ).equal( '{"e":"InvalidRequest","edesc":"Missing req.f"}' );
             } );
         } );
     },
