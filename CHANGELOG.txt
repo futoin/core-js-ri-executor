@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.8.4 (2018-02-17) ===
 CHANGED: Object.prototype is frozen after any `NodeExecutor` is created.
 NEW: Object.prototype freezing can be controlled with NodeExecutor option now.
 
