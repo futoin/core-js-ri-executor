@@ -27,7 +27,7 @@ const async_steps = require( 'futoin-asyncsteps' );
 const cookie = require( "cookie" );
 const lruCache = require( 'lru-cache' );
 
-const { IPSet, Address6 } = require( 'futoin-ipset' );
+const { IPSet, Address4 } = require( 'futoin-ipset' );
 const performance_now = require( "performance-now" );
 const Limiter = async_steps.Limiter;
 
@@ -919,17 +919,6 @@ class NodeExecutor extends Executor {
     }
 
     _addressToLimiter( host ) {
-        // Fixed IPv4-mapped IPv6
-        // ---
-        {
-            const t = new Address6( host );
-
-            if ( t.v4 && t.valid ) {
-                host = host.split( ':' );
-                host = host[host.length - 1 ];
-            }
-        }
-
         // Fast path
         // ---
         const host2lim = this._host2lim;
@@ -955,13 +944,13 @@ class NodeExecutor extends Executor {
         let scope_key = null;
 
         {
-            const host_addr = addr2lim_name.convertAddress( host );
-            const addr_type = host_addr.v4 ? 'v4scope' : 'v6scope';
+            const host_addr = addr2lim_name.convertAddress( host, true );
+            const addr_type = ( host_addr instanceof Address4 ) ? 'v4scope' : 'v6scope';
             const scope_prefix_len = conf[ addr_type ];
 
             if ( scope_prefix_len ) {
-                scope_key = addr2lim_name.convertAddress( `${host}/${scope_prefix_len}` )
-                    .startAddress().correctForm();
+                host_addr.subnetMask = scope_prefix_len;
+                scope_key = host_addr.startAddress().correctForm();
             }
 
             if ( scope_key && ( conf_name !== 'default' ) ) {
