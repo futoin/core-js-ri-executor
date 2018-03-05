@@ -1,5 +1,5 @@
 
-=== 1.8.4 (next) ===
+=== 1.8.5 (2018-03-05) ===
 CHANGED: to rely on futoin-ipset for IPv4-mapped IPv6 handling
 
 === 1.8.4 (2018-02-17) ===
