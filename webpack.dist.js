@@ -4,6 +4,7 @@ const UglifyJsPlugin = require( 'uglifyjs-webpack-plugin' );
 const package_json = require( './package' );
 
 module.exports = {
+    mode: 'production',
     entry: {
         'futoin-executor': `./${package_json.browser}`,
     },

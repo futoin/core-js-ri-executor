@@ -1,4 +1,7 @@
 
+=== (next) ===
+CHANGED: upgraded webpack to v4
+
 === 1.8.5 (2018-03-05) ===
 CHANGED: to rely on futoin-ipset for IPv4-mapped IPv6 handling
 

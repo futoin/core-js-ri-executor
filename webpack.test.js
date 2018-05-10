@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = {
+    mode: 'development',
     entry: {
         unittest : './test/unittest.js',
         integration_test : './test/integration.js',
@@ -55,7 +56,7 @@ module.exports = {
         rules: [
             {
                 test: /\.js$/,
-                exclude: /(node_modules|bower_components)/,
+                exclude: /(node_modules\/(?!futoin)|bower_components)/,
                 use: {
                     loader: 'babel-loader',
                     options: {
