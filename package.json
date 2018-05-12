@@ -20,7 +20,8 @@
     "PingService.js",
     "RequestInfo.js",
     "SourceAddress.js",
-    "UserInfo.js"
+    "UserInfo.js",
+    "futoin.json"
   ],
   "engines": {
     "node": ">=6"
@@ -69,7 +70,7 @@
     "chai": "^4.1.2",
     "eslint": "^4.19.1",
     "futoin-asyncsteps": "^1.11.3",
-    "futoin-invoker": "^1.8.4",
+    "futoin-invoker": "^1.8.5",
     "grunt": "^1.0.2",
     "grunt-babel": "^7.0.0",
     "grunt-contrib-connect": "^1.0.2",
@@ -84,13 +85,13 @@
     "minimist": "^1.2.0",
     "mocha": "^5.1.1",
     "request": "^2.85.0",
-    "webpack": "^4.8.1"
+    "webpack": "^4.8.3"
   },
   "peerDependencies": {
     "futoin-asyncsteps": "^1.11.3",
-    "futoin-invoker": "^1.8.4"
+    "futoin-invoker": "^1.8.5"
   },
   "optionalDependencies": {
-    "posix": "^4.1.1"
+    "posix": "^4.1.2"
   }
 }
