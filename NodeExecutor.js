@@ -324,10 +324,7 @@ class NodeExecutor extends Executor {
         this._closing = false;
         this._ws_contexts = new Set();
 
-        opts = opts || {};
-        _defaultsDeep( opts, NodeExecutorOptions );
-
-        this._msg_sniffer = opts.messageSniffer;
+        opts = _defaultsDeep( {}, opts, NodeExecutorOptions );
         this._initLimits( opts );
 
         // ---

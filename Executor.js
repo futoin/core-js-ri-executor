@@ -142,8 +142,7 @@ class Executor {
         this._ifaces = {};
         this._impls = {};
 
-        opts = opts || {};
-        _defaults( opts, ExecutorOptions );
+        opts = _defaults( {}, opts, ExecutorOptions );
 
         //
         let spec_dirs = opts.specDirs;
@@ -156,6 +155,7 @@ class Executor {
 
         //
         this._dev_checks = !opts.prodMode;
+        this._msg_sniffer = opts.messageSniffer;
 
         //
         this._request_timeout = opts.reqTimeout;
