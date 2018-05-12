@@ -776,6 +776,8 @@ class Executor {
         const reqinfo_info = reqinfo.info;
         const constraints = reqinfo_info._iface_info.constraints;
         const finfo = reqinfo_info._func_info;
+        const context = reqinfo_info.CHANNEL_CONTEXT;
+
 
         if ( ( 'SecureChannel' in constraints ) &&
              !reqinfo_info.SECURE_CHANNEL ) {
@@ -784,7 +786,9 @@ class Executor {
 
         if ( ( 'MessageSignature' in constraints ) &&
              !reqinfo_info.DERIVED_KEY &&
-             !reqinfo_info._hmac_user ) {
+             !reqinfo_info._hmac_user &&
+             ( context.type() !== 'INTERNAL' )
+        ) {
             as.error( FutoInError.SecurityError, "Message Signature is required" );
         }
 
@@ -792,8 +796,6 @@ class Executor {
              !reqinfo_info.USER_INFO ) {
             as.error( FutoInError.SecurityError, "Anonymous not allowed" );
         }
-
-        const context = reqinfo_info.CHANNEL_CONTEXT;
 
         if ( ( 'BiDirectChannel' in constraints ) &&
              ( !context || !context.isStateful() )

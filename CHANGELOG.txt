@@ -1,4 +1,7 @@
 
+=== (next) ===
+FIXED: to ignore MessageSignature constraint for internal channel
+
 === 1.8.6 (2018-05-10) ===
 CHANGED: upgraded webpack to v4
 
