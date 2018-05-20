@@ -1,4 +1,4 @@
-=== (next) ===
+=== 1.8.8 (2018-05-20) ===
 CHANGED: improved request and response message error reporting verbosity
 
 === 1.8.7 (2018-05-12) ===
