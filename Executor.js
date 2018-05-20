@@ -199,7 +199,8 @@ class Executor {
         const m = ifacever.match( invoker.SpecTools._ifacever_pattern );
 
         if ( m === null ) {
-            as.error( FutoInError.InternalError, "Invalid ifacever" );
+            as.error( FutoInError.InternalError,
+                `Invalid ifacever: ${ifacever}` );
         }
 
         const iface = m[ 1 ];
@@ -211,7 +212,8 @@ class Executor {
 
         if ( ( iface in ifaces ) &&
              ( mjr in ifaces[ iface ] ) ) {
-            as.error( FutoInError.InternalError, "Already registered" );
+            as.error( FutoInError.InternalError,
+                `Already registered: ${ifacever}` );
         }
         // ---
 
@@ -254,7 +256,8 @@ class Executor {
                 if ( ( supiface in ifaces ) &&
                     ( supmjr in ifaces[ supiface ] ) ) {
                     delete ifaces[ iface ][ mjr ];
-                    as.error( FutoInError.InternalError, "Conflict with inherited interfaces" );
+                    as.error( FutoInError.InternalError,
+                        `Conflict with inherited interfaces: ${supm[0]}` );
                 }
 
                 if ( !( supiface in ifaces ) ) {
@@ -608,7 +611,8 @@ class Executor {
         const iface_info_map = this._ifaces[iface];
 
         if ( !iface_info_map ) {
-            as.error( FutoInError.UnknownInterface, "Unknown Interface" );
+            as.error( FutoInError.UnknownInterface,
+                `Unknown interface: ${iface}` );
         }
 
         const vmjr = v[ 0 ];
@@ -616,11 +620,13 @@ class Executor {
         let iface_info = iface_info_map[ vmjr ];
 
         if ( !iface_info ) {
-            as.error( FutoInError.NotSupportedVersion, "Different major version" );
+            as.error( FutoInError.NotSupportedVersion,
+                `Different major version: ${iface}:${vmjr}` );
         }
 
         if ( iface_info.mnrver < vmnr ) {
-            as.error( FutoInError.NotSupportedVersion, "Iface version is too old" );
+            as.error( FutoInError.NotSupportedVersion,
+                `Iface version is too old: ${iface}:${vmjr}.${vmnr}` );
         }
 
         // Jump to actual implementation
@@ -633,7 +639,8 @@ class Executor {
         const finfo = iface_info.funcs[ func ];
 
         if ( !finfo ) {
-            as.error( FutoInError.InvalidRequest, "Not defined interface function" );
+            as.error( FutoInError.InvalidRequest,
+                `Unknown interface function: ${func}` );
         }
 
         reqinfo_info._iface_info = iface_info;
@@ -821,7 +828,8 @@ class Executor {
 
         if ( reqinfo.HAVE_RAW_UPLOAD &&
              !finfo.rawupload ) {
-            as.error( FutoInError.InvalidRequest, "Raw upload is not allowed" );
+            as.error( FutoInError.InvalidRequest,
+                `Raw upload is not allowed: ${reqinfo_info._func}` );
         }
 
         const reqparams = rawreq.p;
@@ -830,7 +838,8 @@ class Executor {
             // Check params
             for ( let k in reqparams ) {
                 if ( !( k in finfo.params ) ) {
-                    as.error( FutoInError.InvalidRequest, "Unknown parameter" );
+                    as.error( FutoInError.InvalidRequest,
+                        `Unknown parameter: ${reqinfo_info._func}(${k})` );
                 }
 
                 let check_res = invoker.SpecTools.checkParameterType(
@@ -865,7 +874,8 @@ class Executor {
                     }
                 }
 
-                as.error( FutoInError.InvalidRequest, "Type mismatch for parameter: " + k );
+                as.error( FutoInError.InvalidRequest,
+                    `Type mismatch for parameter: ${reqinfo_info._func}(${k})` );
             }
 
             // Check missing params
@@ -877,12 +887,14 @@ class Executor {
                     if ( defval !== undefined ) {
                         reqparams[ k ] = defval;
                     } else {
-                        as.error( FutoInError.InvalidRequest, "Missing parameter: " + k );
+                        as.error( FutoInError.InvalidRequest,
+                            `Missing parameter: ${reqinfo_info._func}(${k})` );
                     }
                 }
             }
         } else if ( Object.keys( finfo.params ).length > 0 ) {
-            as.error( FutoInError.InvalidRequest, "Missing parameter (any)" );
+            as.error( FutoInError.InvalidRequest,
+                `Missing parameters: ${reqinfo_info._func}()` );
         }
     }
 
@@ -898,11 +910,14 @@ class Executor {
             if ( typeof impl === "function" ) {
                 impl = impl( impl, this );
             } else {
-                as.error( FutoInError.InternalError, "Invalid implementation type" );
+                as.error( FutoInError.InternalError,
+                    `Invalid implementation type: ${reqinfo_info._func}()` );
             }
 
             if ( typeof impl !== "object" ) {
-                as.error( FutoInError.InternalError, "Implementation does not implement InterfaceImplementation" );
+                as.error( FutoInError.InternalError,
+                    'Implementation does not implement ' +
+                          `InterfaceImplementation: ${iname}:${imjr}` );
             }
 
             this._impls[ iname ][ imjr ] = impl;
@@ -926,7 +941,8 @@ class Executor {
 
             if ( typeof rsp.r !== 'object' ||
                  Object.keys( rsp.r ).length > 0 ) {
-                as.error( FutoInError.InternalError, "Raw result is expected" );
+                as.error( FutoInError.InternalError,
+                    `Raw result is expected: ${reqinfo_info._func}()` );
             }
 
             return;
@@ -947,7 +963,8 @@ class Executor {
 
         if ( typeof resvars === 'string' ) {
             if ( !invoker.SpecTools.checkType( iface_info, resvars, result ) ) {
-                as.error( FutoInError.InternalError, "Invalid result type: " + result );
+                as.error( FutoInError.InternalError,
+                    `Invalid result type: ${reqinfo_info._func} = ${result}` );
             }
         } else if ( Object.keys( resvars ).length > 0 ) {
             let c = 0;
@@ -957,7 +974,8 @@ class Executor {
             // specified interface version must be implemented
             for ( let k in result ) {
                 if ( !( k in resvars ) ) {
-                    as.error( FutoInError.InternalError, `Unknown result variable '${k}'` );
+                    as.error( FutoInError.InternalError,
+                        `Unknown result variable: ${reqinfo_info._func}(${k})` );
                 }
 
                 invoker.SpecTools.checkResultType(
@@ -971,10 +989,12 @@ class Executor {
             }
 
             if ( Object.keys( resvars ).length !== c ) {
-                as.error( FutoInError.InternalError, "Missing result variables" );
+                as.error( FutoInError.InternalError,
+                    `Missing result variables: ${reqinfo_info._func}()` );
             }
         } else if ( Object.keys( result ).length > 0 ) {
-            as.error( FutoInError.InternalError, "No result variables are expected" );
+            as.error( FutoInError.InternalError,
+                `No result variables are expected: ${reqinfo_info._func}()` );
         }
     }
 

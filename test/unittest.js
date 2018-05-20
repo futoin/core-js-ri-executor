@@ -109,7 +109,8 @@ describe( 'Executor', function() {
                 function( as, err ) {
                     try {
                         expect( err ).equal( 'InternalError' );
-                        expect( as.state.error_info ).equal( "Conflict with inherited interfaces" );
+                        expect( as.state.error_info )
+                            .equal( "Conflict with inherited interfaces: fileface.base:1.1" );
                         done();
                     } catch ( e ) {
                         done( e );
@@ -132,7 +133,8 @@ describe( 'Executor', function() {
                 function( as, err ) {
                     try {
                         expect( err ).equal( 'InternalError' );
-                        expect( as.state.error_info ).equal( "Already registered" );
+                        expect( as.state.error_info )
+                            .equal( "Already registered: fileface.derived:2.4" );
                         done();
                     } catch( e ) {
                         done( e );
@@ -206,8 +208,10 @@ describe( 'Executor', function() {
                 try {
                     var rsp = as.state.reqinfo.info()[ reqinfo.INFO_RAW_RESPONSE ];
 
-                    expect( rsp ).eql( { e:"InvalidRequest",
-                        edesc:"Missing parameter: n" } );
+                    expect( rsp ).eql( {
+                        e:"InvalidRequest",
+                        edesc: "Missing parameter: normal_call(n)",
+                    } );
                     done();
                 } catch ( e ) {
                     done( e );
