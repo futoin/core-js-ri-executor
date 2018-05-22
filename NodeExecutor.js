@@ -515,7 +515,7 @@ class NodeExecutor extends Executor {
         };
 
         if ( pathname.length > 3 ) {
-            ftnreq.sec = pathname[ 3 ];
+            ftnreq.sec = decodeURIComponent( pathname[ 3 ] );
         } else if ( 'authorization' in req.headers ) {
             const auth = req.headers.authorization.split( /\s+/ );
 
