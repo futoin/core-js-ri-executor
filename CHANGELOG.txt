@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.9.0 (2018-05-23) ===
 BREAKING CHANGE: BasicAuth* must be used through LegacySecurityProvider now
 FIXED: to decode HTTP path coded "sec" field
 FIXED: improved browser tests to use dist module
