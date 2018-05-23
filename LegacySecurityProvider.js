@@ -20,10 +20,8 @@
  */
 
 const Executor = require( './Executor' );
-const RequestInfo = require( './RequestInfo' );
-const UserInfo = require( './UserInfo' );
 const SecurityProvider = require( './SecurityProvider' );
-const Errors = require( 'futoin-asyncsteps/Errors' );
+const Errors = require( 'futoin-asyncsteps' ).FutoInError;
 
 const BasicAuthService = require( './BasicAuthService' );
 const BasicAuthFace = require( './BasicAuthFace' );
@@ -111,24 +109,17 @@ class LegacySecurityProvider extends SecurityProvider {
                 const basicauth = this._ccm.iface( '#basicauth' );
                 const reqinfo_info = reqinfo.info;
 
-                if ( reqinfo_info.RAW_REQUEST.obf &&
-                     ( reqinfo.info.CHANNEL_CONTEXT.type() === 'INTERNAL' )
-                ) {
-                    this._stepReqinfoUser( as, reqinfo_info,
-                        { seclvl : RequestInfo.SL_SYSTEM } );
-                } else {
-                    basicauth.call( as, 'auth',
-                        {
-                            user,
-                            pwd,
-                            client_addr : reqinfo_info.CLIENT_ADDR.asString(),
-                            is_secure : reqinfo_info.SECURE_CHANNEL,
-                        } );
-
-                    as.add( ( as, rsp ) => {
-                        this._stepReqinfoUser( as, reqinfo_info, rsp );
+                basicauth.call( as, 'auth',
+                    {
+                        user,
+                        pwd,
+                        client_addr : reqinfo_info.CLIENT_ADDR.asString(),
+                        is_secure : reqinfo_info.SECURE_CHANNEL,
                     } );
-                }
+
+                as.add( ( as, rsp ) => {
+                    this._setUser( as, reqinfo, rsp.seclvl, rsp );
+                } );
             },
             ( as, err ) => {
                 // console.log( err, as.state.error_info );
@@ -158,7 +149,7 @@ class LegacySecurityProvider extends SecurityProvider {
                     } );
 
                 as.add( ( as, rsp ) => {
-                    this._stepReqinfoUser( as, reqinfo_info, rsp, '-hmac' );
+                    this._setUser( as, reqinfo, rsp.seclvl, rsp );
                     reqinfo_info[SYM_HMAC_ALGO] = algo;
                     reqinfo_info[SYM_HMAC_USER] = user;
                 } );
@@ -186,26 +177,6 @@ class LegacySecurityProvider extends SecurityProvider {
         as.add( ( as, { sig } ) => {
             rawrsp.sec = sig;
         } );
-    }
-
-    _stepReqinfoUser( as, reqinfo_info, authrsp ) {
-        const obf = reqinfo_info.RAW_REQUEST.obf;
-
-        if ( obf && ( authrsp.seclvl === RequestInfo.SL_SYSTEM ) ) {
-            reqinfo_info.SECURITY_LEVEL = obf.slvl;
-            reqinfo_info.USER_INFO = new UserInfo(
-                this._ccm,
-                obf.lid,
-                obf.gid,
-                null );
-        } else {
-            reqinfo_info.SECURITY_LEVEL = authrsp.seclvl;
-            reqinfo_info.USER_INFO = new UserInfo(
-                this._ccm,
-                authrsp.local_id,
-                authrsp.global_id,
-                authrsp.details );
-        }
     }
 }
 

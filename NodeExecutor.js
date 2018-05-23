@@ -31,13 +31,15 @@ const { IPSet, Address4 } = require( 'futoin-ipset' );
 const performance_now = require( "performance-now" );
 const Limiter = async_steps.Limiter;
 
-const MessageCoder = require( 'futoin-invoker' ).MessageCoder;
+const {
+    MessageCoder,
+    SpecTools,
+} = require( 'futoin-invoker' );
 
 const Executor = require( './Executor' );
 const ChannelContext = require( './ChannelContext' );
 const SourceAddress = require( './SourceAddress' );
 const RequestInfo = require( './RequestInfo' );
-const SpecTools = require( 'futoin-invoker/SpecTools' );
 
 // ---
 class HTTPChannelContext extends ChannelContext {

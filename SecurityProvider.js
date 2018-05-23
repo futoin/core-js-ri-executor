@@ -21,83 +21,104 @@
 
 const RequestInfo = require( './RequestInfo' );
 const UserInfo = require( './UserInfo' );
-const Errors = require( 'futoin-asyncsteps/Errors' );
+const Errors = require( 'futoin-asyncsteps' ).FutoInError;
 
 /**
- * Base interface to interact with FTN8 Security Concept implementation.
+ * Generic security provider interface
  */
 class SecurityProvider {
+    /**
+     * Check request authentication.
+     * @param {AsyncSteps} as - AsyncSteps interface
+     * @param {RequestInfo} reqinfo - extended request info
+     * @param {object} reqmsg - request message as is
+     * @param {array} sec - reqmsg.sec field split by ':'
+     */
     checkAuth( as, reqinfo, reqmsg, sec ) {
-        // FTN8.2: Master MAC
-        if ( sec[ 0 ] === '-mmac' ) {
-            this._checkMasterMAC( as, reqinfo, reqmsg, {
-                msid: sec[1],
-                algo: sec[2],
-                kds: sec[3],
-                prm: sec[4],
-                sig: sec[5],
-            } );
-        // FTN8.1: Stateless MAC
-        } else if ( sec[ 0 ] === '-smac' ) {
-            this._checkStatelessMAC( as, reqinfo, reqmsg, {
-                user: sec[1],
-                algo: sec[2],
-                sig: sec[3],
-            } );
-        // FTN8.1: Clear secret
-        } else if ( sec.length == 2 ) {
-            this._checkStatelessClear( as, reqinfo, {
-                user: sec[0],
-                secret: sec[1],
-            } );
+        if ( sec[0] === '-internal' ) {
+            if ( reqinfo.info.CHANNEL_CONTEXT.type() === 'INTERNAL' ) {
+                this._setUser( as, reqinfo, RequestInfo.SL_SYSTEM, {
+                    local_id: '-internal',
+                    global_id: '-internal',
+                } );
+            } else {
+                as.error( Errors.SecurityError,
+                    "Invalid internal authentication" );
+            }
+        } else {
+            as.error( Errors.NotImplemented,
+                "Authentication is not enabled" );
         }
+
+        void reqinfo;
+        void reqmsg;
+        void sec;
     }
 
-    signAuto( as, _reqinfo, _rspmsg ) {
+    /**
+     * Check if response signature is required and perform signing.
+     * @param {AsyncSteps} as - AsyncSteps interface
+     * @param {RequestInfo} reqinfo - extended request info
+     * @param {object} rspmsg - response message as is
+     * @returns {boolean} true, if signature is set
+     */
+    signAuto( as, reqinfo, rspmsg ) {
+        void reqinfo;
+        void rspmsg;
         return false;
     }
 
-    isSigned( _reqinfo ) {
+    /**
+     * Check if request is signed as in MessageSignature constraint.
+     * @param {RequestInfo} reqinfo - extended request info
+     * @returns {boolean} true, if signed
+     */
+    isSigned( reqinfo ) {
+        void reqinfo;
         return false;
     }
 
-    checkAccess( as, _reqinfo, _acd ) {
-        as.error( Errors.NotImplemented, "Access Control is not supported yet" );
+    /**
+     * Check access through Access Control concept
+     * @param {AsyncSteps} as - AsyncSteps interface
+     * @param {RequestInfo} reqinfo - extended request info
+     * @param {string|array} acd - access control descriptor
+     */
+    checkAccess( as, reqinfo, acd ) {
+        as.error( Errors.NotImplemented,
+            "Access Control is not enabled" );
+        void reqinfo;
+        void acd;
     }
 
-    _checkStatelessClear( as, _reqinfo, _sec ) {
-        as.error( Errors.SecurityError,
-            'Not Implemented Stateless Clear' );
-    }
-
-    _checkStatelessMAC( as, _reqinfo, _reqmsg, _sec ) {
-        as.error( Errors.SecurityError,
-            'Not Implemented Stateless MAC' );
-    }
-
-    _checkMasterMAC( as, _reqinfo, _reqmsg, _sec ) {
-        as.error( Errors.SecurityError,
-            'Not Implemented Master MAC' );
-    }
-
-    _stepReqinfoUser( as, reqinfo, seclvl, { local_id, global_id } ) {
+    /**
+     * A special helper to set authenticated user info
+     * @param {AsyncSteps} as - AsyncSteps interface
+     * @param {RequestInfo} reqinfo - extended request info
+     * @param {string} seclvl - security level
+     * @param {object} auth_info - authentication info
+     * @param {integer|string} auth_info.local_id - Local User ID
+     * @param {string} auth_info.global_id - Global User ID
+     * @param {object} [auth_info.details=null] - user details
+     */
+    _setUser( as, reqinfo, seclvl, { local_id, global_id, details = null } ) {
         const reqinfo_info = reqinfo.info;
         const obf = reqinfo_info.RAW_REQUEST.obf;
 
-        if ( obf && ( seclvl === RequestInfo.SL_SYSTEM ) ) {
+        if ( obf && seclvl && ( seclvl === RequestInfo.SL_SYSTEM ) ) {
             reqinfo_info.SECURITY_LEVEL = obf.slvl;
             reqinfo_info.USER_INFO = new UserInfo(
                 this._ccm,
                 obf.lid,
                 obf.gid,
-                null );
+                details );
         } else {
             reqinfo_info.SECURITY_LEVEL = seclvl;
             reqinfo_info.USER_INFO = new UserInfo(
                 this._ccm,
                 local_id,
                 global_id,
-                null );
+                details );
         }
     }
 }

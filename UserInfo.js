@@ -165,7 +165,7 @@ class UserInfo {
 
         if ( user_details ) {
             as.add( ( as ) => as.success( user_details ) );
-            return;
+            return as;
         }
 
         const basic_auth = this._ccm.iface( '#basicauth' );
