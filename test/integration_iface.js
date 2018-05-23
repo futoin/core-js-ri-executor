@@ -250,7 +250,11 @@ exports.interface_impl = {
         var rawmsg = reqinfo.info()[ reqinfo.INFO_RAW_REQUEST ];
 
         if ( rawmsg.sec !== 'user:pass' &&
-             rawmsg.sec.substr( 0, 15 ) !== '-hmac:hmacuser:' ) {
+             rawmsg.sec.substr( 0, 15 ) !== '-hmac:hmacuser:' &&
+             rawmsg.sec !== '01234567890123456789ab:pass' &&
+             !rawmsg.sec.match( /^-mmac:0123456789abcdefghijklm:HS256:HKDF256:20180101:/ ) &&
+             !rawmsg.sec.match( /^-smac:0123456789ABCDEFGHIJKLM:HS256:/ )
+        ) {
             as.error( 'SecurityError', 'Integration Test' );
         }
 
@@ -281,8 +285,9 @@ exports.interface_impl = {
 
     testAuth : function( as, reqinfo ) {
         try {
+            const sec = reqinfo.info.RAW_REQUEST.sec;
             expect( reqinfo.info[ reqinfo.INFO_SECURITY_LEVEL ] ).equal(
-                reqinfo.info._hmac_user ?
+                sec && sec.match( /^-[hms]mac/ ) ?
                     reqinfo.SL_PRIVILEGED_OPS :
                     reqinfo.SL_SAFE_OPS );
             expect( reqinfo.info[ reqinfo.INFO_USER_INFO ] ).not.be.null;
@@ -426,6 +431,16 @@ exports.interface_impl = {
         try {
             expect( reqinfo.info.RAW_REQUEST.sec ).equal( 'system:pass' );
 
+            const local_id = reqinfo.info.USER_INFO.localID();
+
+            if ( [
+                '01234567890123456789ab',
+            ].indexOf( local_id ) >= 0
+            ) {
+                as.success( { r: 'OK' } );
+                return;
+            }
+
             reqinfo.info.USER_INFO
                 .details( as )
                 .add(
@@ -433,7 +448,10 @@ exports.interface_impl = {
                         try {
                             var login = user_details.Login;
 
-                            expect( ( login === 'user' || login === 'hmacuser' ) ).be.true;
+                            expect( [
+                                'user',
+                                'hmacuser',
+                            ].indexOf( login ) >= 0 ).be.true;
                         } catch ( e ) {
                             console.log( e.stack );
                             as.error( 'InternalError', e.message );

@@ -1,3 +1,9 @@
+
+=== (next) ===
+BREAKING CHANGE: BasicAuth* must be used through LegacySecurityProvider now
+FIXED: to decode HTTP path coded "sec" field
+NEW: experimental support for FTN8 security concept
+
 === 1.8.8 (2018-05-20) ===
 CHANGED: improved request and response message error reporting verbosity
 

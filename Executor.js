@@ -3,8 +3,8 @@
 /**
  * @file
  *
- * Copyright 2014-2017 FutoIn Project (https://futoin.org)
- * Copyright 2014-2017 Andrey Galkin <andrey@futoin.org>
+ * Copyright 2014-2018 FutoIn Project (https://futoin.org)
+ * Copyright 2014-2018 Andrey Galkin <andrey@futoin.org>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,18 @@ const ChannelContext = require( './ChannelContext' );
 const SourceAddress = require( './SourceAddress' );
 const RequestInfo = require( './RequestInfo' );
 const UserInfo = require( './UserInfo' );
+
+const SecurityProvider = require( './SecurityProvider' );
+
+// ---
+const SECLVL_LIST = Object.freeze( {
+    Anonymous : 1,
+    Info : 2,
+    SafeOps : 3,
+    PrivilegedOps : 4,
+    ExceptionalOps : 5,
+    System : 6,
+} );
 
 // ---
 class CallbackChannelContext extends ChannelContext {
@@ -120,6 +132,11 @@ const ExecutorOptions =
      * @default
      */
     heavyReqTimeout : 60e3,
+
+    /**
+     * FTN8 security interface
+     */
+    securityProvider : null,
 };
 
 /**
@@ -165,6 +182,9 @@ class Executor {
         this._maxReqSize = this.SAFE_PAYLOAD_LIMIT;
         this._maxRspSize = this.SAFE_PAYLOAD_LIMIT;
         this._maxAnySize = this.SAFE_PAYLOAD_LIMIT;
+
+        //
+        this._secprov = opts.securityProvider || new SecurityProvider;
 
         // Ensure to close executor on CCM close
         const close_listener = () => this.close;
@@ -477,10 +497,8 @@ class Executor {
                     // reserved user name
                     if ( sec[ 0 ] === '-internal' ) {
                         this._checkInternalAuth( as, reqinfo, sec );
-                    } else if ( sec[ 0 ] === '-hmac' ) {
-                        this._checkAuthHMAC( as, reqinfo, sec[1], sec[2], sec[3] );
                     } else {
-                        this._checkBasicAuth( as, reqinfo, sec );
+                        this._secprov.checkAuth( as, reqinfo, rawreq, sec );
                     }
                 }
 
@@ -523,15 +541,18 @@ class Executor {
                 } );
             },
             ( as, err ) => {
-                const reqinfo = as.state.reqinfo;
+                const { state } = as;
+                const reqinfo = state.reqinfo;
                 const reqinfo_info = reqinfo.info;
-                let error_info = as.state.error_info;
+                let error_info = state.error_info;
 
                 if ( !( err in invoker.SpecTools.standard_errors ) &&
                       ( !reqinfo_info._func_info ||
-                        !( err in reqinfo_info._func_info.throws ) ) ) {
-                    this.emit( 'notExpected', err, error_info,
-                        as.state.last_exception, as.state.async_stack );
+                        !( err in reqinfo_info._func_info.throws ) )
+                ) {
+                    this.emit(
+                        'notExpected', err, error_info,
+                        state.last_exception, state.async_stack );
                     err = FutoInError.InternalError;
                     error_info = 'Not expected error';
                 }
@@ -549,7 +570,18 @@ class Executor {
                 as.success( reqinfo );
             }
         );
-        as.add( ( as, reqinfo ) => this._signResponse( as, reqinfo ) );
+        as.add(
+            ( as, reqinfo ) => this._signResponse( as, reqinfo ),
+            ( as, err ) => {
+                const { state } = as;
+                this.emit(
+                    'notExpected',
+                    err,
+                    state.aserror_info,
+                    state.last_exception,
+                    state.async_stack );
+            }
+        );
     }
 
     /**
@@ -560,8 +592,7 @@ class Executor {
      * @param {string} acd - access control descriptor
      */
     checkAccess( as, acd ) {
-        void acd;
-        as.error( FutoInError.NotImplemented, "Access Control is not supported yet" );
+        this._secprov.checkAccess( as, as.state.reqinfo, acd );
     }
 
     /**
@@ -652,96 +683,6 @@ class Executor {
         }
     }
 
-    _stepReqinfoUser( as, reqinfo_info, authrsp ) {
-        const obf = reqinfo_info.RAW_REQUEST.obf;
-
-        if ( obf && ( authrsp.seclvl === RequestInfo.SL_SYSTEM ) ) {
-            reqinfo_info.SECURITY_LEVEL = obf.slvl;
-            reqinfo_info.USER_INFO = new UserInfo(
-                this._ccm,
-                obf.lid,
-                obf.gid,
-                null );
-        } else {
-            reqinfo_info.SECURITY_LEVEL = authrsp.seclvl;
-            reqinfo_info.USER_INFO = new UserInfo(
-                this._ccm,
-                authrsp.local_id,
-                authrsp.global_id,
-                authrsp.details );
-        }
-    }
-
-    _checkBasicAuth( as, reqinfo, sec ) {
-        // TODO: check for credentials auth
-        // Temporary use of "basicauth" service
-
-        as.add(
-            ( as ) => {
-                const basicauth = this._ccm.iface( '#basicauth' );
-                const reqinfo_info = reqinfo.info;
-
-                if ( reqinfo_info.RAW_REQUEST.obf &&
-                     ( reqinfo.info.CHANNEL_CONTEXT.type() === 'INTERNAL' ) ) {
-                    this._stepReqinfoUser( as, reqinfo_info, { seclvl : RequestInfo.SL_SYSTEM } );
-                } else {
-                    basicauth.call( as, 'auth',
-                        {
-                            user : sec[ 0 ],
-                            pwd : sec[ 1 ],
-                            client_addr : reqinfo_info.CLIENT_ADDR.asString(),
-                            is_secure : reqinfo_info.SECURE_CHANNEL,
-                        } );
-
-                    as.add( ( as, rsp ) => {
-                        this._stepReqinfoUser( as, reqinfo_info, rsp );
-                    } );
-                }
-            },
-            ( as, err ) => {
-                // console.log( err, as.state.error_info );
-                // console.log( as.state.last_exception.stack );
-                as.success(); // check in constraints
-            }
-        );
-    }
-
-    _checkAuthHMAC( as, reqinfo, user, algo, sig ) {
-        // TODO: check "sec" for HMAC . MasterService
-
-        // Temporary use of "basicauth" service
-        as.add(
-            ( as ) => {
-                const basicauth = this._ccm.iface( '#basicauth' );
-                const reqinfo_info = reqinfo.info;
-                const req = Object.assign( {}, reqinfo.info.RAW_REQUEST );
-
-                delete req.sec;
-
-                basicauth.call( as, 'checkHMAC',
-                    {
-                        msg : req,
-                        user : user,
-                        algo : algo,
-                        sig : sig,
-                        client_addr : reqinfo_info.CLIENT_ADDR.asString(),
-                        is_secure : reqinfo_info.SECURE_CHANNEL,
-                    } );
-
-                as.add( ( as, rsp ) => {
-                    this._stepReqinfoUser( as, reqinfo_info, rsp );
-                    reqinfo_info._hmac_algo = algo;
-                    reqinfo_info._hmac_user = user;
-                } );
-            },
-            ( as, err ) => {
-                // console.log( err, as.state.error_info );
-                // console.log( as.state.last_exception.stack );
-                as.error( FutoInError.SecurityError, "Signature Verification Failed" );
-            }
-        );
-    }
-
     _checkInternalAuth( as, reqinfo ) {
         const reqinfo_info = reqinfo.info;
 
@@ -768,17 +709,6 @@ class Executor {
         }
     }
 
-    get _seclvl_list() {
-        return {
-            Anonymous : 1,
-            Info : 2,
-            SafeOps : 3,
-            PrivilegedOps : 4,
-            ExceptionalOps : 5,
-            System : 6,
-        };
-    }
-
     _checkConstraints( as, reqinfo ) {
         const reqinfo_info = reqinfo.info;
         const constraints = reqinfo_info._iface_info.constraints;
@@ -792,8 +722,7 @@ class Executor {
         }
 
         if ( ( 'MessageSignature' in constraints ) &&
-             !reqinfo_info.DERIVED_KEY &&
-             !reqinfo_info._hmac_user &&
+             !this._secprov.isSigned( reqinfo ) &&
              ( context.type() !== 'INTERNAL' )
         ) {
             as.error( FutoInError.SecurityError, "Message Signature is required" );
@@ -811,9 +740,8 @@ class Executor {
         }
 
         if ( finfo.seclvl ) {
-            const seclvl_list = this._seclvl_list;
-            const finfo_index = seclvl_list[ finfo.seclvl ];
-            const current_index = seclvl_list[ reqinfo_info.SECURITY_LEVEL ];
+            const finfo_index = SECLVL_LIST[ finfo.seclvl ];
+            const current_index = SECLVL_LIST[ reqinfo_info.SECURITY_LEVEL ];
 
             if ( !finfo_index || ( current_index < finfo_index ) ) {
                 as.error( FutoInError.PleaseReauth, finfo.seclvl );
@@ -999,49 +927,15 @@ class Executor {
     }
 
     _signResponse( as, reqinfo ) {
-        const reqinfo_info = reqinfo.info;
-        const rawrsp = reqinfo_info.RAW_RESPONSE;
+        const rawrsp = reqinfo.info.RAW_RESPONSE;
 
-        if ( !rawrsp ) {
-            // Nothing to sign
+        if ( rawrsp && this._secprov.signAuto( as, reqinfo, rawrsp ) ) {
+            as.add( ( as ) => {
+                this.emit( 'response', reqinfo, rawrsp );
+            } );
+        } else {
             this.emit( 'response', reqinfo, rawrsp );
-            return;
         }
-
-        if ( reqinfo_info.DERIVED_KEY ) {
-            // TODO: implement signing with Derived key
-            this.emit( 'response', reqinfo, rawrsp );
-            return;
-        }
-
-        if ( reqinfo_info._hmac_user ) {
-            as.add(
-                ( as ) => {
-                    const basicauth = this._ccm.iface( '#basicauth' );
-
-                    basicauth.call( as, 'genHMAC',
-                        {
-                            msg : rawrsp,
-                            user : reqinfo_info._hmac_user,
-                            algo : reqinfo_info._hmac_algo,
-                        } );
-
-                    as.add( ( as, rsp ) => {
-                        rawrsp.sec = rsp.sig;
-                        this.emit( 'response', reqinfo, rawrsp );
-                    } );
-                },
-                ( as, err ) => {
-                    this.emit( 'response', reqinfo, rawrsp );
-                    as.success();
-                }
-            );
-
-            return;
-        }
-
-        // Default
-        this.emit( 'response', reqinfo, rawrsp );
     }
 
     /**

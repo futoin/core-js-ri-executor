@@ -9,8 +9,7 @@ const NodeExecutor = require( '../NodeExecutor' );
 const PingFace = require( 'futoin-invoker/PingFace' );
 const PingService = require( '../PingService' );
 
-const BasicAuthService = require( '../BasicAuthService' );
-const BasicAuthFace = require( '../BasicAuthFace' );
+const LegacySecurityProvider = require( '../LegacySecurityProvider' );
 
 const request = require( 'request' );
 
@@ -81,7 +80,15 @@ describe( 'Request Limiter', function() {
                 }
 
                 ccm = new AdvancedCCM();
+                // ---
+
+                const legacy_secprov = new LegacySecurityProvider( as, ccm );
+                legacy_secprov.addUser( 'user', 'pass' );
+
+                // ---
+
                 executor = new NodeExecutor( ccm, {
+                    securityProvider: legacy_secprov,
                     httpPort : 8123,
                     enableLimiter: true,
                     trustProxy: true,
@@ -107,11 +114,6 @@ describe( 'Request Limiter', function() {
                     },
                 } );
                 impl = DelayedPingService.register( as, executor );
-
-                const authsvc = BasicAuthService.register( as, executor );
-                authsvc.addUser( 'user', 'pass' );
-
-                BasicAuthFace.register( as, ccm, executor );
             },
             ( as, err ) => {
                 console.log( err, as.state.error_info );

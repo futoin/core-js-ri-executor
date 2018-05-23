@@ -16,9 +16,11 @@
     "DerivedKey.js",
     "Executor.js",
     "Gruntfile.js",
+    "LegacySecurityProvider.js",
     "NodeExecutor.js",
     "PingService.js",
     "RequestInfo.js",
+    "SecurityProvider.js",
     "SourceAddress.js",
     "UserInfo.js",
     "futoin.json"
@@ -70,7 +72,7 @@
     "chai": "^4.1.2",
     "eslint": "^4.19.1",
     "futoin-asyncsteps": "^1.11.4",
-    "futoin-invoker": "^1.8.8",
+    "futoin-invoker": "^1.9.1",
     "grunt": "^1.0.2",
     "grunt-babel": "^7.0.0",
     "grunt-contrib-connect": "^1.0.2",
@@ -84,12 +86,12 @@
     "memorystream": "^0.3.1",
     "minimist": "^1.2.0",
     "mocha": "^5.2.0",
-    "request": "^2.86.0",
+    "request": "^2.87.0",
     "webpack": "^4.8.3"
   },
   "peerDependencies": {
     "futoin-asyncsteps": "^1.11.4",
-    "futoin-invoker": "^1.8.8"
+    "futoin-invoker": "^1.9.1"
   },
   "optionalDependencies": {
     "posix": "^4.1.2"

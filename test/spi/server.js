@@ -1,13 +1,12 @@
 'use strict';
 
-var async_steps = require( 'futoin-asyncsteps' );
-var invoker_module = require( 'futoin-invoker' );
-var executor_module = require( '../../lib/main' );
-var BasicAuthFace = require( '../../BasicAuthFace' );
-var BasicAuthService = require( '../../BasicAuthService' );
-var util = require( 'util' );
+const $as = require( 'futoin-asyncsteps' );
+const invoker_module = require( 'futoin-invoker' );
+const executor_module = require( '../../lib/main' );
+const LegacySecurityProvider = require( '../../LegacySecurityProvider' );
+const util = require( 'util' );
 
-var opts = {
+const opts = {
     prodMode : true,
     specDirs : __dirname + '/../specs',
     httpAddr : '127.0.0.1',
@@ -20,53 +19,48 @@ var opts = {
 };
 
 function print_stats() {
-    var mem = process.memoryUsage();
+    const mem = process.memoryUsage();
 
     console.log( "SERVER MEMUSED:"+mem.heapUsed+"/"+mem.heapTotal+"@"+mem.rss );
 }
 
-var ccm = new invoker_module.AdvancedCCM( opts );
-var executor = new executor_module.NodeExecutor( ccm, opts );
-var impl = {};
+const impl = new class {
+    normalCall( as, reqinfo ) {
+        reqinfo.result().b = reqinfo.params().a;
+    }
 
-var internal_executor = new executor_module.Executor( ccm, opts );
+    noResult( as, reqinfo ) {}
 
-executor.on( 'ready', function() {
-    async_steps().add(
-        function( as ) {
-            executor.register( as, 'spi.test:0.1', impl );
-            var authsrv = BasicAuthService.register( as, internal_executor );
+    errorCall( as, reqinfo ) {
+        as.error( 'MyError' );
+    }
 
-            authsrv.addUser( 'basicuser', 'basicpass' );
-            authsrv.addUser( 'hmacuser', 'hmacpass' );
-            BasicAuthFace.register( as, ccm, internal_executor );
-        },
-        function( as, err ) {
-            //console.log( err + " " + as.state.error_info );
-            console.log( as.state.last_exception.stack );
-        }
-    )
-        .add( function( as ) {
-            process.send( { ready : 'ok' } );
-        } )
-        .execute();
-
-    print_stats();
-
-    setInterval( print_stats, 1e3 );
-} );
-
-
-impl.normalCall = function( as, reqinfo ) {
-    reqinfo.result().b = reqinfo.params().a;
+    rawUpload( as, reqinfo ) {
+        reqinfo.result().b = reqinfo.params().a;
+    }
 };
 
-impl.noResult = function( as, reqinfo ) {};
+$as().add(
+    ( as ) => {
+        const ccm = new invoker_module.AdvancedCCM( opts );
+        const legacy_secprov = new LegacySecurityProvider( as, ccm );
+        legacy_secprov.addUser( 'basicuser', 'basicpass' );
+        legacy_secprov.addUser( 'hmacuser', 'hmacpass' );
 
-impl.errorCall = function( as, reqinfo ) {
-    as.error( 'MyError' );
-};
+        opts.securityProvider = legacy_secprov;
+        const executor = new executor_module.NodeExecutor( ccm, opts );
 
-impl.rawUpload = function( as, reqinfo ) {
-    reqinfo.result().b = reqinfo.params().a;
-};
+        executor.register( as, 'spi.test:0.1', impl );
+
+        executor.on( 'ready', function() {
+            print_stats();
+
+            setInterval( print_stats, 1e3 );
+        } );
+        as.add( ( as ) => process.send( { ready : 'ok' } ) );
+    },
+    ( as, err ) => {
+        console.log( err + " " + as.state.error_info );
+        console.log( as.state.last_exception.stack );
+    }
+).execute();

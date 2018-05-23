@@ -391,17 +391,18 @@ describe( 'PingService', function() {
     it( 'should work', function( done ) {
         const as = async_steps();
         const ccm = new invoker.AdvancedCCM();
-        const executor = new executor_module.Executor( ccm );
-        const BasicAuthFace = require( '../BasicAuthFace' );
-        const BasicAuthService = require( '../BasicAuthService' );
-        const PingFace = require( 'futoin-invoker/PingFace' );
+        const LegacySecurityProvider = require( '../LegacySecurityProvider' );
         const PingService = require( '../PingService' );
+        const PingFace = require( 'futoin-invoker/PingFace' );
 
         as.add( ( as ) => {
             as.add( ( as ) => {
-                const auth_svc = BasicAuthService.register( as, executor );
-                auth_svc.addUser( 'login', 'pass' );
-                BasicAuthFace.register( as, ccm, executor );
+                const secprov = new LegacySecurityProvider( as, ccm );
+                secprov.addUser( 'login', 'pass' );
+
+                const executor = new executor_module.Executor( ccm, {
+                    securityProvider : secprov,
+                } );
 
                 PingService.register( as, executor );
                 PingFace.register( as, ccm, '#ping', executor, 'login:pass' );

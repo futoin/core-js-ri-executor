@@ -2,23 +2,25 @@
 
 require( './prepare' );
 
-var assert;
-var expect;
+let assert;
+let expect;
 
-var is_in_browser = ( typeof window !== 'undefined' );
-var MemoryStream = is_in_browser ? null : module.require( 'memorystream' );
+let is_in_browser = ( typeof window !== 'undefined' );
+let MemoryStream = is_in_browser ? null : module.require( 'memorystream' );
 
-var executor_module;
-var invoker_module = require( 'futoin-invoker' );
-var async_steps = require( 'futoin-asyncsteps' );
-var BasicAuthFace = require( '../BasicAuthFace' );
-var BasicAuthService = require( '../BasicAuthService' );
-var _ = require( 'lodash' );
+let executor_module;
+let invoker_module = require( 'futoin-invoker' );
+let async_steps = require( 'futoin-asyncsteps' );
 
-var NodeExecutor;
-var BrowserExecutor;
-var thisDir;
-var request;
+const SecurityProvider = require( '../SecurityProvider' );
+const LegacySecurityProvider = require( '../LegacySecurityProvider' );
+let _ = require( 'lodash' );
+
+let NodeExecutor;
+let BrowserExecutor;
+let thisDir;
+let request;
+let crypto;
 
 if ( is_in_browser ) {
     assert = chai.assert;
@@ -33,27 +35,119 @@ if ( is_in_browser ) {
     executor_module = module.require( '../lib/main' );
     NodeExecutor = executor_module.NodeExecutor;
 
-    var chai_module = module.require( 'chai' );
+    let chai_module = module.require( 'chai' );
 
     assert = chai_module.assert;
     expect = chai_module.expect;
 
     request = module.require( 'request' );
+    crypto = module.require( 'crypto' );
 }
 
-var ClientExecutor = executor_module.ClientExecutor;
-var integration_iface = require( './integration_iface' );
-var test_if_anon = integration_iface.test_if_anon;
-var test_if_anon_secure = integration_iface.test_if_anon_secure;
-var test_if_anon_bidirect = integration_iface.test_if_anon_bidirect;
-var interface_impl = integration_iface.interface_impl;
+let ClientExecutor = executor_module.ClientExecutor;
+let integration_iface = require( './integration_iface' );
+let test_if_anon = integration_iface.test_if_anon;
+let test_if_anon_secure = integration_iface.test_if_anon_secure;
+let test_if_anon_bidirect = integration_iface.test_if_anon_bidirect;
+let interface_impl = integration_iface.interface_impl;
 
 // ---
-var model_as = async_steps();
+class TestMasterAuth extends invoker_module.MasterAuth {
+    signMessage( ctx, req ) {
+        const { macAlgo } = ctx.options;
+        const sig = this.genMAC( ctx, req ).toString( 'base64' );
+        req.sec = `-mmac:0123456789abcdefghijklm:${macAlgo}:HKDF256:20180101:${sig}`;
+    }
+
+    genMAC( ctx, msg ) {
+        return invoker_module.SpecTools.genHMAC( {}, ctx.options, msg );
+    }
+}
+
+// ---
+class TestSecurityProvider extends SecurityProvider {
+    signAuto( as, reqinfo, rspmsg ) {
+        if ( reqinfo.info._is_signed ) {
+            const base = invoker_module.SpecTools.macBase( rspmsg );
+            rspmsg.sec = crypto.createHmac(
+                'sha256',
+                Buffer.from( '111222333444555666777888999', 'base64' )
+            ).update( base ).digest().toString( 'base64' );
+            return true;
+        }
+
+        return false;
+    }
+
+    isSigned( reqinfo ) {
+        return reqinfo.info._is_signed;
+    }
+
+    _checkStatelessClear( as, reqinfo, { user, secret } ) {
+        if ( ( user === '01234567890123456789ab' ) &&
+             ( secret === 'pass' )
+        ) {
+            this._stepReqinfoUser( as, reqinfo, 'SafeOps', {
+                local_id: '01234567890123456789ab',
+                global_id: 'user@example.com',
+            } );
+        } else {
+            as.error(
+                'SecurityError',
+                'Stateless Clear Verification Failed' );
+        }
+    }
+
+    _checkStatelessMAC( as, reqinfo, rawreq, { sig } ) {
+        const base = invoker_module.SpecTools.macBase( rawreq );
+        const reqsig = crypto.createHmac(
+            'sha256',
+            Buffer.from( '111222333444555666777888999', 'base64' )
+        ).update( base ).digest();
+        sig = Buffer.from( sig, 'base64' );
+
+        if ( invoker_module.SpecTools.secureEquals( sig, reqsig ) ) {
+            reqinfo.info._is_signed = 'stls';
+            this._stepReqinfoUser( as, reqinfo, 'PrivilegedOps', {
+                local_id: '01234567890123456789ab',
+                global_id: 'user@example.com',
+            } );
+        } else {
+            as.error(
+                'SecurityError',
+                'Stateless MAC Verification Failed' );
+        }
+    }
+
+    _checkMasterMAC( as, reqinfo, rawreq, { sig } ) {
+        const base = invoker_module.SpecTools.macBase( rawreq );
+        const reqsig = crypto.createHmac(
+            'sha256',
+            Buffer.from( '111222333444555666777888999', 'base64' )
+        ).update( base ).digest();
+        sig = Buffer.from( sig, 'base64' );
+
+        if ( invoker_module.SpecTools.secureEquals( sig, reqsig ) ) {
+            reqinfo.info._is_signed = 'master';
+            this._stepReqinfoUser( as, reqinfo, 'PrivilegedOps', {
+                local_id: '01234567890123456789ab',
+                global_id: 'user@example.com',
+            } );
+        } else {
+            as.error(
+                'SecurityError',
+                'Master MAC Verification Failed' );
+        }
+    }
+}
+
+// ---
+let model_as = async_steps();
 
 model_as.add(
     function( as ) {
-        var opts = {};
+        const opts = {};
+        // ---
 
         opts.callTimeoutMS = 1e3;
         opts.specDirs = [
@@ -63,10 +157,12 @@ model_as.add(
             test_if_anon_secure,
         ];
 
-        var internal_test = ( as.state.proto === 'internal' );
-        var node_test = NodeExecutor && !internal_test;
+        let internal_test = ( as.state.proto === 'internal' );
+        let node_test = NodeExecutor && !internal_test;
 
-        var end_point = '';
+        let end_point = '';
+        let secend_point;
+        let secopts;
 
         if ( internal_test ) {
             // configure later
@@ -75,7 +171,7 @@ model_as.add(
             opts.httpPort = '1080';
             opts.httpPath = '/ftn';
 
-            var secopts = _.clone( opts );
+            secopts = _.clone( opts );
 
             end_point = as.state.proto +
                 "://" + opts.httpAddr +
@@ -84,7 +180,7 @@ model_as.add(
 
             secopts.httpPort = '1081';
 
-            var secend_point = "secure+" + as.state.proto +
+            secend_point = "secure+" + as.state.proto +
                 "://" + secopts.httpAddr +
                 ":" + secopts.httpPort +
                 secopts.httpPath;
@@ -93,7 +189,7 @@ model_as.add(
             secend_point = end_point;
         }
 
-        var state = as.state;
+        let state = as.state;
 
         state.ccm_msgs = [];
         state.exec_msgs = [];
@@ -102,22 +198,34 @@ model_as.add(
             state.ccm_msgs.push( msg );
         };
 
-        var ccm = new as.state.CCMImpl( opts );
-        var executor_ccm = new invoker_module.AdvancedCCM( opts );
-        var anon_iface;
-        var bidirect_iface;
-        var anonsec_iface;
+
+        const ccm = new as.state.CCMImpl( opts );
+        as.state.ccm = ccm;
+        const executor_ccm = new invoker_module.AdvancedCCM( opts );
+        as.state.executor_ccm = executor_ccm;
+        let anon_iface;
+        let bidirect_iface;
+        let anonsec_iface;
 
         ccm.limitZone( 'default', { rate: 0xFFFF } );
         executor_ccm.limitZone( 'default', { rate: 0xFFFF } );
 
-        var is_bidirect = internal_test || ( end_point.match( /^(ws|browser)/ ) !== null );
+        let is_bidirect = internal_test || ( end_point.match( /^(ws|browser)/ ) !== null );
 
-        var execopts = _.clone( opts );
+        let execopts = _.clone( opts );
 
         execopts.messageSniffer = function( src, msg ) {
             state.exec_msgs.push( msg );
         };
+
+        // ---
+        const legacy_secprov = new LegacySecurityProvider( as, executor_ccm, new TestSecurityProvider );
+        legacy_secprov.addUser( 'user', 'pass' );
+        legacy_secprov.addUser( 'hmacuser', 'MyLongLongSecretKey' );
+        legacy_secprov.addUser( 'system', 'pass', {}, true );
+
+        execopts.securityProvider = legacy_secprov;
+        // ---
 
         if ( node_test ) {
             secopts.messageSniffer = execopts.messageSniffer;
@@ -131,13 +239,13 @@ model_as.add(
         as.add( function( as ) {
             if ( !node_test ) return;
 
-            var executor = new NodeExecutor( executor_ccm, execopts );
+            let executor = new NodeExecutor( executor_ccm, execopts );
 
             as.state.executor = executor;
 
-            /*executor.on( 'notExpected', function( err, error_info ){
+            executor.on( 'notExpected', function( err, error_info ) {
                 console.log( "NotExpected: " + err + " " + error_info );
-            });*/
+            } );
 
             as.setTimeout( execopts.callTimeoutMS );
             executor.on( 'ready', function() {
@@ -146,13 +254,13 @@ model_as.add(
         } ).add( function( as ) {
             if ( !node_test ) return;
 
-            var secexecutor = new NodeExecutor( executor_ccm, secopts );
+            let secexecutor = new NodeExecutor( executor_ccm, secopts );
 
             as.state.secexecutor = secexecutor;
 
-            /*secexecutor.on( 'notExpected', function( err, error_info ){
+            secexecutor.on( 'notExpected', function( err, error_info ) {
                 console.log( "NotExpected: " + err + " " + error_info );
-            });*/
+            } );
 
             as.setTimeout( execopts.callTimeoutMS );
             secexecutor.on( 'ready', function() {
@@ -161,14 +269,14 @@ model_as.add(
         } ).add( function( as ) {
             if ( !internal_test ) return;
 
-            var executor = new executor_module.Executor( executor_ccm, execopts );
+            let executor = new executor_module.Executor( executor_ccm, execopts );
 
             as.state.executor = executor;
             as.state.secexecutor = executor;
             end_point = executor;
             secend_point = executor;
         } ).add( function( as ) {
-            var p = as.parallel();
+            let p = as.parallel();
 
             if ( node_test || internal_test ) {
                 p.add( function( as ) {
@@ -180,14 +288,7 @@ model_as.add(
                 } );
             }
 
-            var basicAuthExecutor = new executor_module.Executor( executor_ccm );
-            var basic_auth_service = BasicAuthService.register( as, basicAuthExecutor );
-
-            basic_auth_service.addUser( 'user', 'pass' );
-            basic_auth_service.addUser( 'hmacuser', 'MyLongLongSecretKey' );
-            basic_auth_service.addUser( 'system', 'pass', {}, true );
-
-            var clientExecutor = new ClientExecutor( ccm, opts );
+            let clientExecutor = new ClientExecutor( ccm, opts );
 
             as.state.clientExecutor = clientExecutor;
             clientExecutor.on( 'notExpected', function( err, error_info ) {
@@ -212,8 +313,12 @@ model_as.add(
                     'test_if_anon',
                     'test.int.anon:1.0',
                     end_point,
-                    as.state.creds || 'user:pass',
-                    { hmacKey: 'TXlMb25nTG9uZ1NlY3JldEtleQ==' }
+                    as.state.creds,
+                    {
+                        hmacKey: 'TXlMb25nTG9uZ1NlY3JldEtleQ==',
+                        macKey: '111222333444555666777888999',
+                        masterAuth: new TestMasterAuth(),
+                    }
                 );
                 executor_ccm.register(
                     as,
@@ -222,7 +327,6 @@ model_as.add(
                     end_point,
                     'system:pass'
                 );
-                BasicAuthFace.register( as, executor_ccm, basicAuthExecutor );
             } ).add( function( as ) {
                 as.add(
                     function( as ) {
@@ -335,7 +439,7 @@ model_as.add(
                 return;
             }
 
-            var upload_data = new Buffer( 'TestUploadBuffer' );
+            let upload_data = new Buffer( 'TestUploadBuffer' );
 
             anon_iface.call( as, 'rawUpload', null, upload_data );
         } ).add( function( as, res ) {
@@ -349,10 +453,10 @@ model_as.add(
                 return;
             }
 
-            var upload_data = new MemoryStream();
+            let upload_data = new MemoryStream();
 
             upload_data.lengthInBytes = Buffer.byteLength( 'TestUploadStreamЯ', 'utf8' );
-            var orig_pipe = upload_data.pipe;
+            let orig_pipe = upload_data.pipe;
 
             upload_data.pipe = function( dst, opts ) {
                 orig_pipe.call( this, dst, opts );
@@ -397,7 +501,7 @@ model_as.add(
 
             if ( is_in_browser || internal_test ) return;
 
-            var upload_data = new Buffer( 'TestUploadBuffer' );
+            let upload_data = new Buffer( 'TestUploadBuffer' );
 
             as.state.membuf = new MemoryStream( null, { readable : false } );
             anon_iface.call( as, 'rawUploadResult', null, upload_data, as.state.membuf );
@@ -411,7 +515,7 @@ model_as.add(
 
             if ( is_in_browser || internal_test ) return;
 
-            var upload_data = new Buffer( 'TestUploadBuffer' );
+            let upload_data = new Buffer( 'TestUploadBuffer' );
 
             as.state.membuf = new MemoryStream( null, { readable : false } );
             anon_iface.call(
@@ -457,7 +561,7 @@ model_as.add(
                 anon_iface.call( as, 'cancelAfterTimeout' );
             },
             function( as, err ) {
-                expect( err ).equal( as.state.creds ? 'SecurityError' : 'InternalError' );
+                expect( err ).equal( 'InternalError' );
                 as.success( 'OK' );
             }
         ).add( function( as, res ) {
@@ -550,7 +654,7 @@ model_as.add(
                 // console.dir(  as.state.ccm_msgs );
                 // console.dir(  as.state.exec_msgs );
 
-                var diff = as.state.exec_msgs.length - as.state.ccm_msgs.length;
+                let diff = as.state.exec_msgs.length - as.state.ccm_msgs.length;
 
                 // One message difference for client timeout test is possible
                 if ( diff < 0 || diff > 1 ) {
@@ -593,6 +697,8 @@ model_as.add(
         if ( as.state.executor ) {
             as.state.executor.close();
             as.state.secexecutor.close();
+            as.state.executor_ccm.close();
+            as.state.ccm.close();
         }
 
         as.state.done( err );
@@ -607,67 +713,149 @@ model_as.add(
 describe( 'Integration', function() {
     if ( is_in_browser ) {
         it( 'should pass Browser suite SimpleCCM', function( done ) {
-            var as = async_steps();
+            let as = async_steps();
 
             as.copyFrom( model_as );
             as.state.CCMImpl = invoker_module.SimpleCCM;
             as.state.done = done;
             as.state.proto = 'browser';
+            as.state.creds = 'user:pass';
             as.execute();
         } );
 
         it( 'should pass Browser suite AdvancedCCM', function( done ) {
-            var as = async_steps();
+            let as = async_steps();
 
             as.copyFrom( model_as );
             as.state.CCMImpl = invoker_module.AdvancedCCM;
             as.state.done = done;
             as.state.proto = 'browser';
+            as.state.creds = 'user:pass';
             as.execute();
         } );
     } else {
-        it( 'should pass HTTP suite SimpleCCM', function( done ) {
-            var as = async_steps();
+        it( 'should pass HTTP suite SimpleCCM with Stateless Clear', function( done ) {
+            let as = async_steps();
 
             as.copyFrom( model_as );
             as.state.CCMImpl = invoker_module.SimpleCCM;
             as.state.done = done;
             as.state.proto = 'http';
+            as.state.creds = '01234567890123456789ab:pass';
             as.execute();
         } );
 
-        it( 'should pass WS suite SimpleCCM', function( done ) {
-            var as = async_steps();
+        it( 'should pass WS suite SimpleCCM with Stateless Clear', function( done ) {
+            let as = async_steps();
 
             as.copyFrom( model_as );
             as.state.CCMImpl = invoker_module.SimpleCCM;
             as.state.done = done;
             as.state.proto = 'ws';
+            as.state.creds = '01234567890123456789ab:pass';
             as.execute();
         } );
 
-        it( 'should pass HTTP suite AdvancedCCM', function( done ) {
-            var as = async_steps();
+        it( 'should pass HTTP suite AdvancedCCM with Stateless Clear', function( done ) {
+            let as = async_steps();
 
             as.copyFrom( model_as );
             as.state.CCMImpl = invoker_module.AdvancedCCM;
             as.state.done = done;
             as.state.proto = 'http';
+            as.state.creds = '01234567890123456789ab:pass';
             as.execute();
         } );
 
-        it( 'should pass WS suite AdvancedCCM', function( done ) {
-            var as = async_steps();
+        it( 'should pass WS suite AdvancedCCM with Stateless Clear', function( done ) {
+            let as = async_steps();
 
             as.copyFrom( model_as );
             as.state.CCMImpl = invoker_module.AdvancedCCM;
             as.state.done = done;
             as.state.proto = 'ws';
+            as.state.creds = '01234567890123456789ab:pass';
             as.execute();
         } );
 
-        it( 'should pass WS suite AdvancedCCM with HMAC', function( done ) {
-            var as = async_steps();
+        it( 'should pass HTTP suite AdvancedCCM with Stateless MAC', function( done ) {
+            let as = async_steps();
+
+            as.copyFrom( model_as );
+            as.state.CCMImpl = invoker_module.AdvancedCCM;
+            as.state.done = done;
+            as.state.proto = 'http';
+            as.state.creds = '-smac:0123456789ABCDEFGHIJKLM';
+            as.execute();
+        } );
+
+        it( 'should pass HTTP suite AdvancedCCM with Stateless MAC', function( done ) {
+            let as = async_steps();
+
+            as.copyFrom( model_as );
+            as.state.CCMImpl = invoker_module.AdvancedCCM;
+            as.state.done = done;
+            as.state.proto = 'ws';
+            as.state.creds = '-smac:0123456789ABCDEFGHIJKLM';
+            as.execute();
+        } );
+
+        it( 'should pass WS suite AdvancedCCM with Master MAC', function( done ) {
+            let as = async_steps();
+
+            as.copyFrom( model_as );
+            as.state.CCMImpl = invoker_module.AdvancedCCM;
+            as.state.done = done;
+            as.state.proto = 'http';
+            as.state.creds = 'master';
+            as.execute();
+        } );
+
+        it( 'should pass WS suite AdvancedCCM with Master MAC', function( done ) {
+            let as = async_steps();
+
+            as.copyFrom( model_as );
+            as.state.CCMImpl = invoker_module.AdvancedCCM;
+            as.state.done = done;
+            as.state.proto = 'ws';
+            as.state.creds = 'master';
+            as.execute();
+        } );
+        it( 'should pass HTTP suite AdvancedCCM with legacy Basic Auth', function( done ) {
+            let as = async_steps();
+
+            as.copyFrom( model_as );
+            as.state.CCMImpl = invoker_module.AdvancedCCM;
+            as.state.done = done;
+            as.state.proto = 'http';
+            as.state.creds = 'user:pass';
+            as.execute();
+        } );
+
+        it( 'should pass WS suite AdvancedCCM with legacy Basic Auth', function( done ) {
+            let as = async_steps();
+
+            as.copyFrom( model_as );
+            as.state.CCMImpl = invoker_module.AdvancedCCM;
+            as.state.done = done;
+            as.state.proto = 'ws';
+            as.state.creds = 'user:pass';
+            as.execute();
+        } );
+
+        it( 'should pass HTTP suite AdvancedCCM with legacy HMAC', function( done ) {
+            let as = async_steps();
+
+            as.copyFrom( model_as );
+            as.state.CCMImpl = invoker_module.AdvancedCCM;
+            as.state.done = done;
+            as.state.proto = 'http';
+            as.state.creds = '-hmac:hmacuser';
+            as.execute();
+        } );
+
+        it( 'should pass WS suite AdvancedCCM with legacy HMAC', function( done ) {
+            let as = async_steps();
 
             as.copyFrom( model_as );
             as.state.CCMImpl = invoker_module.AdvancedCCM;
@@ -680,23 +868,25 @@ describe( 'Integration', function() {
 
     it( 'should pass INTERNAL suite SimpleCCM', function( done ) {
         this.timeout( 5e3 );
-        var as = async_steps();
+        let as = async_steps();
 
         as.copyFrom( model_as );
         as.state.CCMImpl = invoker_module.SimpleCCM;
         as.state.done = done;
         as.state.proto = 'internal';
+        as.state.creds = 'user:pass';
         as.execute();
     } );
 
     it( 'should pass INTERNAL suite AdvancedCCM', function( done ) {
         this.timeout( 5e3 );
-        var as = async_steps();
+        let as = async_steps();
 
         as.copyFrom( model_as );
         as.state.CCMImpl = invoker_module.AdvancedCCM;
         as.state.done = done;
         as.state.proto = 'internal';
+        as.state.creds = 'user:pass';
         as.execute();
     } );
 } );
