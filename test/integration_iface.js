@@ -243,12 +243,14 @@ exports.test_if_anon_bidirect = {
 exports.interface_impl = {
     regular : function( as, reqinfo ) {
         var rawmsg = reqinfo.info()[ reqinfo.INFO_RAW_REQUEST ];
+        const { sec } = rawmsg;
 
-        if ( rawmsg.sec !== 'user:pass' &&
-             rawmsg.sec.substr( 0, 15 ) !== '-hmac:hmacuser:' &&
-             rawmsg.sec !== '01234567890123456789ab:pass' &&
-             !rawmsg.sec.match( /^-mmac:0123456789abcdefghijklm:HS256:HKDF256:20180101:/ ) &&
-             !rawmsg.sec.match( /^-smac:0123456789ABCDEFGHIJKLM:HS256:/ )
+        if ( sec &&
+             sec !== 'user:pass' &&
+             sec.substr( 0, 15 ) !== '-hmac:hmacuser:' &&
+             sec !== '01234567890123456789ab:pass' &&
+             !sec.match( /^-mmac:0123456789abcdefghijklm:HS256:HKDF256:20180101:/ ) &&
+             !sec.match( /^-smac:0123456789ABCDEFGHIJKLM:HS256:/ )
         ) {
             as.error( 'SecurityError', 'Integration Test' );
         }

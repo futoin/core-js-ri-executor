@@ -31,6 +31,10 @@ function run_on_load(event) {
 
     var ccm = new FutoIn.Invoker.AdvancedCCM( opts );
     var browser_executor = new BrowserExecutor( ccm, opts );
+    browser_executor.on( 'notExpected', function( err, error_info ) {
+        console.log( 'Not Expected: ' + err, error_info );
+        console.log( state.last_exception.stack );
+    } );
 
     window.$as().add( function( as )
     {
