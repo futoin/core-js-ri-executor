@@ -243,9 +243,11 @@ exports.test_if_anon_bidirect = {
 exports.interface_impl = {
     regular : function( as, reqinfo ) {
         var rawmsg = reqinfo.info()[ reqinfo.INFO_RAW_REQUEST ];
+
         const { sec } = rawmsg;
 
         if ( sec &&
+             sec !== '-internal' &&
              sec !== 'user:pass' &&
              sec.substr( 0, 15 ) !== '-hmac:hmacuser:' &&
              sec !== '01234567890123456789ab:pass' &&
@@ -282,11 +284,19 @@ exports.interface_impl = {
 
     testAuth : function( as, reqinfo ) {
         try {
-            const sec = reqinfo.info.RAW_REQUEST.sec;
-            expect( reqinfo.info[ reqinfo.INFO_SECURITY_LEVEL ] ).equal(
-                sec && sec.match( /^-[hms]mac/ ) ?
-                    reqinfo.SL_PRIVILEGED_OPS :
-                    reqinfo.SL_SAFE_OPS );
+            const req = reqinfo.info.RAW_REQUEST;
+            const { sec, obf } = req;
+
+            if ( sec === '-internal' ) {
+                expect( reqinfo.info[ reqinfo.INFO_SECURITY_LEVEL ] ).equal(
+                    obf ? obf.slvl : reqinfo.SL_SYSTEM );
+            } else {
+                expect( reqinfo.info[ reqinfo.INFO_SECURITY_LEVEL ] ).equal(
+                    sec && sec.match( /^-[hms]mac/ ) ?
+                        reqinfo.SL_PRIVILEGED_OPS :
+                        reqinfo.SL_SAFE_OPS );
+            }
+
             expect( reqinfo.info[ reqinfo.INFO_USER_INFO ] ).not.be.null;
         } catch ( e ) {
             as.error( 'InternalError', e.message );

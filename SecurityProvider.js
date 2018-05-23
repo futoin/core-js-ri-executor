@@ -35,21 +35,8 @@ class SecurityProvider {
      * @param {array} sec - reqmsg.sec field split by ':'
      */
     checkAuth( as, reqinfo, reqmsg, sec ) {
-        if ( sec[0] === '-internal' ) {
-            if ( reqinfo.info.CHANNEL_CONTEXT.type() === 'INTERNAL' ) {
-                this._setUser( as, reqinfo, RequestInfo.SL_SYSTEM, {
-                    local_id: '-internal',
-                    global_id: '-internal',
-                } );
-            } else {
-                as.error( Errors.SecurityError,
-                    "Invalid internal authentication" );
-            }
-        } else {
-            as.error( Errors.NotImplemented,
-                "Authentication is not enabled" );
-        }
-
+        as.error( Errors.NotImplemented,
+            "Authentication is not enabled" );
         void reqinfo;
         void reqmsg;
         void sec;

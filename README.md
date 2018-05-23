@@ -516,6 +516,10 @@ until FTN8 Security Concept is finalized</p>
 <dt><a href="#Executor">Executor</a></dt>
 <dd><p>An abstract core implementing pure FTN6 Executor logic.</p>
 </dd>
+<dt><a href="#LegacySecurityProvider">LegacySecurityProvider</a></dt>
+<dd><p>This functionality is provided to provide historical not standard BasicAuth
+interface. Use of this approach is discouraged.</p>
+</dd>
 <dt><a href="#NodeExecutorOptions">NodeExecutorOptions</a> ⇐ <code><a href="#ExecutorOptions">ExecutorOptions</a></code></dt>
 <dd></dd>
 <dt><a href="#NodeExecutor">NodeExecutor</a></dt>
@@ -529,6 +533,9 @@ until FTN8 Security Concept is finalized</p>
 <dd></dd>
 <dt><a href="#RequestInfo">RequestInfo</a></dt>
 <dd><p>RequestInfo object as defined in FTN6</p>
+</dd>
+<dt><a href="#SecurityProvider">SecurityProvider</a></dt>
+<dd><p>Generic security provider interface</p>
 </dd>
 <dt><a href="#SourceAddress">SourceAddress</a></dt>
 <dd><p>Source Address representation</p>
@@ -601,6 +608,7 @@ until FTN8 Security Concept is finalized
         * [.addUser(user, secret, details, [system_user])](#BasicAuthService+addUser)
         * [._getUser(as, user)](#BasicAuthService+_getUser)
         * [._getUserByID(as, local_id)](#BasicAuthService+_getUserByID)
+        * [.addUser(user, secret, details, [system_user])](#BasicAuthService+addUser)
     * _static_
         * [.register(as, executor)](#BasicAuthService.register) ⇒ [<code>BasicAuthService</code>](#BasicAuthService)
 
@@ -643,6 +651,20 @@ Get by ID. Override, if needed.
 | --- | --- | --- |
 | as | <code>AsyncSteps</code> | steps interfaces |
 | local_id | <code>number</code> | local ID |
+
+<a name="BasicAuthService+addUser"></a>
+
+### basicAuthService.addUser(user, secret, details, [system_user])
+Register users statically right after registration
+
+**Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| user | <code>string</code> |  | user name |
+| secret | <code>string</code> |  | user secret (either password or raw key for HMAC) |
+| details | <code>object</code> |  | user details the way as defined in FTN8 |
+| [system_user] | <code>boolean</code> | <code>false</code> | is system user |
 
 <a name="BasicAuthService.register"></a>
 
@@ -874,6 +896,7 @@ Decrypt data using current derived key
     * [.prodMode](#ExecutorOptions.prodMode)
     * [.reqTimeout](#ExecutorOptions.reqTimeout)
     * [.heavyReqTimeout](#ExecutorOptions.heavyReqTimeout)
+    * [.securityProvider](#ExecutorOptions.securityProvider)
     * [.messageSniffer()](#ExecutorOptions.messageSniffer)
 
 <a name="new_ExecutorOptions_new"></a>
@@ -912,6 +935,12 @@ marked "heavy". See FTN3
 
 **Kind**: static property of [<code>ExecutorOptions</code>](#ExecutorOptions)  
 **Default**: <code>60000</code>  
+<a name="ExecutorOptions.securityProvider"></a>
+
+### ExecutorOptions.securityProvider
+FTN8 security interface
+
+**Kind**: static property of [<code>ExecutorOptions</code>](#ExecutorOptions)  
 <a name="ExecutorOptions.messageSniffer"></a>
 
 ### ExecutorOptions.messageSniffer()
@@ -1121,6 +1150,25 @@ Fired when Executor is shutting down.
 ()
 
 **Kind**: event emitted by [<code>Executor</code>](#Executor)  
+<a name="LegacySecurityProvider"></a>
+
+## LegacySecurityProvider
+This functionality is provided to provide historical not standard BasicAuth
+interface. Use of this approach is discouraged.
+
+**Kind**: global class  
+<a name="new_LegacySecurityProvider_new"></a>
+
+### new LegacySecurityProvider(as, ccm, secprov)
+C-tor
+
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| as | <code>AsyncSteps</code> |  | AsyncSteps interface |
+| ccm | <code>AdvancedCCM</code> |  | CCM instance |
+| secprov | [<code>SecurityProvider</code>](#SecurityProvider) | <code></code> | optional secprov for chaining |
+
 <a name="NodeExecutorOptions"></a>
 
 ## NodeExecutorOptions ⇐ [<code>ExecutorOptions</code>](#ExecutorOptions)
@@ -1648,6 +1696,90 @@ NOTE: repeat calls override previous value
 | Param | Type | Description |
 | --- | --- | --- |
 | time_ms | <code>float</code> | set automatic request timeout after specified        value of microseconds. 0 - disables timeout |
+
+<a name="SecurityProvider"></a>
+
+## SecurityProvider
+Generic security provider interface
+
+**Kind**: global class  
+
+* [SecurityProvider](#SecurityProvider)
+    * [.checkAuth(as, reqinfo, reqmsg, sec)](#SecurityProvider+checkAuth)
+    * [.signAuto(as, reqinfo, rspmsg)](#SecurityProvider+signAuto) ⇒ <code>boolean</code>
+    * [.isSigned(reqinfo)](#SecurityProvider+isSigned) ⇒ <code>boolean</code>
+    * [.checkAccess(as, reqinfo, acd)](#SecurityProvider+checkAccess)
+    * [._setUser(as, reqinfo, seclvl, auth_info)](#SecurityProvider+_setUser)
+
+<a name="SecurityProvider+checkAuth"></a>
+
+### securityProvider.checkAuth(as, reqinfo, reqmsg, sec)
+Check request authentication.
+
+**Kind**: instance method of [<code>SecurityProvider</code>](#SecurityProvider)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | AsyncSteps interface |
+| reqinfo | [<code>RequestInfo</code>](#RequestInfo) | extended request info |
+| reqmsg | <code>object</code> | request message as is |
+| sec | <code>array</code> | reqmsg.sec field split by ':' |
+
+<a name="SecurityProvider+signAuto"></a>
+
+### securityProvider.signAuto(as, reqinfo, rspmsg) ⇒ <code>boolean</code>
+Check if response signature is required and perform signing.
+
+**Kind**: instance method of [<code>SecurityProvider</code>](#SecurityProvider)  
+**Returns**: <code>boolean</code> - true, if signature is set  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | AsyncSteps interface |
+| reqinfo | [<code>RequestInfo</code>](#RequestInfo) | extended request info |
+| rspmsg | <code>object</code> | response message as is |
+
+<a name="SecurityProvider+isSigned"></a>
+
+### securityProvider.isSigned(reqinfo) ⇒ <code>boolean</code>
+Check if request is signed as in MessageSignature constraint.
+
+**Kind**: instance method of [<code>SecurityProvider</code>](#SecurityProvider)  
+**Returns**: <code>boolean</code> - true, if signed  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| reqinfo | [<code>RequestInfo</code>](#RequestInfo) | extended request info |
+
+<a name="SecurityProvider+checkAccess"></a>
+
+### securityProvider.checkAccess(as, reqinfo, acd)
+Check access through Access Control concept
+
+**Kind**: instance method of [<code>SecurityProvider</code>](#SecurityProvider)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | AsyncSteps interface |
+| reqinfo | [<code>RequestInfo</code>](#RequestInfo) | extended request info |
+| acd | <code>string</code> \| <code>array</code> | access control descriptor |
+
+<a name="SecurityProvider+_setUser"></a>
+
+### securityProvider._setUser(as, reqinfo, seclvl, auth_info)
+A special helper to set authenticated user info
+
+**Kind**: instance method of [<code>SecurityProvider</code>](#SecurityProvider)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| as | <code>AsyncSteps</code> |  | AsyncSteps interface |
+| reqinfo | [<code>RequestInfo</code>](#RequestInfo) |  | extended request info |
+| seclvl | <code>string</code> |  | security level |
+| auth_info | <code>object</code> |  | authentication info |
+| auth_info.local_id | <code>integer</code> \| <code>string</code> |  | Local User ID |
+| auth_info.global_id | <code>string</code> |  | Global User ID |
+| [auth_info.details] | <code>object</code> | <code></code> | user details |
 
 <a name="SourceAddress"></a>
 

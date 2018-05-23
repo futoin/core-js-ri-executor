@@ -622,7 +622,14 @@ model_as.add(
         ).add(
             function( as ) {
                 set_step( 'testSecLevel' );
-                anon_iface.call( as, 'testSecLevel' );
+
+                if ( ( as.state.proto === 'internal' ) &&
+                     !as.state.creds
+                ) {
+                    as.success( 'ReauthOK' );
+                } else {
+                    anon_iface.call( as, 'testSecLevel' );
+                }
             },
             function( as, err ) {
                 expect( err ).equal( 'PleaseReauth' );
@@ -893,11 +900,35 @@ describe( 'Integration', function() {
         as.state.CCMImpl = invoker_module.SimpleCCM;
         as.state.done = done;
         as.state.proto = 'internal';
-        as.state.creds = 'user:pass';
+        as.state.creds = null;
         as.execute();
     } );
 
     it( 'should pass INTERNAL suite AdvancedCCM', function( done ) {
+        this.timeout( 5e3 );
+        let as = async_steps();
+
+        as.copyFrom( model_as );
+        as.state.CCMImpl = invoker_module.AdvancedCCM;
+        as.state.done = done;
+        as.state.proto = 'internal';
+        as.state.creds = null;
+        as.execute();
+    } );
+
+    it( 'should pass INTERNAL suite SimpleCCM with basic auth', function( done ) {
+        this.timeout( 5e3 );
+        let as = async_steps();
+
+        as.copyFrom( model_as );
+        as.state.CCMImpl = invoker_module.SimpleCCM;
+        as.state.done = done;
+        as.state.proto = 'internal';
+        as.state.creds = 'user:pass';
+        as.execute();
+    } );
+
+    it( 'should pass INTERNAL suite AdvancedCCM with basic auth', function( done ) {
         this.timeout( 5e3 );
         let as = async_steps();
 
