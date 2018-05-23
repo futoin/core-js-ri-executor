@@ -2,43 +2,36 @@
 
 require( './prepare' );
 
-let assert;
-let expect;
+const is_in_browser = ( typeof window !== 'undefined' );
 
-let is_in_browser = ( typeof window !== 'undefined' );
-let MemoryStream = is_in_browser ? null : module.require( 'memorystream' );
+const executor_module = is_in_browser
+    ? require( 'futoin-executor' )
+    : module.require( '../lib/main' );
 
-let executor_module;
-let invoker_module = require( 'futoin-invoker' );
-let async_steps = require( 'futoin-asyncsteps' );
+const chai = require( 'chai' );
+const { expect, assert } = chai;
 
-const SecurityProvider = require( '../SecurityProvider' );
-const LegacySecurityProvider = require( '../LegacySecurityProvider' );
-let _ = require( 'lodash' );
+const MemoryStream = is_in_browser ? null : module.require( 'memorystream' );
 
-let NodeExecutor;
-let BrowserExecutor;
+const invoker_module = require( 'futoin-invoker' );
+const async_steps = require( 'futoin-asyncsteps' );
+
+const {
+    NodeExecutor,
+    BrowserExecutor,
+    SecurityProvider,
+    LegacySecurityProvider,
+} = executor_module;
+let _clone = require( 'lodash/clone' );
+
 let thisDir;
 let request;
 let crypto;
 
 if ( is_in_browser ) {
-    assert = chai.assert;
-    expect = chai.expect;
     thisDir = '.';
-
-    executor_module = window.futoin.Executor;
-    BrowserExecutor = executor_module.BrowserExecutor;
 } else {
     thisDir = __dirname;
-
-    executor_module = module.require( '../lib/main' );
-    NodeExecutor = executor_module.NodeExecutor;
-
-    let chai_module = module.require( 'chai' );
-
-    assert = chai_module.assert;
-    expect = chai_module.expect;
 
     request = module.require( 'request' );
     crypto = module.require( 'crypto' );
@@ -66,6 +59,32 @@ class TestMasterAuth extends invoker_module.MasterAuth {
 
 // ---
 class TestSecurityProvider extends SecurityProvider {
+    checkAuth( as, reqinfo, reqmsg, sec ) {
+        // FTN8.2: Master MAC
+        if ( sec[ 0 ] === '-mmac' ) {
+            this._checkMasterMAC( as, reqinfo, reqmsg, {
+                msid: sec[1],
+                algo: sec[2],
+                kds: sec[3],
+                prm: sec[4],
+                sig: sec[5],
+            } );
+        // FTN8.1: Stateless MAC
+        } else if ( sec[ 0 ] === '-smac' ) {
+            this._checkStatelessMAC( as, reqinfo, reqmsg, {
+                user: sec[1],
+                algo: sec[2],
+                sig: sec[3],
+            } );
+        // FTN8.1: Clear secret
+        } else if ( sec.length == 2 ) {
+            this._checkStatelessClear( as, reqinfo, {
+                user: sec[0],
+                secret: sec[1],
+            } );
+        }
+    }
+
     signAuto( as, reqinfo, rspmsg ) {
         if ( reqinfo.info._is_signed ) {
             const base = invoker_module.SpecTools.macBase( rspmsg );
@@ -87,7 +106,7 @@ class TestSecurityProvider extends SecurityProvider {
         if ( ( user === '01234567890123456789ab' ) &&
              ( secret === 'pass' )
         ) {
-            this._stepReqinfoUser( as, reqinfo, 'SafeOps', {
+            this._setUser( as, reqinfo, 'SafeOps', {
                 local_id: '01234567890123456789ab',
                 global_id: 'user@example.com',
             } );
@@ -108,7 +127,7 @@ class TestSecurityProvider extends SecurityProvider {
 
         if ( invoker_module.SpecTools.secureEquals( sig, reqsig ) ) {
             reqinfo.info._is_signed = 'stls';
-            this._stepReqinfoUser( as, reqinfo, 'PrivilegedOps', {
+            this._setUser( as, reqinfo, 'PrivilegedOps', {
                 local_id: '01234567890123456789ab',
                 global_id: 'user@example.com',
             } );
@@ -129,7 +148,7 @@ class TestSecurityProvider extends SecurityProvider {
 
         if ( invoker_module.SpecTools.secureEquals( sig, reqsig ) ) {
             reqinfo.info._is_signed = 'master';
-            this._stepReqinfoUser( as, reqinfo, 'PrivilegedOps', {
+            this._setUser( as, reqinfo, 'PrivilegedOps', {
                 local_id: '01234567890123456789ab',
                 global_id: 'user@example.com',
             } );
@@ -171,7 +190,7 @@ model_as.add(
             opts.httpPort = '1080';
             opts.httpPath = '/ftn';
 
-            secopts = _.clone( opts );
+            secopts = _clone( opts );
 
             end_point = as.state.proto +
                 "://" + opts.httpAddr +
@@ -212,7 +231,7 @@ model_as.add(
 
         let is_bidirect = internal_test || ( end_point.match( /^(ws|browser)/ ) !== null );
 
-        let execopts = _.clone( opts );
+        let execopts = _clone( opts );
 
         execopts.messageSniffer = function( src, msg ) {
             state.exec_msgs.push( msg );
@@ -719,7 +738,7 @@ describe( 'Integration', function() {
             as.state.CCMImpl = invoker_module.SimpleCCM;
             as.state.done = done;
             as.state.proto = 'browser';
-            as.state.creds = 'user:pass';
+            as.state.creds = null;
             as.execute();
         } );
 
@@ -730,7 +749,7 @@ describe( 'Integration', function() {
             as.state.CCMImpl = invoker_module.AdvancedCCM;
             as.state.done = done;
             as.state.proto = 'browser';
-            as.state.creds = 'user:pass';
+            as.state.creds = null;
             as.execute();
         } );
     } else {

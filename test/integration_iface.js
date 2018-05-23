@@ -2,19 +2,14 @@
 
 require( './prepare' );
 
-var chai;
+const chai = require( 'chai' );
+const { expect } = chai;
 
 if ( typeof window !== 'undefined' ) {
-    exports = window.integrationFace = {
+    module.exports = exports = window.integrationFace = {
         in_browser : true,
     };
-    module.exports = exports;
-    chai = window.chai;
-} else {
-    chai = module.require( 'chai' );
 }
-
-var expect = chai.expect;
 
 // ---
 exports.test_if_anon = {
@@ -451,7 +446,8 @@ exports.interface_impl = {
                             expect( [
                                 'user',
                                 'hmacuser',
-                            ].indexOf( login ) >= 0 ).be.true;
+                                'system',
+                            ] ).include( login );
                         } catch ( e ) {
                             console.log( e.stack );
                             as.error( 'InternalError', e.message );

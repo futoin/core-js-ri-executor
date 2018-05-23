@@ -2096,24 +2096,24 @@ functional-red-black-tree@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
 
-futoin-asyncevent@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/futoin-asyncevent/-/futoin-asyncevent-1.0.1.tgz#77ae623a1d539778ae6c43d974f5fd7549a999f1"
+futoin-asyncevent@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/futoin-asyncevent/-/futoin-asyncevent-1.0.2.tgz#1ab952f1feddcb3fbe7eab2f7341190c6c2995cb"
 
-futoin-asyncsteps@^1.11.4:
-  version "1.11.4"
-  resolved "https://registry.yarnpkg.com/futoin-asyncsteps/-/futoin-asyncsteps-1.11.4.tgz#671e7e73fca5adc13aee09d4c60eb43e4e5b7cc4"
+futoin-asyncsteps@^1.11.5:
+  version "1.11.5"
+  resolved "https://registry.yarnpkg.com/futoin-asyncsteps/-/futoin-asyncsteps-1.11.5.tgz#310b26f1983beedce92591abc9650b65709fc37f"
   dependencies:
     performance-now "^2.1.0"
 
-futoin-invoker@^1.9.1:
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-1.9.1.tgz#9a211911552cdfcf4186c6358c62235a30438820"
+futoin-invoker@^1.9.2:
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-1.9.2.tgz#0ca1497f992bf82b7fd1d023196e301d3566a7c2"
   dependencies:
     agentkeepalive "^3.4.1"
     detect-node "^2.0.3"
     faye-websocket "^0.11.1"
-    futoin-asyncevent "^1.0.1"
+    futoin-asyncevent "^1.0.2"
     lodash "^4.17.10"
     msgpack-lite "^0.1.26"
     performance-now "^2.1.0"
@@ -3785,8 +3785,8 @@ punycode@^1.2.4, punycode@^1.4.1:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-1.4.1.tgz#c0d5a63b2718800ad8e1eb0fa5269c84dd41845e"
 
 punycode@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.0.tgz#5f863edc89b96db09074bad7947bf09056ca4e7d"
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.1.1.tgz#b58b010ac40c22c5657616c8d2c2c02c7bf479ec"
 
 qs@~6.5.1:
   version "6.5.2"

@@ -3,10 +3,10 @@
 module.exports = {
     mode: 'development',
     entry: {
-        unittest : './test/unittest.js',
-        integration_test : './test/integration.js',
-        integration_iface : './test/integration_iface.js',
-        iframe : './test/iframe.js',
+        unittest : './es5/test/unittest.js',
+        integration_test : './es5/test/integration.js',
+        integration_iface : './es5/test/integration_iface.js',
+        iframe : './es5/test/iframe.js',
     },
     output: {
         filename: "[name].js",
@@ -52,19 +52,4 @@ module.exports = {
         },
     },
     node : false,
-    module: {
-        rules: [
-            {
-                test: /\.js$/,
-                exclude: /(node_modules\/(?!futoin)|bower_components)/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: [ 'babel-preset-env' ],
-                        plugins: [ "transform-object-assign" ],
-                    },
-                },
-            },
-        ],
-    },
 };

@@ -2,11 +2,17 @@
 
 require( './prepare' );
 
-var invoker;
-var async_steps;
-var executor_module;
-var assert;
-var expect;
+const is_browser = ( typeof window !== 'undefined' );
+
+const executor_module = is_browser
+    ? require( 'futoin-executor' )
+    : module.require( '../lib/main' );
+
+const invoker = require( 'futoin-invoker' );
+const async_steps = require( 'futoin-asyncsteps' );
+
+const chai = require( 'chai' );
+const { expect, assert } = chai;
 
 var ccm;
 var executor;
@@ -15,25 +21,8 @@ var reqinfo;
 var thisDir;
 
 if ( typeof window !== 'undefined' ) {
-    // Browser test
-    assert = chai.assert;
-    expect = chai.expect;
-    executor_module = FutoInExecutor;
-    invoker = FutoInInvoker;
-    async_steps = $as;
-
     thisDir = '.';
 } else {
-    // Node test
-    var chai_module = module.require( 'chai' );
-
-    assert = chai_module.assert;
-    expect = chai_module.expect;
-
-    executor_module = module.require( '../lib/main' );
-    invoker = module.require( 'futoin-invoker' );
-    async_steps = module.require( 'futoin-asyncsteps' );
-
     thisDir = __dirname;
 }
 
@@ -393,7 +382,7 @@ describe( 'PingService', function() {
         const ccm = new invoker.AdvancedCCM();
         const LegacySecurityProvider = require( '../LegacySecurityProvider' );
         const PingService = require( '../PingService' );
-        const PingFace = require( 'futoin-invoker/PingFace' );
+        const PingFace = invoker.PingFace;
 
         as.add( ( as ) => {
             as.add( ( as ) => {

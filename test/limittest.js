@@ -3,13 +3,23 @@
 require( './prepare' );
 
 const $as = require( 'futoin-asyncsteps' );
-const AdvancedCCM = require( 'futoin-invoker/AdvancedCCM' );
-const NodeExecutor = require( '../NodeExecutor' );
+const {
+    AdvancedCCM,
+    PingFace,
+} = require( 'futoin-invoker' );
 
-const PingFace = require( 'futoin-invoker/PingFace' );
-const PingService = require( '../PingService' );
 
-const LegacySecurityProvider = require( '../LegacySecurityProvider' );
+const is_browser = ( typeof window !== 'undefined' );
+
+const executor_module = is_browser
+    ? require( 'futoin-executor' )
+    : module.require( '../lib/main' );
+
+const {
+    NodeExecutor,
+    PingService,
+    LegacySecurityProvider,
+} = executor_module;
 
 const request = require( 'request' );
 
