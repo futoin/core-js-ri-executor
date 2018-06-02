@@ -72,7 +72,7 @@
     "chai": "^4.1.2",
     "eslint": "^4.19.1",
     "futoin-asyncsteps": "^1.11.5",
-    "futoin-invoker": "^1.9.2",
+    "futoin-invoker": "^1.9.3",
     "grunt": "^1.0.2",
     "grunt-babel": "^7.0.0",
     "grunt-contrib-connect": "^1.0.2",
@@ -87,7 +87,7 @@
     "minimist": "^1.2.0",
     "mocha": "^5.2.0",
     "request": "^2.87.0",
-    "webpack": "^4.8.3"
+    "webpack": "^4.10.2"
   },
   "peerDependencies": {
     "futoin-asyncsteps": "^1.11.5",

@@ -9,32 +9,6 @@
 **[Stability: 3 - Stable](http://nodejs.org/api/documentation.html)**
 
 
-# FutoIn reference implementation
-
-Reference implementation of:
- 
-    FTN6: FutoIn Executor Concept
-    Version: 1.7
-
-    FTN3: FutoIn Interface Definition
-    Version: 1.9
-
-    FTN5: FutoIn HTTP integration
-    Version: 1.3
-
-    FTN4: FutoIn Interface - Ping-Pong
-    Version: 1.0 (service)
-
-    
-* Spec: [FTN6: Interface Executor Concept v1.x](http://specs.futoin.org/final/preview/ftn6_iface_executor_concept-1.html)
-* Spec: [FTN3: FutoIn Interface Definition v1.x](http://specs.futoin.org/final/preview/ftn3_iface_definition.html)
-* Spec: [FTN5: FutoIn HTTP integration v1.x](http://specs.futoin.org/final/preview/ftn5_iface_http_integration.html)
-* Spec: [FTN4: FutoIn Interface - Ping-Pong v1.x](http://specs.futoin.org/final/preview/ftn4_if_ping.html)
-
-Author: [Andrey Galkin](mailto:andrey@futoin.org)
-
-[Web Site](http://futoin.org/)
-
 # About
 
 FutoIn Executor is a peer which processes a request - handles a FutoIn interface method
@@ -57,6 +31,8 @@ NodeExecutor - available only if used in Node.js
 
 *Note: Invoker and Executor are platform/technology-neutral concepts. The implementation
 is already available in JS and PHP. Hopefully, others are upcoming*
+
+**Documentation** --> [FutoIn Guide](https://futoin.org/docs/microservices/)
 
 # Features
 
@@ -82,6 +58,30 @@ is already available in JS and PHP. Hopefully, others are upcoming*
     * transport security, authentication and authorization are integrated as well
     * optional HMAC signing
 * High performance and low memory usage
+
+# FutoIn reference implementation
+
+Reference implementation of:
+ 
+    FTN6: FutoIn Executor Concept
+    Version: 1.7
+
+    FTN3: FutoIn Interface Definition
+    Version: 1.9
+
+    FTN5: FutoIn HTTP integration
+    Version: 1.3
+
+    FTN4: FutoIn Interface - Ping-Pong
+    Version: 1.0 (service)
+
+    
+* Spec: [FTN6: Interface Executor Concept v1.x](http://specs.futoin.org/final/preview/ftn6_iface_executor_concept-1.html)
+* Spec: [FTN3: FutoIn Interface Definition v1.x](http://specs.futoin.org/final/preview/ftn3_iface_definition.html)
+* Spec: [FTN5: FutoIn HTTP integration v1.x](http://specs.futoin.org/final/preview/ftn5_iface_http_integration.html)
+* Spec: [FTN4: FutoIn Interface - Ping-Pong v1.x](http://specs.futoin.org/final/preview/ftn4_if_ping.html)
+
+Author: [Andrey Galkin](mailto:andrey@futoin.org)
 
 
 # Installation for Node.js
