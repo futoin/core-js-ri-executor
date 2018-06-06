@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 1.10.0 (2018-06-06) ===
 CHANGED: to use performance-enhanced futoin-asyncsteps v2
 
 === 1.9.0 (2018-05-23) ===
