@@ -81,9 +81,9 @@ describe( 'Request Limiter', function() {
                                 this._curr -= 1;
                             } );
 
-                            setTimeout( () => {
+                            $as.ActiveAsyncTool.callLater( () => {
                                 this._curr -= 1;
-                                as.success();
+                                as.state && as.success();
                             }, PERIOD_MS );
                         } );
                     }
@@ -148,7 +148,7 @@ describe( 'Request Limiter', function() {
 
                 as.waitExternal();
 
-                setTimeout( () => {
+                $as.ActiveAsyncTool.callLater( () => {
                     try {
                         expect( impl._total ).to.equal( CONN_LIMIT );
                         expect( impl._max ).to.equal( CONN_LIMIT );
@@ -160,7 +160,7 @@ describe( 'Request Limiter', function() {
                     }
                 }, PERIOD_MS / 2 );
 
-                setTimeout( () => {
+                $as.ActiveAsyncTool.callLater( () => {
                     try {
                         expect( impl._total ).to.equal( total );
                         expect( impl._max ).to.equal( CONN_LIMIT );
@@ -205,7 +205,7 @@ describe( 'Request Limiter', function() {
 
                 as.waitExternal();
 
-                setTimeout( () => {
+                $as.ActiveAsyncTool.callLater( () => {
                     try {
                         expect( impl._total ).to.equal( CONN_LIMIT * 2 );
                         expect( impl._max ).to.equal( CONN_LIMIT * 2 );
@@ -220,7 +220,7 @@ describe( 'Request Limiter', function() {
                     }
                 }, PERIOD_MS * 0.5 );
 
-                setTimeout( () => {
+                $as.ActiveAsyncTool.callLater( () => {
                     try {
                         expect( impl._total ).to.equal( CONN_LIMIT * 4 );
                         expect( impl._max ).to.equal( CONN_LIMIT * 2 );
@@ -235,7 +235,7 @@ describe( 'Request Limiter', function() {
                     }
                 }, PERIOD_MS * 1.5 );
 
-                setTimeout( () => {
+                $as.ActiveAsyncTool.callLater( () => {
                     try {
                         const second_lim = executor._scope2lim.get( '10.1.2.0' );
                         expect( second_lim._throttle._queue.length ).to.equal( 0 );
@@ -248,7 +248,7 @@ describe( 'Request Limiter', function() {
                     }
                 }, PERIOD_MS * 2.5 );
 
-                setTimeout( () => {
+                $as.ActiveAsyncTool.callLater( () => {
                     try {
                         const second_lim = executor._scope2lim.get( '10.1.2.0' );
                         expect( second_lim._throttle._queue.length ).to.equal( 0 );
@@ -298,7 +298,7 @@ describe( 'Request Limiter', function() {
 
                 as.waitExternal();
 
-                setTimeout( () => {
+                $as.ActiveAsyncTool.callLater( () => {
                     try {
                         // must be equal
                         expect( executor._host2lim.get( '10.1.2.2' ) )
@@ -317,7 +317,7 @@ describe( 'Request Limiter', function() {
                     }
                 }, PERIOD_MS * 0.5 );
 
-                setTimeout( () => {
+                $as.ActiveAsyncTool.callLater( () => {
                     try {
                         expect( impl._max ).to.equal( CONN_LIMIT * 2 + CUSTOM_CONN_LIMIT );
                         expect( impl._total ).to.equal( CONN_LIMIT * 4 + CUSTOM_CONN_LIMIT * 2 );
@@ -327,7 +327,7 @@ describe( 'Request Limiter', function() {
                     }
                 }, PERIOD_MS * 1.5 );
 
-                setTimeout( () => {
+                $as.ActiveAsyncTool.callLater( () => {
                     try {
                         expect( impl._total ).to.equal( CONN_LIMIT * 4 +
                             ( CUSTOM_CONN_LIMIT * 2 + total % CUSTOM_CONN_LIMIT ) );
