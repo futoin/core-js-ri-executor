@@ -2110,24 +2110,24 @@ functional-red-black-tree@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz#1b0ab3bd553b2a0d6399d29c0e3ea0b252078327"
 
-futoin-asyncevent@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/futoin-asyncevent/-/futoin-asyncevent-2.1.0.tgz#6938abcb950191592a6c2dc96317b58c4fd9e544"
+futoin-asyncevent@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/futoin-asyncevent/-/futoin-asyncevent-2.2.0.tgz#f19d318a64bf7533b33e6c57faa86333af770923"
 
-futoin-asyncsteps@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/futoin-asyncsteps/-/futoin-asyncsteps-2.1.1.tgz#e33cbea780b16459bd23a17cf122f73e8f273888"
+futoin-asyncsteps@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/futoin-asyncsteps/-/futoin-asyncsteps-2.1.2.tgz#6ef82df748c949f4864fbc0a2bbadbd301c19a9f"
   dependencies:
     performance-now "^2.1.0"
 
-futoin-invoker@^1.10.1:
-  version "1.10.1"
-  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-1.10.1.tgz#7e62b332cb8306866109071331d758e2608a635d"
+futoin-invoker@^1.10.2:
+  version "1.10.2"
+  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-1.10.2.tgz#2a5735173cf4e13f1b3532d57307deb33bde6b4a"
   dependencies:
     agentkeepalive "^3.4.1"
     detect-node "^2.0.3"
     faye-websocket "^0.11.1"
-    futoin-asyncevent "^2.1.0"
+    futoin-asyncevent "^2.2.0"
     lodash "^4.17.10"
     msgpack-lite "^0.1.26"
     performance-now "^2.1.0"
@@ -2269,9 +2269,9 @@ grunt-contrib-connect@^1.0.2:
     serve-index "^1.7.1"
     serve-static "^1.10.0"
 
-grunt-eslint@^20.1.0:
-  version "20.1.0"
-  resolved "https://registry.yarnpkg.com/grunt-eslint/-/grunt-eslint-20.1.0.tgz#2e5d273546cf36d80d313c1db91d73b805940816"
+grunt-eslint@^20.2.0:
+  version "20.2.0"
+  resolved "https://registry.yarnpkg.com/grunt-eslint/-/grunt-eslint-20.2.0.tgz#beeda46fa9b84e00863742aa4bcc84846cd27bca"
   dependencies:
     chalk "^2.1.0"
     eslint "^4.0.0"
