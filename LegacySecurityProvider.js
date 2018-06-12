@@ -132,6 +132,7 @@ class LegacySecurityProvider extends SecurityProvider {
 
     _checkMAC( as, reqinfo, { user, algo, sig } ) {
         // NOTE: legacy mode
+        this._normalizeQueryParams( as, reqinfo );
         as.add(
             ( as ) => {
                 const basicauth = this._ccm.iface( '#basicauth' );

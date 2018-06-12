@@ -28,7 +28,7 @@ if ( typeof window !== 'undefined' ) {
 
 
 var impl = {
-    normal_call : function( as, reqinfo ) {
+    normalCall : function( as, reqinfo ) {
         reqinfo.result().n = reqinfo.params().n;
         as.success( { b : reqinfo.params().a } );
     },
@@ -151,7 +151,7 @@ describe( 'Executor', function() {
 
         it( 'should process request', function( done ) {
             reqinfo = new executor_module.RequestInfo( executor, {
-                f : "fileface.derived:2.3:normal_call",
+                f : "fileface.derived:2.3:normalCall",
                 p : {
                     n : 123,
                 },
@@ -181,7 +181,7 @@ describe( 'Executor', function() {
 
         it( 'should process with error', function( done ) {
             reqinfo = new executor_module.RequestInfo( executor, {
-                f : "fileface.derived:2.3:normal_call",
+                f : "fileface.derived:2.3:normalCall",
                 p : {},
             } );
 
@@ -199,7 +199,7 @@ describe( 'Executor', function() {
 
                     expect( rsp ).eql( {
                         e:"InvalidRequest",
-                        edesc: "Missing parameter: normal_call(n)",
+                        edesc: "Missing parameter: fileface.derived:2.3:normalCall(n)",
                     } );
                     done();
                 } catch ( e ) {

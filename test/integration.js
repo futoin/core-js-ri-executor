@@ -62,6 +62,7 @@ class TestSecurityProvider extends SecurityProvider {
     checkAuth( as, reqinfo, reqmsg, sec ) {
         // FTN8.2: Master MAC
         if ( sec[ 0 ] === '-mmac' ) {
+            this._normalizeQueryParams( as, reqinfo );
             this._checkMasterMAC( as, reqinfo, reqmsg, {
                 msid: sec[1],
                 algo: sec[2],
@@ -71,6 +72,7 @@ class TestSecurityProvider extends SecurityProvider {
             } );
         // FTN8.1: Stateless MAC
         } else if ( sec[ 0 ] === '-smac' ) {
+            this._normalizeQueryParams( as, reqinfo );
             this._checkStatelessMAC( as, reqinfo, reqmsg, {
                 user: sec[1],
                 algo: sec[2],
@@ -125,7 +127,7 @@ class TestSecurityProvider extends SecurityProvider {
         ).update( base ).digest();
         sig = Buffer.from( sig, 'base64' );
 
-        if ( invoker_module.SpecTools.secureEquals( sig, reqsig ) ) {
+        if ( invoker_module.SpecTools.secureEqualBuffer( sig, reqsig ) ) {
             reqinfo.info._is_signed = 'stls';
             this._setUser( as, reqinfo, 'PrivilegedOps', {
                 local_id: '01234567890123456789ab',
@@ -146,7 +148,7 @@ class TestSecurityProvider extends SecurityProvider {
         ).update( base ).digest();
         sig = Buffer.from( sig, 'base64' );
 
-        if ( invoker_module.SpecTools.secureEquals( sig, reqsig ) ) {
+        if ( invoker_module.SpecTools.secureEqualBuffer( sig, reqsig ) ) {
             reqinfo.info._is_signed = 'master';
             this._setUser( as, reqinfo, 'PrivilegedOps', {
                 local_id: '01234567890123456789ab',

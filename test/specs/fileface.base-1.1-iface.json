@@ -2,7 +2,7 @@
     "iface" : "fileface.base",
     "version" : "1.1",
     "funcs" : {
-        "normal_call" : {
+        "normalCall" : {
             "params" : {
                 "a" : {
                     "type" : "string",

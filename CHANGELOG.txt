@@ -1,4 +1,9 @@
 
+=== (next) ===
+CHANGED: Updated to futoin-invoker v2 with much better performance and stricter checks
+CHANGED: order of request message processing
+NEW: preventive measures to make it much more difficult to bruteforce private interfaces
+
 === 1.10.1 (2018-06-09) ===
 CHANGED: upgraded to futoin-asyncsteps v2.1 with burst execution feature
 

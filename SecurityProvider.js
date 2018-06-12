@@ -23,6 +23,8 @@ const RequestInfo = require( './RequestInfo' );
 const UserInfo = require( './UserInfo' );
 const Errors = require( 'futoin-asyncsteps' ).FutoInError;
 
+const { normalizeURLParams } = require( 'futoin-invoker' ).SpecTools;
+
 /**
  * Generic security provider interface
  */
@@ -106,6 +108,32 @@ class SecurityProvider {
                 local_id,
                 global_id,
                 details );
+        }
+    }
+
+    /**
+     * Normalize parameters passed through HTTP query.
+     * It's important to call this before MAC checking.
+     * @param {AsyncSteps} as - AsyncSteps interface
+     * @param {RequestInfo} reqinfo - extended request info
+     */
+    _normalizeQueryParams( as, reqinfo ) {
+        const reqinfo_info = reqinfo.info;
+
+        if ( reqinfo_info._from_query_string ) {
+            try {
+                reqinfo.executor()._getInfo( as, reqinfo );
+            } catch ( _ ) {
+                // prevent exposing any data to non-authenticated user.
+                return;
+            }
+
+            const iface_info = reqinfo_info._iface_info;
+            const func = reqinfo_info._func;
+            const rawreq = reqinfo_info.RAW_REQUEST;
+
+            normalizeURLParams( iface_info, func, rawreq );
+            reqinfo_info._from_query_string = false;
         }
     }
 }

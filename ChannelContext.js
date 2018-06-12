@@ -119,10 +119,13 @@ class ChannelContext {
             options.limitZone = 'unlimited';
         }
 
+        if ( !( 'secureChannel' in options ) ) {
+            options.secureChannel = this._executor._is_secure_channel;
+        }
+
         this._executor.ccm().register( as, null, ifacever, this._getPerformRequest(), null, options );
 
-        as.add( ( as, info, impl ) => {
-            info.secure_channel = this._executor._is_secure_channel;
+        as.add( ( as, _, impl ) => {
             this._ifaces[ ifacever ] = impl;
         } );
     }

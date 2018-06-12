@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 
-const _extend = require( 'lodash/extend' );
 const _defaults = require( 'lodash/defaults' );
 const invoker = require( 'futoin-invoker' );
 const FutoInError = invoker.FutoInError;
@@ -32,6 +31,13 @@ const RequestInfo = require( './RequestInfo' );
 const UserInfo = require( './UserInfo' );
 
 const SecurityProvider = require( './SecurityProvider' );
+
+const {
+    checkRequestMessage,
+    checkResponseMessage,
+    normalizeURLParams,
+    STANDARD_ERRORS,
+} = invoker.SpecTools;
 
 // ---
 const SECLVL_LIST = Object.freeze( {
@@ -473,25 +479,15 @@ class Executor {
 
                 this.emit( 'request', reqinfo, rawreq );
 
-                // Step 1. Parsing interface and function info
+                // Step 0. Initial timeout
                 // ---
-                this._getInfo( as, reqinfo );
+                reqinfo.cancelAfter( this._request_timeout );
 
-                if ( reqinfo_info._func_info.heavy ) {
-                    reqinfo.cancelAfter( this._heavy_timeout );
-                } else {
-                    reqinfo.cancelAfter( this._request_timeout );
-                }
-
-                // Step 2. Check params
-                // ---
-                this._checkParams( as, reqinfo );
-
-                // Step 3. Security
+                // Step 1. Security
                 // ---
                 let sec = rawreq.sec;
 
-                if ( sec ) {
+                if ( typeof sec === 'string' ) {
                     sec = sec.split( ':' );
 
                     // reserved user name
@@ -502,14 +498,21 @@ class Executor {
                     }
                 }
 
-                // Step 4.
                 // ---
                 as.add( ( as ) => {
-                    // Step 4.1. Check constraints
+                    // Step 2. Parsing interface and function info
+                    // ---
+                    this._getInfo( as, reqinfo );
+
+                    // Step 3. Check constraints
                     // ---
                     this._checkConstraints( as, reqinfo );
 
-                    // Step 4.2. Invoke implementation
+                    // Step 4.1 Check params
+                    // ---
+                    this._checkParams( as, reqinfo );
+
+                    // Step 4.2. Check implementation
                     // ---
                     const func = reqinfo_info._func;
                     const impl = this._getImpl( as, reqinfo );
@@ -518,22 +521,35 @@ class Executor {
                         as.error( FutoInError.InternalError, "Missing function implementation" );
                     }
 
+                    // Step 4.3. Update timeout for heavy requests
+                    // ---
+                    if ( reqinfo_info._func_info.heavy ) {
+                        reqinfo.cancelAfter( this._heavy_timeout );
+                    }
+
+                    // Step 4.4. Invoke implementation
+                    // ---
                     const result = impl[ func ]( as, reqinfo );
 
+                    // Step 4.5. Handle direct result
+                    // ---
                     if ( typeof result !== 'undefined' ) {
-                        as.success( result );
+                        reqinfo_info.RAW_RESPONSE.r = result;
                     }
                 } );
 
                 // Step 5. Gather result and sign succeeded response
                 // ---
                 as.add( ( as, result ) => {
-                    if ( typeof result === 'undefined' ) {
-                        // pass
-                    } else if ( typeof result === 'object' ) {
-                        _extend( reqinfo.result(), result );
-                    } else {
-                        reqinfo.info.RAW_RESPONSE.r = result;
+                    if ( result ) {
+                        if ( typeof result === 'object' ) {
+                            Object.assign(
+                                reqinfo_info.RAW_RESPONSE.r,
+                                result
+                            );
+                        } else {
+                            reqinfo_info.RAW_RESPONSE.r = result;
+                        }
                     }
 
                     this._checkResponse( as, reqinfo );
@@ -546,7 +562,7 @@ class Executor {
                 const reqinfo_info = reqinfo.info;
                 let error_info = state.error_info;
 
-                if ( !( err in invoker.SpecTools.standard_errors ) &&
+                if ( !( err in STANDARD_ERRORS ) &&
                       ( !reqinfo_info._func_info ||
                         !( err in reqinfo_info._func_info.throws ) )
                 ) {
@@ -615,6 +631,11 @@ class Executor {
 
     _getInfo( as, reqinfo ) {
         const reqinfo_info = reqinfo.info;
+
+        if ( reqinfo_info._iface_info ) {
+            return;
+        }
+
         let f = reqinfo_info.RAW_REQUEST.f;
 
         if ( typeof f !== "string" ) {
@@ -638,7 +659,6 @@ class Executor {
             as.error( FutoInError.InvalidRequest, "Invalid req.f (version)" );
         }
 
-        //
         const iface_info_map = this._ifaces[iface];
 
         if ( !iface_info_map ) {
@@ -646,40 +666,54 @@ class Executor {
                 `Unknown interface: ${iface}` );
         }
 
-        const vmjr = v[ 0 ];
-        const vmnr = v[ 1 ];
-        let iface_info = iface_info_map[ vmjr ];
+        let iface_info;
 
-        if ( !iface_info ) {
-            as.error( FutoInError.NotSupportedVersion,
-                `Different major version: ${iface}:${vmjr}` );
-        }
+        try {
+            const vmjr = v[ 0 ];
+            const vmnr = v[ 1 ];
+            iface_info = iface_info_map[ vmjr ];
 
-        if ( iface_info.mnrver < vmnr ) {
-            as.error( FutoInError.NotSupportedVersion,
-                `Iface version is too old: ${iface}:${vmjr}.${vmnr}` );
-        }
+            if ( !iface_info ) {
+                as.error( FutoInError.NotSupportedVersion,
+                    `Different major version: ${iface}:${vmjr}` );
+            }
 
-        // Jump to actual implementation
-        const derived = iface_info.derived;
+            if ( iface_info.mnrver < vmnr ) {
+                as.error( FutoInError.NotSupportedVersion,
+                    `Iface version is too old: ${iface}:${vmjr}.${vmnr}` );
+            }
 
-        if ( derived ) {
-            iface_info = derived;
-        }
+            // Jump to actual implementation
+            const derived = iface_info.derived;
 
-        const finfo = iface_info.funcs[ func ];
+            if ( derived ) {
+                iface_info = derived;
+            }
 
-        if ( !finfo ) {
-            as.error( FutoInError.InvalidRequest,
-                `Unknown interface function: ${func}` );
-        }
+            const finfo = iface_info.funcs[ func ];
 
-        reqinfo_info._iface_info = iface_info;
-        reqinfo_info._func = func;
-        reqinfo_info._func_info = finfo;
+            if ( !finfo ) {
+                as.error( FutoInError.InvalidRequest,
+                    `Unknown interface function: ${func}` );
+            }
 
-        if ( finfo.rawresult ) {
-            reqinfo_info.HAVE_RAW_RESULT = true;
+            reqinfo_info._iface_info = iface_info;
+            reqinfo_info._func = func;
+            reqinfo_info._func_info = finfo;
+
+            if ( finfo.rawresult ) {
+                reqinfo_info.HAVE_RAW_RESULT = true;
+            }
+        } catch ( e ) {
+            if ( !reqinfo_info.USER_INFO &&
+                ( !iface_info || !( 'AllowAnonymous' in iface_info.constraints ) )
+            ) {
+                // Make it more problematic to bruteforce interfaces
+                as.error( FutoInError.UnknownInterface,
+                    `Unknown interface: ${iface}` );
+            } else {
+                throw e;
+            }
         }
     }
 
@@ -755,75 +789,21 @@ class Executor {
         const finfo = reqinfo_info._func_info;
 
         if ( reqinfo.HAVE_RAW_UPLOAD &&
-             !finfo.rawupload ) {
+             !finfo.rawupload
+        ) {
             as.error( FutoInError.InvalidRequest,
                 `Raw upload is not allowed: ${reqinfo_info._func}` );
         }
 
-        const reqparams = rawreq.p;
+        const iface_info = reqinfo_info._iface_info;
+        const func = reqinfo_info._func;
 
-        if ( reqparams ) {
-            // Check params
-            for ( let k in reqparams ) {
-                if ( !( k in finfo.params ) ) {
-                    as.error( FutoInError.InvalidRequest,
-                        `Unknown parameter: ${reqinfo_info._func}(${k})` );
-                }
-
-                let check_res = invoker.SpecTools.checkParameterType(
-                    reqinfo_info._iface_info,
-                    reqinfo_info._func,
-                    k,
-                    reqparams[ k ]
-                );
-
-                if ( check_res ) {
-                    continue;
-                }
-
-                // Workaround FTN5 v1.2 Query String parameter coding rules
-                if ( reqinfo_info._from_query_string ) {
-                    try {
-                        // try dummy decode
-                        reqparams[ k ] = JSON.parse( reqparams[ k ] );
-
-                        check_res = invoker.SpecTools.checkParameterType(
-                            reqinfo_info._iface_info,
-                            reqinfo_info._func,
-                            k,
-                            reqparams[ k ]
-                        );
-
-                        if ( check_res ) {
-                            continue;
-                        }
-                    } catch ( e ) {
-                        // ignore
-                    }
-                }
-
-                as.error( FutoInError.InvalidRequest,
-                    `Type mismatch for parameter: ${reqinfo_info._func}(${k})` );
-            }
-
-            // Check missing params
-            for ( let k in finfo.params ) {
-                if ( !( k in reqparams ) ) {
-                    const pinfo = finfo.params[ k ];
-                    const defval = pinfo.default;
-
-                    if ( defval !== undefined ) {
-                        reqparams[ k ] = defval;
-                    } else {
-                        as.error( FutoInError.InvalidRequest,
-                            `Missing parameter: ${reqinfo_info._func}(${k})` );
-                    }
-                }
-            }
-        } else if ( Object.keys( finfo.params ).length > 0 ) {
-            as.error( FutoInError.InvalidRequest,
-                `Missing parameters: ${reqinfo_info._func}()` );
+        if ( reqinfo_info._from_query_string ) {
+            normalizeURLParams( iface_info, func, rawreq );
+            reqinfo_info._from_query_string = false;
         }
+
+        checkRequestMessage( as, iface_info, func, rawreq );
     }
 
     _getImpl( as, reqinfo ) {
@@ -855,10 +835,6 @@ class Executor {
     }
 
     _checkResponse( as, reqinfo ) {
-        if ( !this._dev_checks ) {
-            return;
-        }
-
         const reqinfo_info = reqinfo.info;
         const rsp = reqinfo_info.RAW_RESPONSE;
         const finfo = reqinfo_info._func_info;
@@ -884,45 +860,8 @@ class Executor {
             return;
         }
 
-        // check result variables
-        const resvars = finfo.result;
-        const result = rsp.r;
-        const iface_info = reqinfo_info._iface_info;
-
-        if ( typeof resvars === 'string' ) {
-            if ( !invoker.SpecTools.checkType( iface_info, resvars, result ) ) {
-                as.error( FutoInError.InternalError,
-                    `Invalid result type: ${reqinfo_info._func} = ${result}` );
-            }
-        } else if ( Object.keys( resvars ).length > 0 ) {
-            let c = 0;
-            const func = reqinfo_info._func;
-
-            // NOTE: there must be no unknown result variables on executor side as exactly the
-            // specified interface version must be implemented
-            for ( let k in result ) {
-                if ( !( k in resvars ) ) {
-                    as.error( FutoInError.InternalError,
-                        `Unknown result variable: ${reqinfo_info._func}(${k})` );
-                }
-
-                invoker.SpecTools.checkResultType(
-                    as,
-                    iface_info,
-                    func,
-                    k,
-                    result[ k ]
-                );
-                ++c;
-            }
-
-            if ( Object.keys( resvars ).length !== c ) {
-                as.error( FutoInError.InternalError,
-                    `Missing result variables: ${reqinfo_info._func}()` );
-            }
-        } else if ( Object.keys( result ).length > 0 ) {
-            as.error( FutoInError.InternalError,
-                `No result variables are expected: ${reqinfo_info._func}()` );
+        if ( this._dev_checks ) {
+            checkResponseMessage( as, reqinfo_info._iface_info, reqinfo_info._func, rsp );
         }
     }
 
