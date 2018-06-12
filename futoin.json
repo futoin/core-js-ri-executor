@@ -1,6 +1,6 @@
 {
   "name": "futoin-executor",
-  "version": "1.10.1",
+  "version": "2.0.0",
   "vcs": "git",
   "rms": "npm",
   "rmsRepo": "ignored",

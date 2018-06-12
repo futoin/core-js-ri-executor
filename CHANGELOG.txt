@@ -1,5 +1,5 @@
 
-=== (next) ===
+=== 2.0.0 (2018-06-12) ===
 CHANGED: Updated to futoin-invoker v2 with much better performance and stricter checks
 CHANGED: order of request message processing
 CHANGED: minor optimizations
