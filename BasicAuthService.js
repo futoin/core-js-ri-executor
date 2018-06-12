@@ -20,7 +20,12 @@
  */
 
 const BasicAuthFace = require( './BasicAuthFace' );
-const { SpecTools } = require( 'futoin-invoker' );
+const {
+    genHMACRaw,
+    getRawAlgo,
+    checkHMAC,
+    secureEquals,
+} = require( 'futoin-invoker' ).SpecTools;
 
 /**
  * BasicService is not official spec - it is a temporary solution
@@ -112,7 +117,7 @@ class BasicAuthService {
         as.add( ( as, u ) => {
             // Vulnerable to time attacks
             if ( u &&
-                 SpecTools.secureEquals( u.secret, p.pwd )
+                 secureEquals( u.secret, p.pwd )
             ) {
                 reqinfo.result().seclvl = u.system_user ?
                     reqinfo.SL_SYSTEM :
@@ -131,11 +136,11 @@ class BasicAuthService {
 
         as.add( ( as, u ) => {
             if ( u ) {
-                const algo = SpecTools.getRawAlgo( as, p.algo );
-                const sig = SpecTools.genHMACRaw( algo, u.secret, p.msg );
+                const algo = getRawAlgo( as, p.algo );
+                const sig = genHMACRaw( algo, u.secret, p.msg );
                 const msg_sig = new Buffer( p.sig, 'base64' );
 
-                if ( SpecTools.checkHMAC( sig, msg_sig ) ) {
+                if ( checkHMAC( sig, msg_sig ) ) {
                     reqinfo.result().seclvl = u.system_user ?
                         reqinfo.SL_SYSTEM :
                         reqinfo.SL_PRIVILEGED_OPS;
@@ -155,8 +160,8 @@ class BasicAuthService {
 
         as.add( ( as, u ) => {
             if ( u ) {
-                const algo = SpecTools.getRawAlgo( as, p.algo );
-                const sig = SpecTools.genHMACRaw( algo, u.secret, p.msg );
+                const algo = getRawAlgo( as, p.algo );
+                const sig = genHMACRaw( algo, u.secret, p.msg );
 
                 reqinfo.result().sig = sig.toString( 'base64' );
                 return;

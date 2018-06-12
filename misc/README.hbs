@@ -11,9 +11,12 @@
 
 # About
 
+
+**Documentation** --> [FutoIn Guide](https://futoin.org/docs/microservices/)
+
 FutoIn Executor is a peer which processes a request - handles a FutoIn interface method
 as described in [FTN3: FutoIn Interface Definition](http://specs.futoin.org/final/preview/ftn3_iface_definition.html).
-It is not necessary a server - e.g. client may handle event request from server.
+It is not necessary a server - e.g. client may handle callback request from server.
 
 Strict FutoIn interface (iface) definition and transport protocol is defined in FTN3 spec mentioned above.
 **As it is based on JSON, both client and server can be implemented in a few minutes almost in
@@ -31,8 +34,6 @@ NodeExecutor - available only if used in Node.js
 
 *Note: Invoker and Executor are platform/technology-neutral concepts. The implementation
 is already available in JS and PHP. Hopefully, others are upcoming*
-
-**Documentation** --> [FutoIn Guide](https://futoin.org/docs/microservices/)
 
 # Features
 

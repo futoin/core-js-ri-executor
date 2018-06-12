@@ -21,7 +21,7 @@
 
 const Executor = require( './Executor' );
 const SecurityProvider = require( './SecurityProvider' );
-const Errors = require( 'futoin-asyncsteps' ).FutoInError;
+const { SecurityError } = require( 'futoin-asyncsteps' ).Errors;
 
 const BasicAuthService = require( './BasicAuthService' );
 const BasicAuthFace = require( './BasicAuthFace' );
@@ -124,7 +124,7 @@ class LegacySecurityProvider extends SecurityProvider {
             ( as, err ) => {
                 // console.log( err, as.state.error_info );
                 // console.log( as.state.last_exception.stack );
-                as.error( Errors.SecurityError,
+                as.error( SecurityError,
                     "Basic Auth Verification Failed" );
             }
         );
@@ -158,7 +158,7 @@ class LegacySecurityProvider extends SecurityProvider {
             ( as, err ) => {
                 // console.log( err, as.state.error_info );
                 // console.log( as.state.last_exception.stack );
-                as.error( Errors.SecurityError,
+                as.error( SecurityError,
                     "Legacy Signature Verification Failed" );
             }
         );

@@ -21,7 +21,6 @@
 
 const _defaults = require( 'lodash/defaults' );
 const invoker = require( 'futoin-invoker' );
-const FutoInError = invoker.FutoInError;
 const async_steps = require( 'futoin-asyncsteps' );
 const $asyncevent = require( 'futoin-asyncevent' );
 
@@ -37,7 +36,21 @@ const {
     checkResponseMessage,
     normalizeURLParams,
     STANDARD_ERRORS,
+    _ifacever_pattern,
+    loadIface,
+    globalLoadCache,
 } = invoker.SpecTools;
+
+const {
+    CommError,
+    InternalError,
+    NotImplemented,
+    InvalidRequest,
+    UnknownInterface,
+    NotSupportedVersion,
+    SecurityError,
+    PleaseReauth,
+} = async_steps.Errors;
 
 // ---
 const SECLVL_LIST = Object.freeze( {
@@ -88,7 +101,7 @@ class InternalChannelContext extends ChannelContext {
     }
 
     _commError( as ) {
-        as.error( FutoInError.CommError, "No Invoker's Executor for internal call" );
+        as.error( CommError, "No Invoker's Executor for internal call" );
     }
 
     onInvokerAbort( callable, user_data ) {
@@ -144,6 +157,7 @@ const ExecutorOptions =
      */
     securityProvider : null,
 };
+Object.freeze( ExecutorOptions );
 
 /**
  * An abstract core implementing pure FTN6 Executor logic.
@@ -222,10 +236,10 @@ class Executor {
      * @alias Executor#register
      */
     register( as, ifacever, impl, specdirs ) {
-        const m = ifacever.match( invoker.SpecTools._ifacever_pattern );
+        const m = ifacever.match( _ifacever_pattern );
 
         if ( m === null ) {
-            as.error( FutoInError.InternalError,
+            as.error( InternalError,
                 `Invalid ifacever: ${ifacever}` );
         }
 
@@ -238,7 +252,7 @@ class Executor {
 
         if ( ( iface in ifaces ) &&
              ( mjr in ifaces[ iface ] ) ) {
-            as.error( FutoInError.InternalError,
+            as.error( InternalError,
                 `Already registered: ${ifacever}` );
         }
         // ---
@@ -252,19 +266,23 @@ class Executor {
             derived : undefined,
         };
 
-        invoker.SpecTools.loadIface( as, info, specdirs || this._specdirs );
+        loadIface( as, info, specdirs || this._specdirs, globalLoadCache() );
+
+        const impls = this._impls;
 
         as.add( ( as ) => {
             if ( !( iface in ifaces ) ) {
                 ifaces[ iface ] = {};
-                this._impls[ iface ] = {};
+                impls[ iface ] = {};
             }
 
             ifaces[ iface ][ mjr ] = info;
-            this._impls[ iface ][ mjr ] = impl;
+            impls[ iface ][ mjr ] = impl;
 
-            for ( let i = 0; i < info.inherits.length; ++i ) {
-                const supm = info.inherits[ i ].match( invoker.SpecTools._ifacever_pattern );
+            const inherits = info.inherits;
+
+            for ( let i = inherits.length - 1; i >=0 ; --i ) {
+                const supm = inherits[ i ].match( _ifacever_pattern );
                 const supiface = supm[ 1 ];
                 const supmjrmnr = supm[ 4 ];
                 const supmjr = supm[ 5 ];
@@ -282,7 +300,7 @@ class Executor {
                 if ( ( supiface in ifaces ) &&
                     ( supmjr in ifaces[ supiface ] ) ) {
                     delete ifaces[ iface ][ mjr ];
-                    as.error( FutoInError.InternalError,
+                    as.error( InternalError,
                         `Conflict with inherited interfaces: ${supm[0]}` );
                 }
 
@@ -319,16 +337,21 @@ class Executor {
      * @fires Executor#response
      */
     onEndpointRequest( info, ftnreq, send_executor_rsp ) {
-        const reqinfo = new RequestInfo( this, ftnreq );
+        let context = info._callback_context;
 
-        const context = new CallbackChannelContext( this );
+        if ( !context ) {
+            context = new CallbackChannelContext( this );
+            info._callback_context = context;
+        }
+
+        const reqinfo = new RequestInfo( this, ftnreq );
         const source_addr = new SourceAddress( context.type(), null, info.regname );
 
-        const reqinfo_info = reqinfo.info;
+        const ri_info = reqinfo.info;
 
-        reqinfo_info.CHANNEL_CONTEXT = context;
-        reqinfo_info.CLIENT_ADDR = source_addr;
-        reqinfo_info.SECURE_CHANNEL = info.secure_channel;
+        ri_info.CHANNEL_CONTEXT = context;
+        ri_info.CLIENT_ADDR = source_addr;
+        ri_info.SECURE_CHANNEL = info.secure_channel;
 
         const as = async_steps();
 
@@ -350,7 +373,7 @@ class Executor {
                 this.process( as );
 
                 as.add( ( as ) => {
-                    const ftnrsp = reqinfo_info.RAW_RESPONSE;
+                    const ftnrsp = ri_info.RAW_RESPONSE;
 
                     reqinfo._cleanup();
 
@@ -360,8 +383,8 @@ class Executor {
                 } );
             },
             ( as, err ) => {
-                this.emit( 'notExpected', err, as.state.error_info,
-                    as.state.last_exception, as.state.async_stack );
+                const { error_info, last_exception, async_stack } = as.state;
+                this.emit( 'notExpected', err, error_info, last_exception, async_stack );
                 reqinfo._cleanup();
             }
         ).execute();
@@ -390,14 +413,14 @@ class Executor {
         const reqinfo = new RequestInfo( this, ftnreq );
         const source_addr = new SourceAddress( context.type(), null, null );
 
-        const reqinfo_info = reqinfo.info;
+        const ri_info = reqinfo.info;
 
-        reqinfo_info.CHANNEL_CONTEXT = context;
-        reqinfo_info.CLIENT_ADDR = source_addr;
-        reqinfo_info.SECURE_CHANNEL = true;
+        ri_info.CHANNEL_CONTEXT = context;
+        ri_info.CLIENT_ADDR = source_addr;
+        ri_info.SECURE_CHANNEL = true;
 
         if ( upload_data ) {
-            reqinfo_info.HAVE_RAW_UPLOAD = true;
+            ri_info.HAVE_RAW_UPLOAD = true;
             reqinfo._rawinp = upload_data;
         }
 
@@ -418,7 +441,7 @@ class Executor {
 
                         if ( !as.state._orig_as_cancel ) {
                             try {
-                                orig_as.error( FutoInError.InternalError, "Executor canceled" );
+                                orig_as.error( InternalError, "Executor canceled" );
                             } catch ( e ) {
                                 // ignore
                             }
@@ -429,7 +452,7 @@ class Executor {
                     this.process( as );
 
                     as.add( ( as ) => {
-                        const ftnrsp = reqinfo_info.RAW_RESPONSE;
+                        const ftnrsp = ri_info.RAW_RESPONSE;
 
                         reqinfo._cleanup();
 
@@ -441,8 +464,8 @@ class Executor {
                     } );
                 },
                 ( as, err ) => {
-                    this.emit( 'notExpected', err, as.state.error_info,
-                        as.state.last_exception, as.state.async_stack );
+                    const { error_info, last_exception, async_stack } = as.state;
+                    this.emit( 'notExpected', err, error_info, last_exception, async_stack );
                     reqinfo._cleanup();
                 }
             ).execute();
@@ -466,16 +489,15 @@ class Executor {
      */
     process( as ) {
         const reqinfo = as.state.reqinfo;
+        const ri_info = reqinfo.info;
 
-        if ( !reqinfo ||
-              ( '_func_info' in reqinfo.info ) ) {
-            as.error( FutoInError.InternalError, "Invalid process() invocation" );
+        if ( !reqinfo || ( '_func_info' in ri_info ) ) {
+            as.error( InternalError, "Invalid process() invocation" );
         }
 
         as.add(
             ( as ) => {
-                const reqinfo_info = reqinfo.info;
-                const rawreq = reqinfo_info.RAW_REQUEST;
+                const rawreq = ri_info.RAW_REQUEST;
 
                 this.emit( 'request', reqinfo, rawreq );
 
@@ -514,16 +536,16 @@ class Executor {
 
                     // Step 4.2. Check implementation
                     // ---
-                    const func = reqinfo_info._func;
+                    const func = ri_info._func;
                     const impl = this._getImpl( as, reqinfo );
 
                     if ( !( func in impl ) ) {
-                        as.error( FutoInError.InternalError, "Missing function implementation" );
+                        as.error( InternalError, "Missing function implementation" );
                     }
 
                     // Step 4.3. Update timeout for heavy requests
                     // ---
-                    if ( reqinfo_info._func_info.heavy ) {
+                    if ( ri_info._func_info.heavy ) {
                         reqinfo.cancelAfter( this._heavy_timeout );
                     }
 
@@ -534,7 +556,7 @@ class Executor {
                     // Step 4.5. Handle direct result
                     // ---
                     if ( typeof result !== 'undefined' ) {
-                        reqinfo_info.RAW_RESPONSE.r = result;
+                        ri_info.RAW_RESPONSE.r = result;
                     }
                 } );
 
@@ -544,11 +566,11 @@ class Executor {
                     if ( result ) {
                         if ( typeof result === 'object' ) {
                             Object.assign(
-                                reqinfo_info.RAW_RESPONSE.r,
+                                ri_info.RAW_RESPONSE.r,
                                 result
                             );
                         } else {
-                            reqinfo_info.RAW_RESPONSE.r = result;
+                            ri_info.RAW_RESPONSE.r = result;
                         }
                     }
 
@@ -559,21 +581,20 @@ class Executor {
             ( as, err ) => {
                 const { state } = as;
                 const reqinfo = state.reqinfo;
-                const reqinfo_info = reqinfo.info;
                 let error_info = state.error_info;
 
                 if ( !( err in STANDARD_ERRORS ) &&
-                      ( !reqinfo_info._func_info ||
-                        !( err in reqinfo_info._func_info.throws ) )
+                      ( !ri_info._func_info ||
+                        !( err in ri_info._func_info.throws ) )
                 ) {
                     this.emit(
                         'notExpected', err, error_info,
                         state.last_exception, state.async_stack );
-                    err = FutoInError.InternalError;
+                    err = InternalError;
                     error_info = 'Not expected error';
                 }
 
-                const rawrsp = reqinfo.info.RAW_RESPONSE;
+                const rawrsp = ri_info.RAW_RESPONSE;
 
                 rawrsp.e = err;
                 delete rawrsp.r;
@@ -617,7 +638,7 @@ class Executor {
      * @param {AsyncSteps} as - steps interface
      */
     initFromCache( as ) {
-        as.error( FutoInError.NotImplemented, "Caching is not supported yet" );
+        as.error( NotImplemented, "Caching is not supported yet" );
     }
 
     /**
@@ -626,27 +647,27 @@ class Executor {
      * @param {AsyncSteps} as - steps interface
      */
     cacheInit( as ) {
-        as.error( FutoInError.NotImplemented, "Caching is not supported yet" );
+        as.error( NotImplemented, "Caching is not supported yet" );
     }
 
     _getInfo( as, reqinfo ) {
-        const reqinfo_info = reqinfo.info;
+        const ri_info = reqinfo.info;
 
-        if ( reqinfo_info._iface_info ) {
+        if ( ri_info._iface_info ) {
             return;
         }
 
-        let f = reqinfo_info.RAW_REQUEST.f;
+        let f = ri_info.RAW_REQUEST.f;
 
         if ( typeof f !== "string" ) {
-            as.error( FutoInError.InvalidRequest, "Missing req.f" );
+            as.error( InvalidRequest, "Missing req.f" );
         }
 
         //
         f = f.split( ':' );
 
         if ( f.length !== 3 ) {
-            as.error( FutoInError.InvalidRequest, "Invalid req.f" );
+            as.error( InvalidRequest, "Invalid req.f" );
         }
 
         const iface = f[ 0 ];
@@ -656,13 +677,13 @@ class Executor {
         var v = f[ 1 ].split( '.' );
 
         if ( v.length !== 2 ) {
-            as.error( FutoInError.InvalidRequest, "Invalid req.f (version)" );
+            as.error( InvalidRequest, "Invalid req.f (version)" );
         }
 
         const iface_info_map = this._ifaces[iface];
 
         if ( !iface_info_map ) {
-            as.error( FutoInError.UnknownInterface,
+            as.error( UnknownInterface,
                 `Unknown interface: ${iface}` );
         }
 
@@ -674,12 +695,12 @@ class Executor {
             iface_info = iface_info_map[ vmjr ];
 
             if ( !iface_info ) {
-                as.error( FutoInError.NotSupportedVersion,
+                as.error( NotSupportedVersion,
                     `Different major version: ${iface}:${vmjr}` );
             }
 
             if ( iface_info.mnrver < vmnr ) {
-                as.error( FutoInError.NotSupportedVersion,
+                as.error( NotSupportedVersion,
                     `Iface version is too old: ${iface}:${vmjr}.${vmnr}` );
             }
 
@@ -693,23 +714,23 @@ class Executor {
             const finfo = iface_info.funcs[ func ];
 
             if ( !finfo ) {
-                as.error( FutoInError.InvalidRequest,
+                as.error( InvalidRequest,
                     `Unknown interface function: ${func}` );
             }
 
-            reqinfo_info._iface_info = iface_info;
-            reqinfo_info._func = func;
-            reqinfo_info._func_info = finfo;
+            ri_info._iface_info = iface_info;
+            ri_info._func = func;
+            ri_info._func_info = finfo;
 
             if ( finfo.rawresult ) {
-                reqinfo_info.HAVE_RAW_RESULT = true;
+                ri_info.HAVE_RAW_RESULT = true;
             }
         } catch ( e ) {
-            if ( !reqinfo_info.USER_INFO &&
+            if ( !ri_info.USER_INFO &&
                 ( !iface_info || !( 'AllowAnonymous' in iface_info.constraints ) )
             ) {
                 // Make it more problematic to bruteforce interfaces
-                as.error( FutoInError.UnknownInterface,
+                as.error( UnknownInterface,
                     `Unknown interface: ${iface}` );
             } else {
                 throw e;
@@ -718,24 +739,24 @@ class Executor {
     }
 
     _checkInternalAuth( as, reqinfo ) {
-        const reqinfo_info = reqinfo.info;
+        const ri_info = reqinfo.info;
 
-        if ( reqinfo.info.CHANNEL_CONTEXT.type() !== 'INTERNAL' ) {
-            as.error( FutoInError.SecurityError, "Not internal channel" );
+        if ( ri_info.CHANNEL_CONTEXT.type() !== 'INTERNAL' ) {
+            as.error( SecurityError, "Not internal channel" );
         }
 
-        const obf = reqinfo_info.RAW_REQUEST.obf;
+        const obf = ri_info.RAW_REQUEST.obf;
 
         if ( obf ) {
-            reqinfo_info.SECURITY_LEVEL = obf.slvl;
-            reqinfo_info.USER_INFO = new UserInfo(
+            ri_info.SECURITY_LEVEL = obf.slvl;
+            ri_info.USER_INFO = new UserInfo(
                 this._ccm,
                 obf.lid,
                 obf.gid,
                 null );
         } else {
-            reqinfo_info.SECURITY_LEVEL = RequestInfo.SL_SYSTEM;
-            reqinfo_info.USER_INFO = new UserInfo(
+            ri_info.SECURITY_LEVEL = RequestInfo.SL_SYSTEM;
+            ri_info.USER_INFO = new UserInfo(
                 this._ccm,
                 '-internal',
                 '-internal',
@@ -744,71 +765,71 @@ class Executor {
     }
 
     _checkConstraints( as, reqinfo ) {
-        const reqinfo_info = reqinfo.info;
-        const constraints = reqinfo_info._iface_info.constraints;
-        const finfo = reqinfo_info._func_info;
-        const context = reqinfo_info.CHANNEL_CONTEXT;
+        const ri_info = reqinfo.info;
+        const constraints = ri_info._iface_info.constraints;
+        const finfo = ri_info._func_info;
+        const context = ri_info.CHANNEL_CONTEXT;
 
 
         if ( ( 'SecureChannel' in constraints ) &&
-             !reqinfo_info.SECURE_CHANNEL ) {
-            as.error( FutoInError.SecurityError, "Insecure channel" );
+             !ri_info.SECURE_CHANNEL ) {
+            as.error( SecurityError, "Insecure channel" );
         }
 
         if ( ( 'MessageSignature' in constraints ) &&
              !this._secprov.isSigned( reqinfo ) &&
              ( context.type() !== 'INTERNAL' )
         ) {
-            as.error( FutoInError.SecurityError, "Message Signature is required" );
+            as.error( SecurityError, "Message Signature is required" );
         }
 
         if ( !( 'AllowAnonymous' in constraints ) &&
-             !reqinfo_info.USER_INFO ) {
-            as.error( FutoInError.SecurityError, "Anonymous not allowed" );
+             !ri_info.USER_INFO ) {
+            as.error( SecurityError, "Anonymous not allowed" );
         }
 
         if ( ( 'BiDirectChannel' in constraints ) &&
              ( !context || !context.isStateful() )
         ) {
-            as.error( FutoInError.InvalidRequest, "Bi-Direct Channel is required" );
+            as.error( InvalidRequest, "Bi-Direct Channel is required" );
         }
 
         if ( finfo.seclvl ) {
             const finfo_index = SECLVL_LIST[ finfo.seclvl ];
-            const current_index = SECLVL_LIST[ reqinfo_info.SECURITY_LEVEL ];
+            const current_index = SECLVL_LIST[ ri_info.SECURITY_LEVEL ];
 
             if ( !finfo_index || ( current_index < finfo_index ) ) {
-                as.error( FutoInError.PleaseReauth, finfo.seclvl );
+                as.error( PleaseReauth, finfo.seclvl );
             }
         }
     }
 
     _checkParams( as, reqinfo ) {
-        const reqinfo_info = reqinfo.info;
-        const rawreq = reqinfo_info.RAW_REQUEST;
-        const finfo = reqinfo_info._func_info;
+        const ri_info = reqinfo.info;
+        const rawreq = ri_info.RAW_REQUEST;
+        const finfo = ri_info._func_info;
 
         if ( reqinfo.HAVE_RAW_UPLOAD &&
              !finfo.rawupload
         ) {
-            as.error( FutoInError.InvalidRequest,
-                `Raw upload is not allowed: ${reqinfo_info._func}` );
+            as.error( InvalidRequest,
+                `Raw upload is not allowed: ${ri_info._func}` );
         }
 
-        const iface_info = reqinfo_info._iface_info;
-        const func = reqinfo_info._func;
+        const iface_info = ri_info._iface_info;
+        const func = ri_info._func;
 
-        if ( reqinfo_info._from_query_string ) {
+        if ( ri_info._from_query_string ) {
             normalizeURLParams( iface_info, func, rawreq );
-            reqinfo_info._from_query_string = false;
+            ri_info._from_query_string = false;
         }
 
         checkRequestMessage( as, iface_info, func, rawreq );
     }
 
     _getImpl( as, reqinfo ) {
-        const reqinfo_info = reqinfo.info;
-        const iface_info = reqinfo_info._iface_info;
+        const ri_info = reqinfo.info;
+        const iface_info = ri_info._iface_info;
 
         const iname = iface_info.iface;
         const imjr = iface_info.mjrver;
@@ -818,12 +839,12 @@ class Executor {
             if ( typeof impl === "function" ) {
                 impl = impl( impl, this );
             } else {
-                as.error( FutoInError.InternalError,
-                    `Invalid implementation type: ${reqinfo_info._func}()` );
+                as.error( InternalError,
+                    `Invalid implementation type: ${ri_info._func}()` );
             }
 
             if ( typeof impl !== "object" ) {
-                as.error( FutoInError.InternalError,
+                as.error( InternalError,
                     'Implementation does not implement ' +
                           `InterfaceImplementation: ${iname}:${imjr}` );
             }
@@ -835,18 +856,18 @@ class Executor {
     }
 
     _checkResponse( as, reqinfo ) {
-        const reqinfo_info = reqinfo.info;
-        const rsp = reqinfo_info.RAW_RESPONSE;
-        const finfo = reqinfo_info._func_info;
+        const ri_info = reqinfo.info;
+        const rsp = ri_info.RAW_RESPONSE;
+        const finfo = ri_info._func_info;
 
         // Check raw result
         if ( finfo.rawresult ) {
-            reqinfo_info.RAW_RESPONSE = null;
+            ri_info.RAW_RESPONSE = null;
 
             if ( typeof rsp.r !== 'object' ||
                  Object.keys( rsp.r ).length > 0 ) {
-                as.error( FutoInError.InternalError,
-                    `Raw result is expected: ${reqinfo_info._func}()` );
+                as.error( InternalError,
+                    `Raw result is expected: ${ri_info._func}()` );
             }
 
             return;
@@ -854,14 +875,14 @@ class Executor {
 
         // Check if response is needed at all
         if ( !finfo.expect_result &&
-            ( reqinfo_info.RAW_REQUEST.forcersp !== true )
+            ( ri_info.RAW_REQUEST.forcersp !== true )
         ) {
-            reqinfo_info.RAW_RESPONSE = null;
+            ri_info.RAW_RESPONSE = null;
             return;
         }
 
         if ( this._dev_checks ) {
-            checkResponseMessage( as, reqinfo_info._iface_info, reqinfo_info._func, rsp );
+            checkResponseMessage( as, ri_info._iface_info, ri_info._func, rsp );
         }
     }
 
@@ -907,10 +928,10 @@ class Executor {
         }
 
         if ( rawmsg.length > this.SAFE_PAYLOAD_LIMIT ) {
-            this.emit( 'notExpected', FutoInError.InternalError,
+            this.emit( 'notExpected', InternalError,
                 "Response size has exceeded safety limit",
                 null, null );
-            throw new Error( FutoInError.InternalError );
+            throw new Error( InternalError );
         }
 
         return rawmsg;

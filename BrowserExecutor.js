@@ -20,7 +20,7 @@
  */
 
 const _zipObject = require( 'lodash/zipObject' );
-const _defaults = require( 'lodash/defaults' );
+const _defaultsDeep = require( 'lodash/defaultsDeep' );
 const async_steps = require( 'futoin-asyncsteps' );
 const performance_now = require( "performance-now" );
 const browser_window = window;
@@ -113,6 +113,8 @@ const BrowserExecutorOptions =
      */
     allowedOrigins : [],
 };
+Object.freeze( BrowserExecutorOptions.allowedOrigins );
+Object.freeze( BrowserExecutorOptions );
 
 /**
  * Browser Executor with HTML5 Web Messaging as incoming transport.
@@ -126,8 +128,7 @@ class BrowserExecutor extends Executor {
     constructor( ccm, opts ) {
         super( ccm, opts );
 
-        opts = opts || {};
-        _defaults( opts, BrowserExecutorOptions );
+        opts = _defaultsDeep( {}, opts, BrowserExecutorOptions );
 
         this._msg_sniffer = opts.messageSniffer;
         this._contexts = [];
@@ -170,6 +171,7 @@ class BrowserExecutor extends Executor {
         this._event_listener = ( event ) => this.handleMessage( event );
 
         browser_window.addEventListener( 'message', this._event_listener );
+        Object.seal( this );
     }
 
     handleMessage( event ) {

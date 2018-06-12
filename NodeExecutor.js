@@ -312,6 +312,10 @@ const NodeExecutorOptions =
      */
     secureObjectPrototype : true,
 };
+Object.freeze( NodeExecutorOptions.limitConf.default );
+Object.freeze( NodeExecutorOptions.limitConf );
+Object.freeze( NodeExecutorOptions.addressLimitMap );
+Object.freeze( NodeExecutorOptions );
 
 /**
  * Executor implementation for Node.js/io.js with HTTP and WebSockets transport
@@ -430,6 +434,8 @@ class NodeExecutor extends Executor {
                 }
             }
         );
+
+        Object.seal( this );
     }
 
     /**

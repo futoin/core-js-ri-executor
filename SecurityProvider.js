@@ -21,8 +21,7 @@
 
 const RequestInfo = require( './RequestInfo' );
 const UserInfo = require( './UserInfo' );
-const Errors = require( 'futoin-asyncsteps' ).FutoInError;
-
+const { NotImplemented } = require( 'futoin-asyncsteps' ).Errors;
 const { normalizeURLParams } = require( 'futoin-invoker' ).SpecTools;
 
 /**
@@ -37,7 +36,7 @@ class SecurityProvider {
      * @param {array} sec - reqmsg.sec field split by ':'
      */
     checkAuth( as, reqinfo, reqmsg, sec ) {
-        as.error( Errors.NotImplemented,
+        as.error( NotImplemented,
             "Authentication is not enabled" );
         void reqinfo;
         void reqmsg;
@@ -74,7 +73,7 @@ class SecurityProvider {
      * @param {string|array} acd - access control descriptor
      */
     checkAccess( as, reqinfo, acd ) {
-        as.error( Errors.NotImplemented,
+        as.error( NotImplemented,
             "Access Control is not enabled" );
         void reqinfo;
         void acd;
