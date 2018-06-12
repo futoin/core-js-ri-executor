@@ -2,6 +2,7 @@
     "iface" : "fileface.derived",
     "version" : "2.3",
     "inherit" : "fileface.base:1.1",
+    "ftn3rev" : "1.1",
     "funcs" : {
         "noResult" : {
         },

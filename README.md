@@ -1710,6 +1710,7 @@ Generic security provider interface
     * [.isSigned(reqinfo)](#SecurityProvider+isSigned) ⇒ <code>boolean</code>
     * [.checkAccess(as, reqinfo, acd)](#SecurityProvider+checkAccess)
     * [._setUser(as, reqinfo, seclvl, auth_info)](#SecurityProvider+_setUser)
+    * [._normalizeQueryParams(as, reqinfo)](#SecurityProvider+_normalizeQueryParams)
 
 <a name="SecurityProvider+checkAuth"></a>
 
@@ -1780,6 +1781,19 @@ A special helper to set authenticated user info
 | auth_info.local_id | <code>integer</code> \| <code>string</code> |  | Local User ID |
 | auth_info.global_id | <code>string</code> |  | Global User ID |
 | [auth_info.details] | <code>object</code> | <code></code> | user details |
+
+<a name="SecurityProvider+_normalizeQueryParams"></a>
+
+### securityProvider._normalizeQueryParams(as, reqinfo)
+Normalize parameters passed through HTTP query.
+It's important to call this before MAC checking.
+
+**Kind**: instance method of [<code>SecurityProvider</code>](#SecurityProvider)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | AsyncSteps interface |
+| reqinfo | [<code>RequestInfo</code>](#RequestInfo) | extended request info |
 
 <a name="SourceAddress"></a>
 

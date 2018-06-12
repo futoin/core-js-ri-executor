@@ -71,8 +71,8 @@
     "babel-preset-env": "^1.7.0",
     "chai": "^4.1.2",
     "eslint": "^4.19.1",
-    "futoin-asyncsteps": "^2.1.2",
-    "futoin-invoker": "^1.10.2",
+    "futoin-asyncsteps": "^2.1.3",
+    "futoin-invoker": "^2.0.0",
     "grunt": "^1.0.3",
     "grunt-babel": "^7.0.0",
     "grunt-contrib-connect": "^1.0.2",
@@ -90,8 +90,8 @@
     "webpack": "^4.12.0"
   },
   "peerDependencies": {
-    "futoin-asyncsteps": "^2.1.1",
-    "futoin-invoker": "^1.10.0"
+    "futoin-asyncsteps": "^2.1.3",
+    "futoin-invoker": "^2.0.0"
   },
   "optionalDependencies": {
     "posix": "^4.1.2"
