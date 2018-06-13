@@ -30,6 +30,10 @@ const lruCache = require( 'lru-cache' );
 const { IPSet, Address4 } = require( 'futoin-ipset' );
 const performance_now = require( "performance-now" );
 const Limiter = async_steps.Limiter;
+const {
+    InvokerError,
+    CommError,
+} = async_steps.Errors;
 
 const {
     MessageCoder,
@@ -170,21 +174,41 @@ class WSChannelContext extends ChannelContext {
                     } );
                 }
 
-                // It seems, send is not affected by max length limit
-                // in current websocket impl. Leaving for possible
-                // issues in the future.
-                // dirty hack
-                // ws_conn._driver._maxLength = Math.max(
-                //  ws_conn._driver._maxLength,
-                //  ctx.max_rsp_size,
-                //  ctx.max_req_size
-                // );
-
                 //
-                const rawmsg = JSON.stringify( ftnreq );
+                const rawmsg = ctx.msg_coder.encode( ftnreq );
+                const { max_req_size, max_rsp_size, options } = ctx;
+
+                // dirty hack
+                // ---
+                const ws_receiver = ws_conn._receiver;
+
+                if ( ws_receiver._maxPayload < max_rsp_size ) {
+                    ws_receiver._maxPayload = max_rsp_size;
+                }
+
+                //---
+                const msg_len = rawmsg.length;
+
+                if ( msg_len > max_req_size ) {
+                    as.error( InvokerError,
+                        `Request message too long: ${rawmsg.length} > ${rawmsg.length}` );
+                }
+
+
+                // ---
+                const buffer_max = options.commConcurrency * max_req_size;
+
+                if ( ( ws_conn.bufferedAmount + msg_len ) > buffer_max ) {
+                    as.error( CommError,
+                        `Send buffer overflow: ${ws_conn.bufferedAmount}` );
+                }
 
                 ws_conn._sniffer( ws_conn._source_addr, rawmsg, false );
-                ws_conn.send( rawmsg );
+                ws_conn.send( rawmsg, WS_SEND_OPTS, ( err ) => {
+                    if ( err ) {
+                        ws_conn.terminate();
+                    }
+                } );
             } );
         };
     }
