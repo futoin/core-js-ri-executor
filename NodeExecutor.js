@@ -766,7 +766,7 @@ class NodeExecutor extends Executor {
         context._message_count += 1;
 
         const ws_conn = context._ws_conn;
-        ws_conn.setMaxListeners( context._message_count << 1 + 10 );
+        ws_conn.setMaxListeners( context._message_count * 3 );
         ws_conn.once( 'close', close_req );
 
         reqinfo._as = as;

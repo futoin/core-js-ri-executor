@@ -1150,8 +1150,8 @@ camelcase@^2.0.0:
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-2.1.1.tgz#7c1d16d679a1bbe59ca02cacecfb011e201f5a1f"
 
 caniuse-lite@^1.0.30000844:
-  version "1.0.30000852"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30000852.tgz#8b7510cec030cac7842e52beca2bf292af65f935"
+  version "1.0.30000853"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30000853.tgz#505249fc78d60e20ad47af3c13706d6f9fd209fd"
 
 caseless@~0.12.0:
   version "0.12.0"
@@ -1980,12 +1980,6 @@ fast-levenshtein@~2.0.4:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz#3d8a5c66883a16a30ca8643e851f19baa7797917"
 
-faye-websocket@^0.11.1:
-  version "0.11.1"
-  resolved "https://registry.yarnpkg.com/faye-websocket/-/faye-websocket-0.11.1.tgz#f0efe18c4f56e4f40afc7e06c719fd5ee6188f38"
-  dependencies:
-    websocket-driver ">=0.5.1"
-
 fd-slicer@~1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/fd-slicer/-/fd-slicer-1.0.1.tgz#8b5bcbd9ec327c5041bf9ab023fd6750f1177e65"
@@ -2172,21 +2166,23 @@ futoin-asyncsteps@^2.1.3:
   dependencies:
     performance-now "^2.1.0"
 
-futoin-invoker@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-2.0.3.tgz#d31e9c2003796cc55c495757b1010a487a9fee09"
+futoin-invoker@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-2.1.0.tgz#ae9525458b0479a6c44d13a5ced38ea5a67427f8"
   dependencies:
     agentkeepalive "^3.4.1"
     detect-node "^2.0.3"
-    faye-websocket "^0.11.1"
     futoin-asyncevent "^2.2.0"
     lodash "^4.17.10"
     msgpack-lite "^0.1.26"
     performance-now "^2.1.0"
     request "^2.87.0"
+    ws "^5.2.0"
   optionalDependencies:
     ajv "^6.5.1"
     borc "^2.0.3"
+    bufferutil "^3.0.5"
+    utf-8-validate "^4.0.2"
 
 futoin-ipset@^1.3.0:
   version "1.3.0"
@@ -2539,10 +2535,6 @@ http-errors@~1.6.2:
     inherits "2.0.3"
     setprototypeof "1.1.0"
     statuses ">= 1.4.0 < 2"
-
-http-parser-js@>=0.4.0:
-  version "0.4.13"
-  resolved "https://registry.yarnpkg.com/http-parser-js/-/http-parser-js-0.4.13.tgz#3bd6d6fde6e3172c9334c3b33b6c193d80fe1137"
 
 http-signature@~1.2.0:
   version "1.2.0"
@@ -5010,17 +5002,6 @@ webpack@^4.12.0:
     uglifyjs-webpack-plugin "^1.2.4"
     watchpack "^1.5.0"
     webpack-sources "^1.0.1"
-
-websocket-driver@>=0.5.1:
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/websocket-driver/-/websocket-driver-0.7.0.tgz#0caf9d2d755d93aee049d4bdd0d3fe2cca2a24eb"
-  dependencies:
-    http-parser-js ">=0.4.0"
-    websocket-extensions ">=0.1.1"
-
-websocket-extensions@>=0.1.1:
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/websocket-extensions/-/websocket-extensions-0.1.3.tgz#5d2ff22977003ec687a4b87073dfbbac146ccf29"
 
 which-pm-runs@^1.0.0:
   version "1.0.0"
