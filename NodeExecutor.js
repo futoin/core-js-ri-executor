@@ -651,6 +651,15 @@ class NodeExecutor extends Executor {
                     reqinfo._cleanup();
                     req.removeListener( 'close', close_req );
 
+                    as.waitExternal();
+                    rsp.on( 'finish', () => {
+                        const root = as._root;
+
+                        if ( root ) {
+                            root._burst_success();
+                        }
+                    } );
+
                     if ( ftnrsp !== null ) {
                         const rawmsg = this.packPayload( coder, ftnrsp );
 
@@ -821,7 +830,19 @@ class NodeExecutor extends Executor {
                         const rawmsg = this.packPayload( coder, ftnrsp );
 
                         this._msg_sniffer( context._source_addr, rawmsg, false );
-                        ws_conn.send( rawmsg, WS_SEND_OPTS, on_send_err );
+
+                        as.waitExternal();
+                        ws_conn.send( rawmsg, WS_SEND_OPTS, ( err ) => {
+                            if ( err ) {
+                                ws_conn.terminate();
+                            }
+
+                            const root = as._root;
+
+                            if ( root ) {
+                                root._burst_success();
+                            }
+                        } );
                     }
                 } );
             },
