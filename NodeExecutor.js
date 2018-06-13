@@ -20,7 +20,7 @@
  */
 
 const _defaultsDeep = require( 'lodash/defaultsDeep' );
-const WebSocket = require( 'faye-websocket' );
+const WebSocket = require( 'ws' );
 const http = require( 'http' );
 const url = require( 'url' );
 const async_steps = require( 'futoin-asyncsteps' );
@@ -40,6 +40,9 @@ const Executor = require( './Executor' );
 const ChannelContext = require( './ChannelContext' );
 const SourceAddress = require( './SourceAddress' );
 const RequestInfo = require( './RequestInfo' );
+
+const WS_SEND_OPTS = { binary: true, fin: true };
+Object.freeze( WS_SEND_OPTS );
 
 // ---
 class HTTPChannelContext extends ChannelContext {
@@ -406,6 +409,10 @@ class NodeExecutor extends Executor {
 
         // WebSocket
         // ---
+        const wss = new WebSocket.Server( {
+            noServer: true,
+            maxPayload: this._maxReqSize,
+        } );
         http_server.on(
             'upgrade',
             ( req, sock, body ) => {
@@ -414,17 +421,11 @@ class NodeExecutor extends Executor {
 
                 req_url = ( req_url + '/' ).substr( 0, http_path.length );
 
-                if ( ( req_url === http_path ) &&
-                    WebSocket.isWebSocket( req ) ) {
-                    const ws = new WebSocket(
-                        req,
-                        sock,
-                        body,
-                        null,
-                        { maxLength : this._maxReqSize }
-                    );
-
-                    this.handleWSConnection( req, ws );
+                if ( req_url === http_path ) {
+                    wss.handleUpgrade( req, sock, body, ( ws ) => {
+                        wss.emit( 'connection', ws, req );
+                        this.handleWSConnection( req, ws );
+                    } );
                 } else if ( managed_server ) {
                     try {
                         req.socket.destroy();
@@ -695,10 +696,9 @@ class NodeExecutor extends Executor {
 
         ws.on(
             'message',
-            ( event ) => {
-                this._msg_sniffer( source_addr, event.data, true );
+            ( ftnreq ) => {
+                this._msg_sniffer( source_addr, ftnreq, true );
 
-                let ftnreq = event.data;
                 const coder = MessageCoder.detect( ftnreq );
 
                 try {
@@ -762,7 +762,13 @@ class NodeExecutor extends Executor {
             context._message_count -= 1;
 
             if ( ( context._message_count === 0 ) && this._closing ) {
-                ws_conn.close();
+                ws_conn.terminate();
+            }
+        };
+
+        const on_send_err = ( err ) => {
+            if ( err ) {
+                ws_conn.terminate();
             }
         };
 
@@ -778,7 +784,7 @@ class NodeExecutor extends Executor {
                 const rawmsg = coder.encode( ftnrsp );
 
                 this._msg_sniffer( source_addr, rawmsg, false );
-                ws_conn.send( rawmsg );
+                ws_conn.send( rawmsg, WS_SEND_OPTS, on_send_err );
             } catch ( e ) {
                 // ignore
             }
@@ -800,7 +806,7 @@ class NodeExecutor extends Executor {
                         const rawmsg = this.packPayload( coder, ftnrsp );
 
                         this._msg_sniffer( context._source_addr, rawmsg, false );
-                        ws_conn.send( rawmsg );
+                        ws_conn.send( rawmsg, WS_SEND_OPTS, on_send_err );
                     }
                 } );
             },
@@ -816,7 +822,7 @@ class NodeExecutor extends Executor {
 
         this._ws_contexts.forEach( ( c ) => {
             if ( c._message_count === 0 ) {
-                c._ws_conn.close();
+                c._ws_conn.terminate();
             }
         } );
 
