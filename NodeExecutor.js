@@ -63,13 +63,6 @@ class HTTPChannelContext extends ChannelContext {
         return "HTTP";
     }
 
-    onInvokerAbort( callable, user_data ) {
-        this._http_req.on(
-            'close',
-            () => callable( user_data )
-        );
-    }
-
     _openRawInput() {
         return this._http_req;
     }
@@ -151,13 +144,6 @@ class WSChannelContext extends ChannelContext {
 
     isStateful() {
         return true;
-    }
-
-    onInvokerAbort( callable, user_data ) {
-        this._ws_conn.on(
-            'close',
-            () => callable( user_data )
-        );
     }
 
     _getPerformRequest() {

@@ -66,16 +66,16 @@ class ChannelContext {
     }
 
     /**
-     * Set invoker abort handler.
+     * This API is provided for compliance to spec, but it raises error as
+     * the appropriate way to handler aborts is AsyncSteps#setCancel().
      *
-     * NOTE: It should be possible to call multiple times setting
-     * multiple callbacks
      * @param {Function} callable - callback
      * @param {any=} user_data - optional parameter to pass to callable
      */
     onInvokerAbort( callable, user_data ) {
         void callable;
         void user_data;
+        throw new Error( 'Please use AsyncSteps#setCancel() instead of onInvokerAbort()' );
     }
 
     /**
