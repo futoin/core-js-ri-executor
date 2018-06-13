@@ -55,6 +55,8 @@ class HTTPChannelContext extends ChannelContext {
         this._http_req = req;
         this._http_rsp = rsp;
         this._cookies = null;
+        this._is_secure_channel = false;
+        Object.seal( this );
     }
 
     type() {
@@ -135,8 +137,12 @@ class WSChannelContext extends ChannelContext {
     constructor( executor, conn ) {
         super( executor );
         this._ws_conn = conn;
+        this._message_count = 0;
+        this._is_secure_channel = false;
+        this._source_addr = null;
         conn._ftn_srid = 1;
         conn._ftn_reqas = {};
+        Object.seal( this );
     }
 
     type() {
@@ -771,11 +777,10 @@ class NodeExecutor extends Executor {
 
         const close_req = () => as.cancel();
 
-        context._message_count = context._message_count || 0;
         context._message_count += 1;
 
         const ws_conn = context._ws_conn;
-        ws_conn.setMaxListeners( context._message_count << 1 );
+        ws_conn.setMaxListeners( context._message_count << 1 + 10 );
         ws_conn.once( 'close', close_req );
 
         reqinfo._as = as;

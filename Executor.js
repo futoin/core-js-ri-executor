@@ -64,6 +64,11 @@ const SECLVL_LIST = Object.freeze( {
 
 // ---
 class CallbackChannelContext extends ChannelContext {
+    constructor( ...args ) {
+        super( ...args );
+        Object.seal( this );
+    }
+
     type() {
         return "CALLBACK";
     }
@@ -78,6 +83,7 @@ class InternalChannelContext extends ChannelContext {
     constructor( executor, invoker_executor ) {
         super( executor );
         this._invoker_executor = invoker_executor;
+        Object.seal( this );
     }
 
     type() {
