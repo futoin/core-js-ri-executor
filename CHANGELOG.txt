@@ -1,4 +1,7 @@
 
+=== (next) ===
+FIXED: to use actual maximum request size on incoming WS connection
+
 === 2.1.0 (2018-06-14) ===
 CHANGED: to use "ws" instead of "faye-websockets"
 CHANGED: misc. harding & optimizations

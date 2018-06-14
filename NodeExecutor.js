@@ -456,6 +456,7 @@ class NodeExecutor extends Executor {
         // ---
         const wss = new WebSocket.Server( {
             noServer: true,
+            // This limit may change at runtime, see below
             maxPayload: this._maxReqSize,
         } );
         http_server.on(
@@ -469,6 +470,7 @@ class NodeExecutor extends Executor {
                 if ( req_url === http_path ) {
                     wss.handleUpgrade( req, sock, body, ( ws ) => {
                         wss.emit( 'connection', ws, req );
+                        ws._receiver._maxPayload = this._maxReqSize;
                         this.handleWSConnection( req, ws );
                     } );
                 } else if ( managed_server ) {
