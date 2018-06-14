@@ -238,6 +238,7 @@ model_as.add(
         execopts.messageSniffer = function( src, msg ) {
             state.exec_msgs.push( msg );
         };
+        execopts.cleanupConnMS = 10;
 
         // ---
         const legacy_secprov = new LegacySecurityProvider( as, executor_ccm, new TestSecurityProvider );

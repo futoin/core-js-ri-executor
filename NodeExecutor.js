@@ -130,11 +130,12 @@ class WSChannelContext extends ChannelContext {
     constructor( executor, conn ) {
         super( executor );
         this._ws_conn = conn;
-        this._message_count = 0;
         this._is_secure_channel = false;
         this._source_addr = null;
-        conn._ftn_srid = 1;
-        conn._ftn_reqas = {};
+        this._srid = 1;
+        this._srv_req_list = {};
+        this._req_list = new Set();
+        this._last_activity = process.hrtime();
         Object.seal( this );
     }
 
@@ -151,13 +152,13 @@ class WSChannelContext extends ChannelContext {
 
         return ( as, ctx, ftnreq ) => {
             as.add( ( as ) => {
-                const rid = 'S' + ws_conn._ftn_srid++;
+                const rid = 'S' + this._srid++;
 
                 ftnreq.rid = rid;
 
                 //
                 if ( ctx.expect_response ) {
-                    const reqas = ws_conn._ftn_reqas;
+                    const reqas = this._srv_req_list;
 
                     reqas[ rid ] = as;
 
@@ -199,10 +200,30 @@ class WSChannelContext extends ChannelContext {
                 ws_conn.send( rawmsg, WS_SEND_OPTS, ( err ) => {
                     if ( err ) {
                         ws_conn.terminate();
+                    } else {
+                        this._updateActivity();
                     }
                 } );
             } );
         };
+    }
+
+    _updateActivity() {
+        this._last_activity = process.hrtime();
+    }
+
+    _cleanup() {
+        super._cleanup();
+
+        const reqas = this._srv_req_list;
+
+        for ( let srid in reqas ) {
+            const as = reqas[srid];
+
+            if ( as.state ) {
+                as.error( CommError, 'Connection closed' );
+            }
+        }
     }
 }
 
@@ -295,6 +316,14 @@ const NodeExecutorOptions =
      * @default
      */
     cleanupLimitsMS: 60e3,
+
+    /**
+     * Interval to run connection cleanup task for WebSockets.
+     * If connection is idle for this period then ping is sent. If connection
+     * is idle for twice of that period then connection is killed.
+     * @default
+     */
+    cleanupConnMS: 60e3,
 
     /**
      * Auto-detected based posix.getrlimit('nofiles')
@@ -451,6 +480,17 @@ class NodeExecutor extends Executor {
                 }
             }
         );
+
+        this._stale_conn = opts.cleanupConnMS * 1.5;
+        this._check_conn = opts.cleanupConnMS;
+        this._conn_timer = setInterval( () => this._cleanupConns(), opts.cleanupConnMS );
+
+        this.once( 'close', () => {
+            clearInterval( this._conn_timer );
+            this._conn_timer = null;
+        } );
+
+        // ---
 
         Object.seal( this );
     }
@@ -719,6 +759,8 @@ class NodeExecutor extends Executor {
 
         this._ws_contexts.add( context );
 
+        ws.on( 'pong', () => context._updateActivity() );
+
         ws.on(
             'message',
             ( ftnreq ) => {
@@ -736,11 +778,11 @@ class NodeExecutor extends Executor {
                 const rid = ftnreq.rid;
 
                 if ( rid.charAt( 0 ) === 'S' ) {
-                    const reqas = ws._ftn_reqas[ rid ];
+                    const reqas = context._srv_req_list[ rid ];
 
                     if ( reqas ) {
                         reqas.success( ftnreq, true );
-                        delete ws._ftn_reqas[ rid ];
+                        delete context._srv_req_list[ rid ];
                     }
 
                     return;
@@ -770,22 +812,20 @@ class NodeExecutor extends Executor {
 
         as.state.reqinfo = reqinfo;
 
-        const close_req = () => as.cancel();
+        context._updateActivity();
 
-        context._message_count += 1;
+        const req_list = context._req_list;
+        req_list.add( as );
 
         const ws_conn = context._ws_conn;
-        ws_conn.setMaxListeners( context._message_count * 3 );
-        ws_conn.once( 'close', close_req );
 
         reqinfo._as = as;
 
         const generic_cleanup = () => {
             reqinfo._cleanup();
-            ws_conn.removeListener( 'close', close_req );
-            context._message_count -= 1;
+            req_list.delete( as );
 
-            if ( ( context._message_count === 0 ) && this._closing ) {
+            if ( ( req_list.size === 0 ) && this._closing ) {
                 ws_conn.terminate();
             }
         };
@@ -793,6 +833,8 @@ class NodeExecutor extends Executor {
         const on_send_err = ( err ) => {
             if ( err ) {
                 ws_conn.terminate();
+            } else {
+                context._updateActivity();
             }
         };
 
@@ -835,6 +877,8 @@ class NodeExecutor extends Executor {
                         ws_conn.send( rawmsg, WS_SEND_OPTS, ( err ) => {
                             if ( err ) {
                                 ws_conn.terminate();
+                            } else {
+                                context._updateActivity();
                             }
 
                             const root = as._root;
@@ -853,11 +897,26 @@ class NodeExecutor extends Executor {
         as.execute();
     }
 
+    _cleanupConns() {
+        this._ws_contexts.forEach( ( c ) => {
+            if ( c._req_list.size === 0 ) {
+                const diff = process.hrtime( c._last_activity );
+                const diff_ms = ( diff[0] * 1e3 ) + ( diff[0] / 1e6 );
+
+                if ( diff_ms > this._stale_conn ) {
+                    c._ws_conn.terminate();
+                } else if ( diff_ms > this._check_conn ) {
+                    c._ws_conn.ping();
+                }
+            }
+        } );
+    }
+
     close( close_cb ) {
         this._closing = true;
 
         this._ws_contexts.forEach( ( c ) => {
-            if ( c._message_count === 0 ) {
+            if ( c._req_list.size === 0 ) {
                 c._ws_conn.terminate();
             }
         } );
@@ -903,7 +962,9 @@ class NodeExecutor extends Executor {
             } );
         } else {
             this._fake_limiter = {
-                sync : ( as, a, b ) => as.add( a, b ),
+                sync : ( as, a, b ) => {
+                    as.add( a, b );
+                },
             };
         }
     }

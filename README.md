@@ -1185,6 +1185,7 @@ C-tor
     * [.trustProxy](#NodeExecutorOptions.trustProxy)
     * [.enableLimiter](#NodeExecutorOptions.enableLimiter)
     * [.cleanupLimitsMS](#NodeExecutorOptions.cleanupLimitsMS)
+    * [.cleanupConnMS](#NodeExecutorOptions.cleanupConnMS)
     * [.limitCacheSize](#NodeExecutorOptions.limitCacheSize)
     * [.limitConf](#NodeExecutorOptions.limitConf)
     * [.addressLimitMap](#NodeExecutorOptions.addressLimitMap)
@@ -1262,6 +1263,15 @@ If true, then request limiter is enabled by default
 ### NodeExecutorOptions.cleanupLimitsMS
 Interval to run limiter cleanup task for better cache performance and
 correct reflection of active memory usage.
+
+**Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
+**Default**: <code>60000</code>  
+<a name="NodeExecutorOptions.cleanupConnMS"></a>
+
+### NodeExecutorOptions.cleanupConnMS
+Interval to run connection cleanup task for WebSockets.
+If connection is idle for this period then ping is sent. If connection
+is idle for twice of that period then connection is killed.
 
 **Kind**: static property of [<code>NodeExecutorOptions</code>](#NodeExecutorOptions)  
 **Default**: <code>60000</code>  
