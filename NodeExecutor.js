@@ -147,6 +147,13 @@ class WSChannelContext extends ChannelContext {
         return true;
     }
 
+    onInvokerAbort( callable, user_data ) {
+        this._ws_conn.on(
+            'close',
+            () => callable( user_data )
+        );
+    }
+
     _getPerformRequest() {
         const ws_conn = this._ws_conn;
 

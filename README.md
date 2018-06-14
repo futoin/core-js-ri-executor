@@ -775,10 +775,13 @@ requests in the same session
 <a name="ChannelContext+onInvokerAbort"></a>
 
 ### channelContext.onInvokerAbort(callable, [user_data])
-This API is provided for compliance to spec, but it raises error as
-the appropriate way to handler aborts is AsyncSteps#setCancel().
+Set invoker abort handler.
 
 **Kind**: instance method of [<code>ChannelContext</code>](#ChannelContext)  
+**Note**: It should be possible to call multiple times setting
+      multiple callbacks.  
+**Note**: The callback is set for lifetime of the channel - do not use it on every
+      request!  
 
 | Param | Type | Description |
 | --- | --- | --- |

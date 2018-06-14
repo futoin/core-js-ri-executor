@@ -109,6 +109,13 @@ class InternalChannelContext extends ChannelContext {
     _commError( as ) {
         as.error( CommError, "No Invoker's Executor for internal call" );
     }
+
+    onInvokerAbort( callable, user_data ) {
+        this._invoker_executor.once(
+            'close',
+            () => callable( user_data )
+        );
+    }
 }
 
 /**

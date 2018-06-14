@@ -1,4 +1,7 @@
 
+=== (next) ===
+FIXED: restored ContextChannel#onInvokerAbort() for BiDirectional channels
+
 === 2.1.1 (2018-06-14) ===
 FIXED: to use actual maximum request size on incoming WS connection
 
