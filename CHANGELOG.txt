@@ -3,8 +3,8 @@
 CHANGED: to use "ws" instead of "faye-websockets"
 CHANGED: misc. harding & optimizations
 CHANGED: onInvokerAbort() to throw error describing proper use of AsyncSteps#setCancel()
+CHANGED: to exit Limiter scope only after response is sent
 FIXED: to control & adjust WebSockets max message size in callbacks requests
-NEW: control of output WebSocket queue
 
 === 2.0.0 (2018-06-12) ===
 CHANGED: Updated to futoin-invoker v2 with much better performance and stricter checks

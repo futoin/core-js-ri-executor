@@ -2160,9 +2160,9 @@ futoin-asyncevent@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/futoin-asyncevent/-/futoin-asyncevent-2.2.0.tgz#f19d318a64bf7533b33e6c57faa86333af770923"
 
-futoin-asyncsteps@^2.1.4:
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/futoin-asyncsteps/-/futoin-asyncsteps-2.1.4.tgz#2d8c9cbbba8ba02aee4795fd554658205b1f009f"
+futoin-asyncsteps@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/futoin-asyncsteps/-/futoin-asyncsteps-2.2.0.tgz#34a538a18a500760e93f9160fe68e238dfb218ec"
   dependencies:
     performance-now "^2.1.0"
 
