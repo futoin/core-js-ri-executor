@@ -21,7 +21,7 @@ var argv = require( 'minimist' )(
         default : {
             time_limit : 60e3,
             concurrency : 500,
-            proto : 'http',
+            proto : 'ws',
             auth : null,
         },
     }
