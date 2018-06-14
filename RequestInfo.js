@@ -21,7 +21,7 @@
 
 const _extend = require( 'lodash/extend' );
 const performance_now = require( "performance-now" );
-const async_steps = require( 'futoin-asyncsteps' );
+const { cancelCall, callLater } = require( 'futoin-asyncsteps' ).AsyncTool;
 
 /**
  * Pseudo-class for RequestInfo.info field enumeration
@@ -359,13 +359,15 @@ class RequestInfo {
     */
     cancelAfter( time_ms ) {
         if ( this._cancelAfter ) {
-            async_steps.AsyncTool.cancelCall( this._cancelAfter );
+            cancelCall( this._cancelAfter );
             this._cancelAfter = null;
         }
 
         if ( ( time_ms > 0 ) && this._as ) {
-            this._cancelAfter = async_steps.AsyncTool.callLater(
-                ( ) => this._as.cancel(),
+            this._cancelAfter = callLater(
+                ( ) => {
+                    this._as.cancel();
+                },
                 time_ms
             );
         }

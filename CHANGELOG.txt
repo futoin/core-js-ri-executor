@@ -1,5 +1,6 @@
 
 === (next) ===
+CHANGED: upgraded to futoin-asyncsteps with execution burst owner feature
 FIXED: restored ContextChannel#onInvokerAbort() for BiDirectional channels
 
 === 2.1.1 (2018-06-14) ===
