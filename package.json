@@ -1,6 +1,6 @@
 {
   "name": "futoin-executor",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "FutoIn Service base with strict API definition for Node and Browser",
   "main": "lib/main.js",
   "browser": "es5/lib/browser.js",
