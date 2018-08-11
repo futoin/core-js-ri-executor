@@ -57,26 +57,26 @@
   "dependencies": {
     "cookie": "^0.3.1",
     "detect-node": "^2.0.3",
-    "futoin-asyncevent": "^2.2.0",
-    "futoin-ipset": "^1.3.0",
+    "futoin-asyncevent": "^2.2.1",
+    "futoin-ipset": "^1.3.1",
     "lodash": "^4.17.10",
     "lru-cache": "^4.1.3",
     "performance-now": "^2.1.0",
-    "ws": "^5.2.0"
+    "ws": "^6.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.4",
+    "babel-loader": "^7.1.5",
     "babel-plugin-transform-object-assign": "^6.22.0",
     "babel-preset-env": "^1.7.0",
     "chai": "^4.1.2",
-    "eslint": "^4.19.1",
-    "futoin-asyncsteps": "^2.3.1",
-    "futoin-invoker": "^2.1.0",
+    "eslint": "^5.3.0",
+    "futoin-asyncsteps": "^2.3.2",
+    "futoin-invoker": "^2.1.1",
     "grunt": "^1.0.3",
     "grunt-babel": "^7.0.0",
     "grunt-contrib-connect": "^1.0.2",
-    "grunt-eslint": "^20.2.0",
+    "grunt-eslint": "^21.0.0",
     "grunt-jsdoc-to-markdown": "^4.0.0",
     "grunt-mocha-istanbul": "^5.0.2",
     "grunt-mocha-phantomjs": "^4.0.0",
@@ -86,16 +86,16 @@
     "memorystream": "^0.3.1",
     "minimist": "^1.2.0",
     "mocha": "^5.2.0",
-    "request": "^2.87.0",
-    "webpack": "^4.12.0"
+    "request": "^2.88.0",
+    "webpack": "4.16.1"
   },
   "peerDependencies": {
-    "futoin-asyncsteps": "^2.3.1",
-    "futoin-invoker": "^2.1.0"
+    "futoin-asyncsteps": "^2.3.2",
+    "futoin-invoker": "^2.1.1"
   },
   "optionalDependencies": {
-    "bufferutil": "^3.0.5",
+    "bufferutil": "^4.0.0",
     "posix": "^4.1.2",
-    "utf-8-validate": "^4.0.2"
+    "utf-8-validate": "^5.0.1"
   }
 }
