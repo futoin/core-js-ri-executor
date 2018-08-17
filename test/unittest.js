@@ -3,10 +3,10 @@
 require( './prepare' );
 
 const is_browser = ( typeof window !== 'undefined' );
-
+const mod = module;
 const executor_module = is_browser
     ? require( 'futoin-executor' )
-    : module.require( '../lib/main' );
+    : mod.require( '../lib/main' );
 
 const invoker = require( 'futoin-invoker' );
 const async_steps = require( 'futoin-asyncsteps' );

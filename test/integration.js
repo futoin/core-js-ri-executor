@@ -4,14 +4,15 @@ require( './prepare' );
 
 const is_in_browser = ( typeof window !== 'undefined' );
 
+const mod = module;
 const executor_module = is_in_browser
     ? require( 'futoin-executor' )
-    : module.require( '../lib/main' );
+    : mod.require( '../lib/main' );
 
 const chai = require( 'chai' );
 const { expect, assert } = chai;
 
-const MemoryStream = is_in_browser ? null : module.require( 'memorystream' );
+const MemoryStream = is_in_browser ? null : mod.require( 'memorystream' );
 
 const invoker_module = require( 'futoin-invoker' );
 const async_steps = require( 'futoin-asyncsteps' );
@@ -33,8 +34,8 @@ if ( is_in_browser ) {
 } else {
     thisDir = __dirname;
 
-    request = module.require( 'request' );
-    crypto = module.require( 'crypto' );
+    request = mod.require( 'request' );
+    crypto = mod.require( 'crypto' );
 }
 
 let ClientExecutor = executor_module.ClientExecutor;

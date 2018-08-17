@@ -1,10 +1,11 @@
 'use strict';
 
 if ( typeof window === 'undefined' ) {
-    module.require( 'tough-cookie' );
-    module.require( 'borc' );
-    module.require( 'msgpack-lite' );
-    module.require( 'memorystream' );
+    const mod = module;
+    mod.require( 'tough-cookie' );
+    mod.require( 'borc' );
+    mod.require( 'msgpack-lite' );
+    mod.require( 'memorystream' );
 
     Object.freeze( Object.prototype );
 }
