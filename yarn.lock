@@ -2494,10 +2494,10 @@ futoin-asyncsteps@^2.3.3:
   dependencies:
     performance-now "^2.1.0"
 
-futoin-invoker@^2.1.3:
-  version "2.1.3"
-  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-2.1.3.tgz#6e5fc3f03670a6809465e370f1a146d820f80500"
-  integrity sha512-ko9l3twXr874YaWpYb40fiQNZb6Sc6rBbsIR/T/tw5ZvqYkG58FTKmvKOn3WCExgMZx0DQT0ht4f49COZ6gxjw==
+futoin-invoker@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/futoin-invoker/-/futoin-invoker-2.2.0.tgz#10bbc08de959f2078fe8e805aa9afd9144894bdb"
+  integrity sha512-5oZAdNKB8iEbOgR9Q6C3iFOSvhY12IQsGF7r9FDm2SFn3NDcfycAEpLOqsY9v7+HgzvRDU/tKApsXmNTMyVmbw==
   dependencies:
     agentkeepalive "^4.0.0"
     detect-node "^2.0.4"

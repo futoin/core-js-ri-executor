@@ -26,7 +26,7 @@
     "futoin.json"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=8"
   },
   "scripts": {
     "test": "grunt test"
@@ -73,7 +73,7 @@
     "chai": "^4.2.0",
     "eslint": "^5.12.0",
     "futoin-asyncsteps": "^2.3.3",
-    "futoin-invoker": "^2.1.3",
+    "futoin-invoker": "^2.2.0",
     "grunt": "^1.0.3",
     "grunt-babel": "^8.0.0",
     "grunt-contrib-connect": "^2.0.0",
