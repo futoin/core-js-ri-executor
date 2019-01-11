@@ -1,3 +1,5 @@
+=== (next) ===
+FIXED: LRUCache update issues
 
 === 2.2.0 (2019-01-11) ===
 CHANGED: dependency maintenance

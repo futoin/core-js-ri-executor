@@ -629,7 +629,7 @@ Register users statically right after registration
 
 <a name="BasicAuthService+_getUser"></a>
 
-### basicAuthService._getUser(as, user)
+### basicAuthService.\_getUser(as, user)
 Get by name. Override, if needed.
 
 **Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
@@ -642,7 +642,7 @@ Get by name. Override, if needed.
 
 <a name="BasicAuthService+_getUserByID"></a>
 
-### basicAuthService._getUserByID(as, local_id)
+### basicAuthService.\_getUserByID(as, local_id)
 Get by ID. Override, if needed.
 
 **Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
@@ -1442,21 +1442,21 @@ Pseudo-class for RequestInfo.info field enumeration
 
 <a name="RequestInfoConst.INFO_X509_CN"></a>
 
-### RequestInfoConst.INFO_X509_CN
+### RequestInfoConst.INFO\_X509\_CN
 CN field coming from validated client's x509 certificate, if any
 
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>X509_CN</code>  
 <a name="RequestInfoConst.INFO_PUBKEY"></a>
 
-### RequestInfoConst.INFO_PUBKEY
+### RequestInfoConst.INFO\_PUBKEY
 Client provided public key, if any
 
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>PUBKEY</code>  
 <a name="RequestInfoConst.INFO_CLIENT_ADDR"></a>
 
-### RequestInfoConst.INFO_CLIENT_ADDR
+### RequestInfoConst.INFO\_CLIENT\_ADDR
 Client address
 
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
@@ -1464,14 +1464,14 @@ Client address
 **See**: SourceAddress  
 <a name="RequestInfoConst.INFO_SECURE_CHANNEL"></a>
 
-### RequestInfoConst.INFO_SECURE_CHANNEL
+### RequestInfoConst.INFO\_SECURE\_CHANNEL
 Boolean, indicates if transport channel is secure
 
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **Default**: <code>SECURE_CHANNEL</code>  
 <a name="RequestInfoConst.INFO_REQUEST_TIME_FLOAT"></a>
 
-### RequestInfoConst.INFO_REQUEST_TIME_FLOAT
+### RequestInfoConst.INFO\_REQUEST\_TIME\_FLOAT
 Implementation define timestamp of request start.
 
 NOTE:it may not be related to absolute time. Please
@@ -1481,40 +1481,40 @@ see performance-now NPM module.
 **Default**: <code>REQUEST_TIME_FLOAT</code>  
 <a name="RequestInfoConst.INFO_SECURITY_LEVEL"></a>
 
-### RequestInfoConst.INFO_SECURITY_LEVEL
+### RequestInfoConst.INFO\_SECURITY\_LEVEL
 Authentication, but not authorization, security level.
 
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **See**: RequestInfoConst.SL_*  
 <a name="RequestInfoConst.INFO_USER_INFO"></a>
 
-### RequestInfoConst.INFO_USER_INFO
+### RequestInfoConst.INFO\_USER\_INFO
 User Info object
 
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **See**: UserInfo  
 <a name="RequestInfoConst.INFO_RAW_REQUEST"></a>
 
-### RequestInfoConst.INFO_RAW_REQUEST
+### RequestInfoConst.INFO\_RAW\_REQUEST
 Raw FutoIn request object
 
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 <a name="RequestInfoConst.INFO_RAW_RESPONSE"></a>
 
-### RequestInfoConst.INFO_RAW_RESPONSE
+### RequestInfoConst.INFO\_RAW\_RESPONSE
 Raw FutoIn response object
 
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 <a name="RequestInfoConst.INFO_DERIVED_KEY"></a>
 
-### RequestInfoConst.INFO_DERIVED_KEY
+### RequestInfoConst.INFO\_DERIVED\_KEY
 Associated Derived Key
 
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **See**: DerivedKey  
 <a name="RequestInfoConst.INFO_HAVE_RAW_UPLOAD"></a>
 
-### RequestInfoConst.INFO_HAVE_RAW_UPLOAD
+### RequestInfoConst.INFO\_HAVE\_RAW\_UPLOAD
 Indicates that input transport provided raw upload stream.
 
 NOTE: service implementation should simply try to open
@@ -1523,7 +1523,7 @@ RequestInfo.rawInput()
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 <a name="RequestInfoConst.INFO_HAVE_RAW_RESULT"></a>
 
-### RequestInfoConst.INFO_HAVE_RAW_RESULT
+### RequestInfoConst.INFO\_HAVE\_RAW\_RESULT
 Indicates that Executor must provide raw response
 
 NOTE: service implementation should simply try to open
@@ -1532,14 +1532,14 @@ RequestInfo.rawOutput()
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 <a name="RequestInfoConst.INFO_CHANNEL_CONTEXT"></a>
 
-### RequestInfoConst.INFO_CHANNEL_CONTEXT
+### RequestInfoConst.INFO\_CHANNEL\_CONTEXT
 Associated transport channel context
 
 **Kind**: static property of [<code>RequestInfoConst</code>](#RequestInfoConst)  
 **See**: ChannelContext  
 <a name="RequestInfoConst.SL_ANONYMOUS"></a>
 
-### RequestInfoConst.SL_ANONYMOUS
+### RequestInfoConst.SL\_ANONYMOUS
 Security Level - Anonymous
 
 **Kind**: static constant of [<code>RequestInfoConst</code>](#RequestInfoConst)  
@@ -1547,7 +1547,7 @@ Security Level - Anonymous
 **See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_INFO"></a>
 
-### RequestInfoConst.SL_INFO
+### RequestInfoConst.SL\_INFO
 Security Level - Info
 
 NOTE: it is level of user authentication, but
@@ -1559,7 +1559,7 @@ HTTP cookie-based authentication.
 **See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_SAFE_OPS"></a>
 
-### RequestInfoConst.SL_SAFE_OPS
+### RequestInfoConst.SL\_SAFE\_OPS
 Security Level - SafeOps
 
 NOTE: it is level of user authentication, but
@@ -1571,7 +1571,7 @@ HTTP Basic Auth.
 **See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_PRIVILEGED_OPS"></a>
 
-### RequestInfoConst.SL_PRIVILEGED_OPS
+### RequestInfoConst.SL\_PRIVILEGED\_OPS
 Security Level - PrivilegedOps
 
 NOTE: it is level of user authentication, but
@@ -1583,7 +1583,7 @@ multi-factor authentication and signed requests.
 **See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_EXCEPTIONAL_OPS"></a>
 
-### RequestInfoConst.SL_EXCEPTIONAL_OPS
+### RequestInfoConst.SL\_EXCEPTIONAL\_OPS
 Security Level - ExceptionalOps
 
 NOTE: it is level of user authentication, but
@@ -1596,7 +1596,7 @@ signed requests.
 **See**: RequestInfoConst.INFO_SECURITY_LEVEL  
 <a name="RequestInfoConst.SL_SYSTEM"></a>
 
-### RequestInfoConst.SL_SYSTEM
+### RequestInfoConst.SL\_SYSTEM
 Security Level - System
 
 NOTE: it is level of user authentication, but
@@ -1779,7 +1779,7 @@ Check access through Access Control concept
 
 <a name="SecurityProvider+_setUser"></a>
 
-### securityProvider._setUser(as, reqinfo, seclvl, auth_info)
+### securityProvider.\_setUser(as, reqinfo, seclvl, auth_info)
 A special helper to set authenticated user info
 
 **Kind**: instance method of [<code>SecurityProvider</code>](#SecurityProvider)  
@@ -1796,7 +1796,7 @@ A special helper to set authenticated user info
 
 <a name="SecurityProvider+_normalizeQueryParams"></a>
 
-### securityProvider._normalizeQueryParams(as, reqinfo)
+### securityProvider.\_normalizeQueryParams(as, reqinfo)
 Normalize parameters passed through HTTP query.
 It's important to call this before MAC checking.
 
@@ -2134,91 +2134,91 @@ defined in FTN8 spec
 
 <a name="UserInfoConst.INFO_Login"></a>
 
-### UserInfoConst.INFO_Login
+### UserInfoConst.INFO\_Login
 Login Name
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>Login</code>  
 <a name="UserInfoConst.INFO_Nick"></a>
 
-### UserInfoConst.INFO_Nick
+### UserInfoConst.INFO\_Nick
 Nick Name
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>Nick</code>  
 <a name="UserInfoConst.INFO_FirstName"></a>
 
-### UserInfoConst.INFO_FirstName
+### UserInfoConst.INFO\_FirstName
 First Name
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>FirstName</code>  
 <a name="UserInfoConst.INFO_FullName"></a>
 
-### UserInfoConst.INFO_FullName
+### UserInfoConst.INFO\_FullName
 Full Name
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>FullName</code>  
 <a name="UserInfoConst.INFO_DateOfBirth"></a>
 
-### UserInfoConst.INFO_DateOfBirth
+### UserInfoConst.INFO\_DateOfBirth
 Date if birth in ISO "YYYY-MM-DD" format
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>DateOfBirth</code>  
 <a name="UserInfoConst.INFO_TimeOfBirth"></a>
 
-### UserInfoConst.INFO_TimeOfBirth
+### UserInfoConst.INFO\_TimeOfBirth
 Date if birth in ISO "HH:mm:ss" format, can be truncated to minutes
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>TimeOfBirth</code>  
 <a name="UserInfoConst.INFO_ContactEmail"></a>
 
-### UserInfoConst.INFO_ContactEmail
+### UserInfoConst.INFO\_ContactEmail
 E-mail for contacts
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>ContactEmail</code>  
 <a name="UserInfoConst.INFO_ContactPhone"></a>
 
-### UserInfoConst.INFO_ContactPhone
+### UserInfoConst.INFO\_ContactPhone
 Phone for contacts
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>ContactPhone</code>  
 <a name="UserInfoConst.INFO_HomeAddress"></a>
 
-### UserInfoConst.INFO_HomeAddress
+### UserInfoConst.INFO\_HomeAddress
 Home address
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>HomeAddress</code>  
 <a name="UserInfoConst.INFO_WorkAddress"></a>
 
-### UserInfoConst.INFO_WorkAddress
+### UserInfoConst.INFO\_WorkAddress
 Work address
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>WorkAddress</code>  
 <a name="UserInfoConst.INFO_Citizenship"></a>
 
-### UserInfoConst.INFO_Citizenship
+### UserInfoConst.INFO\_Citizenship
 Citizenship
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>Citizenship</code>  
 <a name="UserInfoConst.INFO_GovernmentRegID"></a>
 
-### UserInfoConst.INFO_GovernmentRegID
+### UserInfoConst.INFO\_GovernmentRegID
 Country-specific unique registration ID, e,g, SSN, PersonalCode, etc.
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  
 **Default**: <code>GovernmentRegID</code>  
 <a name="UserInfoConst.INFO_AvatarURL"></a>
 
-### UserInfoConst.INFO_AvatarURL
+### UserInfoConst.INFO\_AvatarURL
 URL of avatar image
 
 **Kind**: static constant of [<code>UserInfoConst</code>](#UserInfoConst)  

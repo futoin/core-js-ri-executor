@@ -25,7 +25,7 @@ const http = require( 'http' );
 const url = require( 'url' );
 const async_steps = require( 'futoin-asyncsteps' );
 const cookie = require( "cookie" );
-const lruCache = require( 'lru-cache' );
+const LRUCache = require( 'lru-cache' );
 
 const { IPSet, Address4 } = require( 'futoin-ipset' );
 const performance_now = require( "performance-now" );
@@ -1003,8 +1003,8 @@ class NodeExecutor extends Executor {
 
         // also reset current limits
         const max = this._limitCacheMax();
-        this._host2lim = lruCache( max );
-        this._scope2lim = lruCache( max );
+        this._host2lim = new LRUCache( max );
+        this._scope2lim = new LRUCache( max );
     }
 
     /**
