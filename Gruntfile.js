@@ -31,8 +31,8 @@ module.exports = function( grunt ) {
         babel: {
             options: {
                 sourceMap: true,
-                presets: [ 'env' ],
-                plugins: [ "transform-object-assign" ],
+                presets: [ '@babel/preset-env' ],
+                plugins: [ "@babel/transform-object-assign" ],
             },
             es5: {
                 expand: true,
