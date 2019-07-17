@@ -21,7 +21,7 @@ var reqinfo;
 var thisDir;
 
 if ( typeof window !== 'undefined' ) {
-    thisDir = '.';
+    thisDir = '/test';
 } else {
     thisDir = __dirname;
 }

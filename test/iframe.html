@@ -41,6 +41,7 @@ function run_on_load(event) {
         browser_executor.register( as, 'test.int.anon:1.0', integrationFace.interface_impl );
         browser_executor.register( as, 'test.int.bidirect:1.0', integrationFace.interface_impl );
         browser_executor.register( as, 'test.int.anonsec:1.0', integrationFace.interface_impl );
+        console.log('Ready');
     } )
     .execute();
 };

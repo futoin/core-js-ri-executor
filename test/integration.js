@@ -30,7 +30,7 @@ let request;
 let crypto;
 
 if ( is_in_browser ) {
-    thisDir = '.';
+    thisDir = '/test';
 } else {
     thisDir = __dirname;
 
@@ -209,6 +209,27 @@ model_as.add(
         } else {
             end_point = "browser://server_frame";
             secend_point = end_point;
+
+            as.repeat( 10, ( as ) => {
+                as.add(
+                    ( as ) => {
+                        as.state.ccm.iface( 'test_if_anon' ).call( as, "noParams" );
+                    },
+                    ( as, err ) => {
+                        as.add( ( as ) => {
+                            as.waitExternal();
+                            setTimeout( () => {
+                                try {
+                                    as.continue();
+                                } catch ( e ) {
+                                    // pass
+                                }
+                            }, 100 );
+                        } );
+                    }
+                );
+                as.add( ( as ) => as.break() );
+            } );
         }
 
         let state = as.state;

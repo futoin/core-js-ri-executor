@@ -38,18 +38,6 @@ module.exports = {
             commonjs: "futoin-executor",
             commonjs2: "futoin-executor",
         },
-        chai : {
-            root: "chai",
-            amd: "chai",
-            commonjs: "chai",
-            commonjs2: "chai",
-        },
-        mocha : {
-            root: "mocha",
-            amd: "mocha",
-            commonjs: "mocha",
-            commonjs2: "mocha",
-        },
     },
     node : false,
 };
