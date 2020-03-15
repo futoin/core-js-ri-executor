@@ -57,23 +57,23 @@
   "dependencies": {
     "cookie": "^0.4.0",
     "detect-node": "^2.0.4",
-    "futoin-asyncevent": "^2.3.2",
-    "futoin-ipset": "^1.3.4",
+    "futoin-asyncevent": "^2.3.4",
+    "futoin-ipset": "^1.3.5",
     "lodash": "^4.17.15",
     "lru-cache": "^5.1.1",
     "performance-now": "^2.1.0",
-    "ws": "^7.2.1"
+    "ws": "^7.2.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.7",
-    "@babel/plugin-transform-object-assign": "^7.7.4",
-    "@babel/preset-env": "^7.7.7",
+    "@babel/core": "^7.8.7",
+    "@babel/plugin-transform-object-assign": "^7.8.3",
+    "@babel/preset-env": "^7.8.7",
     "babel-loader": "^8.0.6",
     "chai": "^4.2.0",
-    "core-js": "^3.6.1",
+    "core-js": "^3.6.4",
     "eslint": "^6.8.0",
-    "futoin-asyncsteps": "^2.4.3",
-    "futoin-invoker": "^2.4.1",
+    "futoin-asyncsteps": "^2.5.1",
+    "futoin-invoker": "^2.4.2",
     "grunt": "^1.0.4",
     "grunt-babel": "^8.0.0",
     "grunt-eslint": "^22.0.0",
@@ -83,14 +83,14 @@
     "grunt-text-replace": "^0.4.0",
     "grunt-webpack": "^3.1.3",
     "karma": "^4.4.1",
-    "karma-firefox-launcher": "^1.2.0",
+    "karma-firefox-launcher": "^1.3.0",
     "karma-mocha": "^1.3.0",
     "karma-mocha-reporter": "^2.2.5",
     "memorystream": "^0.3.1",
-    "minimist": "^1.2.0",
-    "mocha": "^7.0.0",
-    "request": "^2.88.0",
-    "webpack": "4.41.5"
+    "minimist": "^1.2.5",
+    "mocha": "^7.1.0",
+    "request": "^2.88.2",
+    "webpack": "4.42.0"
   },
   "peerDependencies": {
     "futoin-asyncsteps": "^2.3.2",
@@ -98,7 +98,7 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.1",
-    "posix": "^4.1.2",
+    "posix": "^4.2.0",
     "utf-8-validate": "^5.0.2"
   }
 }
