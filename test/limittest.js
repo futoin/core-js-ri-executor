@@ -34,7 +34,7 @@ describe( 'Request Limiter', function() {
     const CONN_LIMIT = 8;
     const CUSTOM_CONN_LIMIT = 6;
     const REQ_LIMIT = 10;
-    const PERIOD_MS = 300;
+    const PERIOD_MS = 600;
 
     const make_ping = ( done, headers={} ) => {
         return request( {
@@ -56,6 +56,8 @@ describe( 'Request Limiter', function() {
             }
         } );
     };
+
+    this.timeout( 5e3 );
 
     beforeEach( function() {
         as = $as();
