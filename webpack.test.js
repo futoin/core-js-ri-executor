@@ -38,6 +38,12 @@ module.exports = {
             commonjs: "futoin-executor",
             commonjs2: "futoin-executor",
         },
+        '@futoin/log' : {
+            root: "FutoInLog",
+            amd: "@futoin/log",
+            commonjs: "@futoin/log",
+            commonjs2: "@futoin/log",
+        },
     },
     node : false,
 };
