@@ -26,7 +26,7 @@ const {
 let _clone = require( 'lodash/clone' );
 
 let thisDir;
-let request;
+let tinyJsonHttp;
 let crypto;
 
 if ( is_in_browser ) {
@@ -34,7 +34,7 @@ if ( is_in_browser ) {
 } else {
     thisDir = __dirname;
 
-    request = mod.require( 'request' );
+    tinyJsonHttp = mod.require( 'tiny-json-http' );
     crypto = mod.require( 'crypto' );
 }
 
@@ -718,21 +718,12 @@ model_as.add(
             as.add( function( as ) {
                 as.setTimeout( 1e3 );
 
-                request( {
-                    method: 'POST',
+                as.await( tinyJsonHttp.post( {
                     url: 'http://localhost:1080/ftn',
                     body: 'some invalid message',
-                }, function( e, r, b ) {
-                    if ( !e && r.statusCode == 200 ) {
-                        as.success( b );
-                    } else {
-                        try {
-                            as.error( e );
-                        } catch ( e ) {
-                            // pass
-                        }
-                    }
-                } );
+                    buffer: true,
+                } ) );
+                as.add( ( as, { body } ) => as.success( body ) );
             } );
             as.add( function( as, res ) {
                 expect( res ).equal( '{"e":"InvalidRequest","edesc":"Missing req.f"}' );

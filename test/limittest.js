@@ -21,7 +21,7 @@ const {
     LegacySecurityProvider,
 } = executor_module;
 
-const request = require( 'request' );
+const tinyJsonHttp = require( 'tiny-json-http' );
 
 const expect = require( 'chai' ).expect;
 
@@ -37,23 +37,17 @@ describe( 'Request Limiter', function() {
     const PERIOD_MS = 600;
 
     const make_ping = ( done, headers={} ) => {
-        return request( {
-            method: 'POST',
+        return tinyJsonHttp.post( {
             url: 'http://127.0.0.1:8123/',
-            body: JSON.stringify( {
+            data: {
                 f: 'futoin.ping:1.0:ping',
                 p: { echo : 1 },
                 sec: 'user:pass',
-            } ),
+            },
             headers,
-        }, function( e, r, b ) {
-            if ( e || r.statusCode !== 200 ) {
-                console.log( e );
-                console.log( b );
-                done( e || 'Fail' );
-            } else {
-                // console.log( b );
-            }
+        } ).catch( ( e ) => {
+            console.log( e );
+            done( e || 'Fail' );
         } );
     };
 
@@ -101,6 +95,7 @@ describe( 'Request Limiter', function() {
 
                 executor = new NodeExecutor( ccm, {
                     securityProvider: legacy_secprov,
+                    httpAddr: '127.0.0.1',
                     httpPort : 8123,
                     enableLimiter: true,
                     trustProxy: true,
@@ -124,6 +119,21 @@ describe( 'Request Limiter', function() {
                             '192.168.0.0/16',
                         ],
                     },
+                    /* messageSniffer: ( src, rawmsg, isreq ) => {
+                        console.log( 'message ' + ( isreq ? 'req' : 'rsp' ) );
+                        console.log( src );
+                        console.dir( Buffer.isBuffer( rawmsg ) ? rawmsg.toString( 'utf-8' ) : rawmsg );
+                    }, */
+                } );
+                executor.on( 'clientError', ( req, info ) => {
+                    console.log( 'clientError' );
+                    console.dir( req );
+                    console.log( info );
+                } );
+                executor.on( 'error', ( reqinfo, info ) => {
+                    console.log( 'error' );
+                    console.dir( reqinfo );
+                    console.log( info );
                 } );
                 impl = DelayedPingService.register( as, executor );
             },

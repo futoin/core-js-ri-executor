@@ -349,7 +349,7 @@ const NodeExecutorOptions =
             max_queue: 32,
             rate: 10,
             period_ms: 1e3,
-            bust: 8, // force to concurrent max
+            burst: 8, // force to concurrent max
             v4scope: 24, // class C
             v6scope: 48, // End Site default
         },
@@ -522,7 +522,7 @@ class NodeExecutor extends Executor {
         // ---
         req.on(
             'error',
-            () => this.emit( 'requestError', req )
+            () => this.emit( 'clientError', req )
         );
 
         if ( ( req_url === http_path ) ||
@@ -665,7 +665,7 @@ class NodeExecutor extends Executor {
 
         const close_req = () => as.cancel();
 
-        req.once( 'close', close_req );
+        rsp.once( 'close', close_req );
 
         reqinfo._as = as;
 
@@ -673,7 +673,7 @@ class NodeExecutor extends Executor {
             const ftnrsp = Buffer.from( '{"e":"InternalError"}' );
 
             reqinfo._cleanup();
-            req.removeListener( 'close', close_req );
+            rsp.removeListener( 'close', close_req );
 
             this._msg_sniffer( source_address, ftnrsp, false );
 
@@ -698,7 +698,7 @@ class NodeExecutor extends Executor {
                     const ftnrsp = reqinfo_info.RAW_RESPONSE;
 
                     reqinfo._cleanup();
-                    req.removeListener( 'close', close_req );
+                    rsp.removeListener( 'close', close_req );
 
                     as.waitExternal();
                     rsp.on( 'finish', () => {
@@ -934,6 +934,10 @@ class NodeExecutor extends Executor {
 
         if ( this._http_server ) {
             this._http_server.close( close_common );
+
+            if ( this._http_server.closeIdleConnections ) {
+                this._http_server.closeIdleConnections();
+            }
         } else {
             close_common();
         }
@@ -1003,8 +1007,8 @@ class NodeExecutor extends Executor {
 
         // also reset current limits
         const max = this._limitCacheMax();
-        this._host2lim = new LRUCache( max );
-        this._scope2lim = new LRUCache( max );
+        this._host2lim = new LRUCache( { max } );
+        this._scope2lim = new LRUCache( { max } );
     }
 
     /**
@@ -1026,7 +1030,7 @@ class NodeExecutor extends Executor {
 
         try {
             const posix = require( 'posix' );
-            return posix.getrlimit( 'nofile' );
+            return posix.getrlimit( 'nofile' ).soft;
         } catch ( _ ) {
             const default_lim = 10240; // more or less safe default
             // eslint-disable-next-line no-console
@@ -1100,7 +1104,7 @@ class NodeExecutor extends Executor {
         for ( let cache of [ this._host2lim, this._scope2lim ] ) {
             cache.forEach( ( v, k ) => {
                 if ( v.isStale() ) {
-                    cache.del( k );
+                    cache.delete( k );
                 }
             } );
         }

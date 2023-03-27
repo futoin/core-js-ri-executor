@@ -179,6 +179,8 @@ class Executor {
             'response',
             'notExpected',
             'close',
+            'clientError',
+            'error',
         ] );
 
         this._ccm = ccm;
