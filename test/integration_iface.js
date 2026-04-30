@@ -3,7 +3,7 @@
 require( './prepare' );
 
 const chai = require( 'chai' );
-const { expect } = chai;
+const { assert, expect } = chai;
 
 if ( typeof window !== 'undefined' ) {
     module.exports = exports = window.integrationFace = {
@@ -396,7 +396,7 @@ exports.interface_impl = {
             function( as, err ) {
                 console.log( "Error: ", err, as.state.error_info );
                 console.log( as.state.last_exception.stack );
-            }
+            },
         );
     },
 
@@ -469,7 +469,7 @@ exports.interface_impl = {
                     },
                     function( as, err ) {
                         as.error( 'InternalError', as.state.error_info );
-                    }
+                    },
                 );
         } catch ( e ) {
             console.log( e.stack );

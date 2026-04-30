@@ -33,7 +33,7 @@ class SecurityProvider {
      * @param {AsyncSteps} as - AsyncSteps interface
      * @param {RequestInfo} reqinfo - extended request info
      * @param {object} reqmsg - request message as is
-     * @param {array} sec - reqmsg.sec field split by ':'
+     * @param {Array} sec - reqmsg.sec field split by ':'
      */
     checkAuth( as, reqinfo, reqmsg, sec ) {
         as.error( NotImplemented,
@@ -70,7 +70,7 @@ class SecurityProvider {
      * Check access through Access Control concept
      * @param {AsyncSteps} as - AsyncSteps interface
      * @param {RequestInfo} reqinfo - extended request info
-     * @param {string|array} acd - access control descriptor
+     * @param {string | Array} acd - access control descriptor
      */
     checkAccess( as, reqinfo, acd ) {
         as.error( NotImplemented,
@@ -85,9 +85,9 @@ class SecurityProvider {
      * @param {RequestInfo} reqinfo - extended request info
      * @param {string} seclvl - security level
      * @param {object} auth_info - authentication info
-     * @param {integer|string} auth_info.local_id - Local User ID
+     * @param {number|string} auth_info.local_id - Local User ID, integer or string
      * @param {string} auth_info.global_id - Global User ID
-     * @param {object} [auth_info.details=null] - user details
+     * @param {object} [auth_info.details] - user details
      */
     _setUser( as, reqinfo, seclvl, { local_id, global_id, details = null } ) {
         const reqinfo_info = reqinfo.info;

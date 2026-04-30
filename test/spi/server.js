@@ -62,5 +62,5 @@ $as().add(
     ( as, err ) => {
         console.log( err + " " + as.state.error_info );
         console.log( as.state.last_exception.stack );
-    }
+    },
 ).execute();

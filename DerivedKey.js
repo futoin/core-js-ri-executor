@@ -24,8 +24,8 @@
  *
  * A dummy so far.
  * @param {AdvancedCCM} ccm - reference to CCM
- * @param {integer} base_id - master key ID
- * @param {integer} sequence_id - sequence number of the derived key
+ * @param {number} base_id - master key ID, integer
+ * @param {number} sequence_id - sequence number of the derived key, integer
  * @class
  */
 class DerivedKey {
@@ -37,7 +37,7 @@ class DerivedKey {
 
     /**
      * Get master key ID
-     * @returns {integer} Base ID
+     * @returns {number} Base ID, integer
      */
     baseID() {
         return this._base_id;
@@ -45,7 +45,7 @@ class DerivedKey {
 
     /**
      * Get derived key sequence ID
-     * @returns {integer} Sequence ID
+     * @returns {number} Sequence ID, integer
      */
     sequenceID() {
         return this._sequence_id;

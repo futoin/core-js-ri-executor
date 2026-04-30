@@ -82,7 +82,7 @@ describe( 'Executor', function() {
                 function( as, err ) {
                     console.dir( as.state._orig_error.stack );
                     done( new Error( err + ": " + as.state.error_info ) );
-                }
+                },
             ).add( function( as ) {
                 done();
             } );
@@ -104,7 +104,7 @@ describe( 'Executor', function() {
                     } catch ( e ) {
                         done( e );
                     }
-                }
+                },
             ).add( function( as ) {
                 done( new Error( "Failed" ) );
             } );
@@ -128,7 +128,7 @@ describe( 'Executor', function() {
                     } catch( e ) {
                         done( e );
                     }
-                }
+                },
             ).add( function( as ) {
                 done( "Failed" );
             } );
@@ -164,7 +164,7 @@ describe( 'Executor', function() {
                 },
                 function( as, err ) {
                     done( new Error( err + ": " + as.state.error_info ) );
-                }
+                },
             ).add( function( as ) {
                 try {
                     var res = as.state.reqinfo.result();
@@ -192,7 +192,7 @@ describe( 'Executor', function() {
                 },
                 function( as, err ) {
                     done( new Error( err + ": " + as.state.error_info ) );
-                }
+                },
             ).add( function( as ) {
                 try {
                     var rsp = as.state.reqinfo.info()[ reqinfo.INFO_RAW_RESPONSE ];
@@ -222,7 +222,7 @@ describe( 'Executor', function() {
                 },
                 function( as, err ) {
                     done( new Error( err + ": " + as.state.error_info ) );
-                }
+                },
             ).add( function( as ) {
                 try {
                     assert.strictEqual( null, as.state.reqinfo.info()[ reqinfo.INFO_RAW_RESPONSE ] );
@@ -248,7 +248,7 @@ describe( 'Executor', function() {
                 },
                 function( as, err ) {
                     done( new Error( err + ": " + as.state.error_info ) );
-                }
+                },
             ).add( function( as ) {
                 try {
                     expect( as.state.reqinfo.info()[ reqinfo.INFO_RAW_RESPONSE ] ).eql( { r:{} } );
@@ -294,7 +294,7 @@ describe( 'Executor', function() {
                 function( as, err ) {
                     console.log( as.state.error_info );
                     done( as.state.last_exception );
-                }
+                },
             );
             as.add( function( as ) {
                 done();
@@ -316,7 +316,7 @@ describe( 'Executor', function() {
                 },
                 function( as, err ) {
                     done( new Error( err + ": " + as.state.error_info ) );
-                }
+                },
             ).add( function( as ) {
                 try {
                     expect( as.state.reqinfo.info()[ reqinfo.INFO_RAW_RESPONSE ] ).eql( { r:{ arg: null } } );

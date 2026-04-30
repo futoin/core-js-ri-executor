@@ -135,7 +135,7 @@ module.exports = function( grunt ) {
                         served: true, included: false, nocache: true },
                     { src: [ 'dist/iframe.js' ],
                         served: true, included: false, nocache: true },
-                    { src: [ 'node_modules/chai/chai.js' ],
+                    { src: [ 'node_modules/chai/index.js' ],
                         served: true, included: false, nocache: true },
                     { src: [ 'test/iframe.html' ],
                         served: true, included: false, nocache: false },

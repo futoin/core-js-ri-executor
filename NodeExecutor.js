@@ -25,7 +25,7 @@ const http = require( 'http' );
 const url = require( 'url' );
 const async_steps = require( 'futoin-asyncsteps' );
 const cookie = require( "cookie" );
-const LRUCache = require( 'lru-cache' );
+const { LRUCache } = require( 'lru-cache' );
 
 const { IPSet, Address4 } = require( 'futoin-ipset' );
 const performance_now = require( "performance-now" );
@@ -150,7 +150,7 @@ class WSChannelContext extends ChannelContext {
     onInvokerAbort( callable, user_data ) {
         this._ws_conn.on(
             'close',
-            () => callable( user_data )
+            () => callable( user_data ),
         );
     }
 
@@ -259,7 +259,7 @@ class ExecutorLimiter extends Limiter {
 /**
  * Pseudo-class for NodeExecutor options documentation
  * @class
- * @extends ExecutorOptions
+ * @augments ExecutorOptions
  */
 const NodeExecutorOptions =
 {
@@ -390,9 +390,8 @@ class NodeExecutor extends Executor {
 
         // ---
         if ( !opts.httpPath ) {
-            /* eslint-disable no-console */
             console.log( '[Executor] Missing httpPath option' );
-            /* eslint-enable no-console */
+
             throw Error( 'InternalError' );
         }
 
@@ -425,14 +424,13 @@ class NodeExecutor extends Executor {
 
             http_server.on(
                 'listening',
-                () => this.emit( 'ready' )
+                () => this.emit( 'ready' ),
             );
 
             managed_server = true;
         } else {
-            /* eslint-disable no-console */
             console.log( '[Executor] Neither httpServer nor httpAddr & httpPort set' );
-            /* eslint-enable no-console */
+
             throw Error( 'InternalError' );
         }
 
@@ -456,7 +454,7 @@ class NodeExecutor extends Executor {
                         // ignore
                     }
                 }
-            }
+            },
         );
 
         // WebSocket
@@ -487,7 +485,7 @@ class NodeExecutor extends Executor {
                         // ignore
                     }
                 }
-            }
+            },
         );
 
         this._stale_conn = opts.cleanupConnMS * 1.5;
@@ -505,11 +503,11 @@ class NodeExecutor extends Executor {
     }
 
     /**
-    * Entry point to process HTTP request
-    * @param {http.IncomingMessage} req - incoming HTTP request
-    * @param {http.ServerResponse} rsp - response object
-    * @returns {Boolean} true on success
-    */
+     * Entry point to process HTTP request
+     * @param {http.IncomingMessage} req - incoming HTTP request
+     * @param {http.ServerResponse} rsp - response object
+     * @returns {boolean} true on success
+     */
     handleHTTPRequest( req, rsp ) {
         // ---
         const http_path = this._http_path;
@@ -522,7 +520,7 @@ class NodeExecutor extends Executor {
         // ---
         req.on(
             'error',
-            () => this.emit( 'clientError', req )
+            () => this.emit( 'clientError', req ),
         );
 
         if ( ( req_url === http_path ) ||
@@ -554,7 +552,7 @@ class NodeExecutor extends Executor {
                     }
 
                     data.push( chunk );
-                }
+                },
             );
 
             req.on(
@@ -571,7 +569,7 @@ class NodeExecutor extends Executor {
                     }
 
                     this._handleHTTPRequestCommon( { ftnreq, req, rsp, coder } );
-                }
+                },
             );
             return true;
         }
@@ -682,7 +680,7 @@ class NodeExecutor extends Executor {
                 {
                     'Content-Type' : 'application/futoin+json',
                     'Content-Length' : ftnrsp.length,
-                }
+                },
             );
             rsp.end( ftnrsp );
         };
@@ -719,7 +717,7 @@ class NodeExecutor extends Executor {
                             {
                                 'Content-Type' : coder.contentType(),
                                 'Content-Length' : rawmsg.length,
-                            }
+                            },
                         );
                         rsp.end( rawmsg );
                     } else {
@@ -733,22 +731,22 @@ class NodeExecutor extends Executor {
             },
             ( as, err ) => {
                 this.emit( 'error', reqinfo, 'Internal Server Error' );
-            }
+            },
         ).execute();
     }
 
     /**
-    * Entry point to process HTTP upgrade request with WebSocket
-    * @param {http.IncomingMessage} upgrade_req - original HTTP upgrade request
-    * @param {WebSocket} ws - WebSockets connection object
-    */
+     * Entry point to process HTTP upgrade request with WebSocket
+     * @param {http.IncomingMessage} upgrade_req - original HTTP upgrade request
+     * @param {WebSocket} ws - WebSockets connection object
+     */
     handleWSConnection( upgrade_req, ws ) {
         // ---
         const source_host = this._clientAddress( upgrade_req );
         const source_addr = new SourceAddress(
             null,
             source_host,
-            upgrade_req.connection.remotePort
+            upgrade_req.connection.remotePort,
         );
 
         const context = new WSChannelContext( this, ws );
@@ -763,7 +761,7 @@ class NodeExecutor extends Executor {
             ( ) => {
                 this._ws_contexts.delete( context );
                 context._cleanup();
-            }
+            },
         );
 
         this._ws_contexts.add( context );
@@ -803,7 +801,7 @@ class NodeExecutor extends Executor {
                 }
 
                 this._handleWSRequest( context, ftnreq, coder );
-            }
+            },
         );
     }
 
@@ -901,7 +899,7 @@ class NodeExecutor extends Executor {
             },
             ( as, err ) => {
                 this.emit( 'error', reqinfo, 'Internal Server Error' );
-            }
+            },
         );
         as.execute();
     }
@@ -1013,7 +1011,7 @@ class NodeExecutor extends Executor {
 
     /**
      * Access address-limit name ipset for efficient dynamic manipulation
-     * @return {IPSet} - ref to static address to limit mapping
+     * @returns {IPSet} - ref to static address to limit mapping
      */
     get limitsIPSet() {
         return this._address_limit_map;
@@ -1033,7 +1031,7 @@ class NodeExecutor extends Executor {
             return posix.getrlimit( 'nofile' ).soft;
         } catch ( _ ) {
             const default_lim = 10240; // more or less safe default
-            // eslint-disable-next-line no-console
+
             console.warn( `Fallback to default cache size: ${default_lim}` );
             return default_lim;
         }

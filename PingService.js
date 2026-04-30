@@ -31,7 +31,7 @@ class PingService {
      * Register futoin.ping interface with Executor
      * @param {AsyncSteps} as - steps interface
      * @param {Executor} executor - executor instance
-     * @return {PingService} instance by convention
+     * @returns {PingService} instance by convention
      */
     static register( as, executor ) {
         var iface = PingFace.spec( "1.0" );

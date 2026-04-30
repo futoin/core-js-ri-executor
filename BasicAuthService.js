@@ -39,12 +39,12 @@ class BasicAuthService {
     }
 
     /**
-    * BasicAuthService registration helper
-    * @param {AsyncSteps} as - steps interface
-    * @param {Executor} executor - executor instance
-    * @alias BasicAuthService.register
-    * @returns {BasicAuthService} reference to implementation instance (to register users)
-    */
+     * BasicAuthService registration helper
+     * @param {AsyncSteps} as - steps interface
+     * @param {Executor} executor - executor instance
+     * @alias BasicAuthService.register
+     * @returns {BasicAuthService} reference to implementation instance (to register users)
+     */
     static register( as, executor ) {
         const iface = BasicAuthFace.spec( "0.1" );
         const ifacever = iface.iface + ':' + iface.version;
@@ -85,11 +85,12 @@ class BasicAuthService {
         this._user_ids[ next_id ] = user_reg;
     }
 
+    // eslint-disable-next-line jsdoc/require-returns-check
     /**
      * Get by name. Override, if needed.
      * @param {AsyncSteps} as - steps interface
      * @param {string} user - user name
-     * @note as result: {object} user object or null (through as)
+     * @returns {AsyncStepsResult<object>} user object or null (through $as)
      */
     _getUser( as, user ) {
         const u = this._user_list[ user ];
@@ -97,11 +98,12 @@ class BasicAuthService {
         as.add( ( as ) => as.success( u ) );
     }
 
+    // eslint-disable-next-line jsdoc/require-returns-check
     /**
      * Get by ID. Override, if needed.
      * @param {AsyncSteps} as - steps interfaces
      * @param {number} local_id - local ID
-     * @note as result: {object} user object or null (through as)
+     * @returns {AsyncStepsResult<object>} user object or null (through $as)
      */
     _getUserByID( as, local_id ) {
         const u = this._user_ids[ local_id ];

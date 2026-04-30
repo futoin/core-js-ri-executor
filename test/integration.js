@@ -9,9 +9,6 @@ const executor_module = is_in_browser
     ? require( 'futoin-executor' )
     : mod.require( '../lib/main' );
 
-const chai = require( 'chai' );
-const { expect, assert } = chai;
-
 const MemoryStream = is_in_browser ? null : mod.require( 'memorystream' );
 
 const invoker_module = require( 'futoin-invoker' );
@@ -35,8 +32,13 @@ if ( is_in_browser ) {
     thisDir = __dirname;
 
     tinyJsonHttp = mod.require( 'tiny-json-http' );
+    // eslint-disable-next-line no-global-assign
     crypto = mod.require( 'crypto' );
 }
+
+const chai = require( 'chai' );
+const { expect, assert } = chai;
+
 
 let ClientExecutor = executor_module.ClientExecutor;
 let integration_iface = require( './integration_iface' );
@@ -93,7 +95,7 @@ class TestSecurityProvider extends SecurityProvider {
             const base = invoker_module.SpecTools.macBase( rspmsg );
             rspmsg.sec = crypto.createHmac(
                 'sha256',
-                Buffer.from( '111222333444555666777888999', 'base64' )
+                Buffer.from( '111222333444555666777888999', 'base64' ),
             ).update( base ).digest().toString( 'base64' );
             return true;
         }
@@ -124,7 +126,7 @@ class TestSecurityProvider extends SecurityProvider {
         const base = invoker_module.SpecTools.macBase( rawreq );
         const reqsig = crypto.createHmac(
             'sha256',
-            Buffer.from( '111222333444555666777888999', 'base64' )
+            Buffer.from( '111222333444555666777888999', 'base64' ),
         ).update( base ).digest();
         sig = Buffer.from( sig, 'base64' );
 
@@ -145,7 +147,7 @@ class TestSecurityProvider extends SecurityProvider {
         const base = invoker_module.SpecTools.macBase( rawreq );
         const reqsig = crypto.createHmac(
             'sha256',
-            Buffer.from( '111222333444555666777888999', 'base64' )
+            Buffer.from( '111222333444555666777888999', 'base64' ),
         ).update( base ).digest();
         sig = Buffer.from( sig, 'base64' );
 
@@ -226,7 +228,7 @@ model_as.add(
                                 }
                             }, 100 );
                         } );
-                    }
+                    },
                 );
                 as.add( ( as ) => as.break() );
             } );
@@ -362,14 +364,14 @@ model_as.add(
                         hmacKey: 'TXlMb25nTG9uZ1NlY3JldEtleQ==',
                         macKey: '111222333444555666777888999',
                         masterAuth: new TestMasterAuth(),
-                    }
+                    },
                 );
                 executor_ccm.register(
                     as,
                     'subcall',
                     'test.int.anon:1.0',
                     end_point,
-                    'system:pass'
+                    'system:pass',
                 );
             } ).add( function( as ) {
                 as.add(
@@ -395,7 +397,7 @@ model_as.add(
                             expect( as.state.error_info ).equal( "BiDirectChannel is required" );
                             as.success();
                         }
-                    }
+                    },
                 );
             } ).add( function( as ) {
                 if ( node_test ) {
@@ -572,7 +574,7 @@ model_as.add(
                     o : { a : '123' },
                 },
                 upload_data,
-                as.state.membuf
+                as.state.membuf,
             );
         } ).add( function( as ) {
             if ( is_in_browser || internal_test ) return;
@@ -595,7 +597,7 @@ model_as.add(
                     expect( as.state.error_info ).equal( "Bi-Direct Channel is required" );
                     as.success( { a: 'OK' } );
                 }
-            }
+            },
         ).add( function( as, res ) {
             expect( res.a ).equal( 'OK' );
         // --
@@ -607,7 +609,7 @@ model_as.add(
             function( as, err ) {
                 expect( err ).equal( 'InternalError' );
                 as.success( 'OK' );
-            }
+            },
         ).add( function( as, res ) {
             expect( res ).equal( 'OK' );
         // --
@@ -620,7 +622,7 @@ model_as.add(
 
                 set_step( "clientCallback" );
                 bidirect_iface.call( as, 'clientCallback' );
-            }
+            },
         ).add( function( as, res ) {
             expect( res.a ).equal( 'ClientResult' );
         // --
@@ -628,21 +630,21 @@ model_as.add(
             function( as ) {
                 set_step( 'testHTTPheader' );
                 anon_iface.call( as, 'testHTTPheader' );
-            }
+            },
         ).add(
             function( as, res ) {
                 expect( res.r ).equal( as.state.proto.match( /^http/ ) ? 'OK' : 'IGNORE' );
-            }
+            },
         // --
         ).add(
             function( as ) {
                 set_step( 'testOnBehalfOf' );
                 anon_iface.call( as, 'testOnBehalfOf' );
-            }
+            },
         ).add(
             function( as, res ) {
                 expect( res.r ).equal( 'OK' );
-            }
+            },
         // --
         ).add(
             function( as ) {
@@ -660,11 +662,11 @@ model_as.add(
                 expect( err ).equal( 'PleaseReauth' );
                 expect( as.state.error_info.split( ' ' )[0] ).equal( 'ExceptionalOps' );
                 as.success( 'ReauthOK' );
-            }
+            },
         ).add(
             function( as, res ) {
                 expect( res ).equal( 'ReauthOK' );
-            }
+            },
         // --
         ).add(
             function( as, ok ) {
@@ -675,7 +677,7 @@ model_as.add(
                 expect( err ).equal( 'Timeout' );
                 assert.equal( undefined, as.state.error_info );
                 as.success();
-            }
+            },
         ).add(
             function( as ) {
                 set_step( 'serverError' );
@@ -687,7 +689,7 @@ model_as.add(
                 expect( err ).equal( 'ValidError' );
                 assert.equal( undefined, as.state.error_info );
                 as.success();
-            }
+            },
         ).add(
             function( as ) {
                 set_step( 'serverError - invalid' );
@@ -699,7 +701,7 @@ model_as.add(
                 expect( err ).equal( 'InternalError' );
                 expect( as.state.error_info ).equal( 'Not expected error' );
                 as.success();
-            }
+            },
         ).add( function( as ) {
             if ( node_test ) {
                 // console.dir(  as.state.ccm_msgs );
@@ -733,7 +735,7 @@ model_as.add(
     function( as, err ) {
         console.log( as.state.last_exception.stack );
         as.success( new Error( "" + err + ": " + as.state.error_info + " @ " + as.state.step ) );
-    }
+    },
 ).add(
     function( as, err ) {
         if ( as.state.executor ) {
@@ -748,7 +750,7 @@ model_as.add(
     function( as, err ) {
         console.log( as.state.last_exception.stack );
         as.state.done( new Error( "" + err + ": " + as.state.error_info + " @ shutdown" ) );
-    }
+    },
 );
 
 // ---

@@ -47,7 +47,6 @@ class ChannelContext {
      * Get type of channel
      *
      * Standard values: HTTP, WS, BROWSER, TCP, UDP, UNIX
-     *
      * @returns {string} arbitrary string, see FTN6
      * @abstract
      */
@@ -57,8 +56,7 @@ class ChannelContext {
 
     /**
      * Check if transport is stateful (e.g. WebSockets)
-     *
-     * @returns {Boolean} true, if context object is persistent across
+     * @returns {boolean} true, if context object is persistent across
      * requests in the same session
      */
     isStateful() {
@@ -68,9 +66,9 @@ class ChannelContext {
     /**
      * Set invoker abort handler.
      *
-     * @note It should be possible to call multiple times setting
+     * It should be possible to call multiple times setting
      *       multiple callbacks.
-     * @note The callback is set for lifetime of the channel - do not use it on every
+     * The callback is set for lifetime of the channel - do not use it on every
      *       request!
      * @param {Function} callable - callback
      * @param {any=} user_data - optional parameter to pass to callable

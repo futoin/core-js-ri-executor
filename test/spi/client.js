@@ -24,7 +24,7 @@ var argv = require( 'minimist' )(
             proto : 'ws',
             auth : null,
         },
-    }
+    },
 );
 //---
 var url = argv.proto + '://127.0.0.1:34567/stress/';
@@ -68,7 +68,7 @@ model_as.add(
             },
             function( as, err ) {
                 console.log( err );
-            }
+            },
         );
 
         as.loop( function( as ) {
@@ -89,7 +89,7 @@ model_as.add(
                     ++failed_calls;
                     //console.log( as.state.last_exception.stack );
                     as.success();
-                }
+                },
             ).add(
                 function( as ) {
                     iface.call( as, 'noResult', { a : 'a' } );
@@ -103,7 +103,7 @@ model_as.add(
                     ++failed_calls;
                     //console.log( as.state.last_exception.stack );
                     as.success();
-                }
+                },
             ).add(
                 function( as ) {
                     iface.call( as, 'errorCall' );
@@ -122,14 +122,14 @@ model_as.add(
                     }
 
                     as.success();
-                }
+                },
             );
         } );
     },
     function( as, err ) {
         console.log( err, as.state.error_info );
         console.log( as.state.last_exception.stack );
-    }
+    },
 );
 
 //---

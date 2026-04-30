@@ -126,7 +126,7 @@ class LegacySecurityProvider extends SecurityProvider {
                 // console.log( as.state.last_exception.stack );
                 as.error( SecurityError,
                     "Basic Auth Verification Failed" );
-            }
+            },
         );
     }
 
@@ -160,7 +160,7 @@ class LegacySecurityProvider extends SecurityProvider {
                 // console.log( as.state.last_exception.stack );
                 as.error( SecurityError,
                     "Legacy Signature Verification Failed" );
-            }
+            },
         );
     }
 

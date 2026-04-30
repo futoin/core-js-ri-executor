@@ -140,7 +140,7 @@ describe( 'Request Limiter', function() {
             ( as, err ) => {
                 console.log( err, as.state.error_info );
                 console.log( as.state.last_exception );
-            }
+            },
         );
     } );
 
@@ -189,7 +189,7 @@ describe( 'Request Limiter', function() {
             ( as, err ) => {
                 console.log( `${err}:${as.state.error_info}` );
                 done( as.state.last_exception || 'Fail' );
-            }
+            },
         );
         as.add( ( as ) => done() );
         as.execute();
@@ -278,7 +278,7 @@ describe( 'Request Limiter', function() {
             ( as, err ) => {
                 console.log( `${err}:${as.state.error_info}` );
                 done( as.state.last_exception || 'Fail' );
-            }
+            },
         );
         as.add( ( as ) => done() );
         as.execute();
@@ -355,7 +355,7 @@ describe( 'Request Limiter', function() {
             ( as, err ) => {
                 console.log( `${err}:${as.state.error_info}` );
                 done( as.state.last_exception || 'Fail' );
-            }
+            },
         );
         as.add( ( as ) => done() );
         as.execute();

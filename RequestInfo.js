@@ -31,7 +31,7 @@ const { cancelCall, callLater } = require( 'futoin-asyncsteps' ).AsyncTool;
 const RequestInfoConst = {
     /**
      * Security Level - Anonymous
-     * @const
+     * @constant
      * @see RequestInfoConst.INFO_SECURITY_LEVEL
      * @default
      */
@@ -43,7 +43,7 @@ const RequestInfoConst = {
      * NOTE: it is level of user authentication, but
      * not authorization. This one is equal to
      * HTTP cookie-based authentication.
-     * @const
+     * @constant
      * @see RequestInfoConst.INFO_SECURITY_LEVEL
      * @default
      */
@@ -55,7 +55,7 @@ const RequestInfoConst = {
      * NOTE: it is level of user authentication, but
      * not authorization. This one is equal to
      * HTTP Basic Auth.
-     * @const
+     * @constant
      * @see RequestInfoConst.INFO_SECURITY_LEVEL
      * @default
      */
@@ -73,7 +73,7 @@ const RequestInfoConst = {
      * NOTE: it is level of user authentication, but
      * not authorization. This one equals to
      * multi-factor authentication and signed requests.
-     * @const
+     * @constant
      * @see RequestInfoConst.INFO_SECURITY_LEVEL
      * @default
      */
@@ -86,7 +86,7 @@ const RequestInfoConst = {
      * not authorization. This one equals to
      * multi-factor authentication for each action and
      * signed requests.
-     * @const
+     * @constant
      * @see RequestInfoConst.INFO_SECURITY_LEVEL
      * @default
      */
@@ -99,7 +99,7 @@ const RequestInfoConst = {
      * not authorization. This one equals to
      * internal system authorization. User never gets
      * such security level.
-     * @const
+     * @constant
      * @see RequestInfoConst.INFO_SECURITY_LEVEL
      * @default
      */
@@ -242,20 +242,20 @@ class RequestInfo {
     }
 
     /**
-    * Get reference to input params
-    * @return {object} parameter holder
-    * @alias RequestInfo#params
-    */
+     * Get reference to input params
+     * @returns {object} parameter holder
+     * @alias RequestInfo#params
+     */
     params() {
         return this._rawreq.p;
     }
 
     /**
-    * Get reference to output
-    * @param {*} replace - replace result object
-    * @return {object} result variable holder
-    * @alias RequestInfo#result
-    */
+     * Get reference to output
+     * @param {any} replace - replace result object
+     * @returns {object} result variable holder
+     * @alias RequestInfo#result
+     */
     result( replace ) {
         if ( replace ) {
             this._rawrsp.r = replace;
@@ -265,19 +265,19 @@ class RequestInfo {
     }
 
     /**
-    * Get reference to info map object
-    *
-    * NOTE: reqInfo.info() === reqInfo.info
-    * @alias RequestInfo#info
-    * @member {object}
-    */
+     * Get reference to info map object
+     *
+     * NOTE: reqInfo.info() === reqInfo.info
+     * @alias RequestInfo#info
+     * @member {object}
+     */
 
     /**
-    * Get reference to input stream
-    * @throws RawInputError
-    * @returns {object} raw input stream
-    * @alias RequestInfo#rawInput
-    */
+     * Get reference to input stream
+     * @throws {Error} RawInputError
+     * @returns {object} raw input stream
+     * @alias RequestInfo#rawInput
+     */
     rawInput() {
         let rawinp = this._rawinp;
 
@@ -298,11 +298,11 @@ class RequestInfo {
     }
 
     /**
-    * Get reference to output stream
-    * @throws RawOutputError
-    * @returns {object} raw output stream
-    * @alias RequestInfo#rawOutput
-    */
+     * Get reference to output stream
+     * @throws {Error} RawOutputError
+     * @returns {object} raw output stream
+     * @alias RequestInfo#rawOutput
+     */
     rawOutput() {
         let rawout = this._rawout;
 
@@ -323,40 +323,40 @@ class RequestInfo {
     }
 
     /**
-    * Get reference to associated Executor instance
-    * @returns {Executor} _
-    * @alias RequestInfo#executor
-    */
+     * Get reference to associated Executor instance
+     * @returns {Executor} _
+     * @alias RequestInfo#executor
+     */
     executor() {
         return this._executor;
     }
 
     /**
-    * Get reference to associated Executor's CCM instance
-    * @returns {AdvancedCCM} _
-    * @alias RequestInfo#ccm
-    */
+     * Get reference to associated Executor's CCM instance
+     * @returns {AdvancedCCM} _
+     * @alias RequestInfo#ccm
+     */
     ccm() {
         return this._executor.ccm();
     }
 
     /**
-    * Get reference to channel context
-    * @returns {ChannelContext} _
-    * @alias RequestInfo#channel
-    */
+     * Get reference to channel context
+     * @returns {ChannelContext} _
+     * @alias RequestInfo#channel
+     */
     channel() {
         return this.info.CHANNEL_CONTEXT;
     }
 
     /**
-    * Set overall request processing timeout in microseconds.
-    *
-    * NOTE: repeat calls override previous value
-    * @param {float} time_ms - set automatic request timeout after specified
-    *        value of microseconds. 0 - disables timeout
-    * @alias RequestInfo#cancelAfter
-    */
+     * Set overall request processing timeout in microseconds.
+     *
+     * NOTE: repeat calls override previous value
+     * @param {number} time_ms - set automatic request timeout after specified
+     *        value of microseconds. 0 - disables timeout
+     * @alias RequestInfo#cancelAfter
+     */
     cancelAfter( time_ms ) {
         if ( this._cancelAfter ) {
             cancelCall( this._cancelAfter );
@@ -368,14 +368,14 @@ class RequestInfo {
                 ( ) => {
                     this._as.cancel();
                 },
-                time_ms
+                time_ms,
             );
         }
     }
 
     /**
-    * @ignore
-    */
+     * @ignore
+     */
     _cleanup() {
         const info = this.info;
 

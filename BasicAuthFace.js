@@ -27,15 +27,15 @@ const { NativeIface } = require( 'futoin-invoker' );
  */
 class BasicAuthFace extends NativeIface {
     /**
-    * BasicAuth interface registration helper
-    * @param {AsyncSteps} as - step interface
-    * @param {AdvancedCCM} ccm - CCM instance
-    * @param {string} endpoint - endpoint URL
-    * @param {*} [credentials=null] - see CCM register()
-    * @param {object} [options={}] - registration options
-    * @param {string} [options.version=1.0] - iface version
-    * @alias BasicAuthFace.register
-    */
+     * BasicAuth interface registration helper
+     * @param {AsyncSteps} as - step interface
+     * @param {AdvancedCCM} ccm - CCM instance
+     * @param {string} endpoint - endpoint URL
+     * @param {any} [credentials] - see CCM register()
+     * @param {object} [options] - registration options
+     * @param {string} [options.version] - iface version
+     * @alias BasicAuthFace.register
+     */
     static register( as, ccm, endpoint, credentials, options ) {
         options = options || {};
         const ifacever = options.version || '0.1';
@@ -50,7 +50,7 @@ class BasicAuthFace extends NativeIface {
             iface.iface + ':' + iface.version,
             endpoint,
             credentials,
-            options
+            options,
         );
     }
 }

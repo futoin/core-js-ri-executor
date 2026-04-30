@@ -29,91 +29,91 @@ const UserInfoConst =
 {
     /**
      * Login Name
-     * @const
+     * @constant
      * @default
      */
     INFO_Login : "Login",
 
     /**
      * Nick Name
-     * @const
+     * @constant
      * @default
      */
     INFO_Nick : "Nick",
 
     /**
      * First Name
-     * @const
+     * @constant
      * @default
      */
     INFO_FirstName : "FirstName",
 
     /**
      * Full Name
-     * @const
+     * @constant
      * @default
      */
     INFO_FullName : "FullName",
 
     /**
      * Date if birth in ISO "YYYY-MM-DD" format
-     * @const
+     * @constant
      * @default
      */
     INFO_DateOfBirth : "DateOfBirth",
 
     /**
      * Date if birth in ISO "HH:mm:ss" format, can be truncated to minutes
-     * @const
+     * @constant
      * @default
      */
     INFO_TimeOfBirth : "TimeOfBirth",
 
     /**
      * E-mail for contacts
-     * @const
+     * @constant
      * @default
      */
     INFO_ContactEmail : "ContactEmail",
 
     /**
      * Phone for contacts
-     * @const
+     * @constant
      * @default
      */
     INFO_ContactPhone : "ContactPhone",
 
     /**
      * Home address
-     * @const
+     * @constant
      * @default
      */
     INFO_HomeAddress : "HomeAddress",
 
     /**
      * Work address
-     * @const
+     * @constant
      * @default
      */
     INFO_WorkAddress : "WorkAddress",
 
     /**
      * Citizenship
-     * @const
+     * @constant
      * @default
      */
     INFO_Citizenship : "Citizenship",
 
     /**
      * Country-specific unique registration ID, e,g, SSN, PersonalCode, etc.
-     * @const
+     * @constant
      * @default
      */
     INFO_GovernmentRegID : "GovernmentRegID",
 
     /**
      * URL of avatar image
-     * @const
+     * @constant
      * @default
      */
     INFO_AvatarURL : "AvatarURL",
@@ -122,7 +122,7 @@ const UserInfoConst =
 /**
  * Class representing user information
  * @param {AdvancedCCM} ccm - reference to CCM
- * @param {integer} local_id - local unique ID
+ * @param {number} local_id - local unique ID, integer
  * @param {string} global_id - global unique ID
  * @param {object} details - user info fields, see UserInfoConst
  * @class
@@ -136,30 +136,30 @@ class UserInfo {
     }
 
     /**
-    * Get local unique ID
-    * @alias UserInfo#localID
-    * @returns {integer} Local ID
-    */
+     * Get local unique ID
+     * @alias UserInfo#localID
+     * @returns {number} Local ID, integer
+     */
     localID() {
         return this._local_id;
     }
 
     /**
-    * Get local global ID
-    * @alias UserInfo#globalID
-    * @returns {string} Global ID
-    */
+     * Get local global ID
+     * @alias UserInfo#globalID
+     * @returns {string} Global ID
+     */
     globalID() {
         return this._global_id;
     }
 
     /**
-    * Get user info details
-    * @param {AsyncSteps} as - steps interface
-    * @param {object=} user_field_identifiers - field list to get
-    * @alias UserInfo#details
-    * @returns {AsyncSteps} for easy chaining. {object} with details through as.success()
-    */
+     * Get user info details
+     * @param {AsyncSteps} as - steps interface
+     * @param {object=} user_field_identifiers - field list to get
+     * @alias UserInfo#details
+     * @returns {AsyncSteps} for easy chaining. {object} with details through as.success()
+     */
     details( as, user_field_identifiers ) {
         const user_details = this._details;
 

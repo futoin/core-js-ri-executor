@@ -92,7 +92,7 @@ class BrowserChannelContext extends ChannelContext {
 /**
  * Pseudo-class for BrowserExecutor options documentation
  * @class
- * @extends ExecutorOptions
+ * @augments ExecutorOptions
  */
 const BrowserExecutorOptions =
 {
@@ -107,8 +107,8 @@ const BrowserExecutorOptions =
      * It is MANDATORY for security reasons.
      *
      * Example:
-     * * 'http://localhost:8000'
-     * * 'http://example.com'
+     * 'http://localhost:8000'
+     * 'http://example.com'
      * @default
      */
     allowedOrigins : [],
@@ -245,7 +245,7 @@ class BrowserExecutor extends Executor {
         const source_addr = new SourceAddress(
             'LOCAL',
             source,
-            origin
+            origin,
         );
 
         // ---
@@ -303,12 +303,12 @@ class BrowserExecutor extends Executor {
     }
 
     /**
-    * Current list of allowed origins for modifications. Please note that
-    * it is an object, where field is actual origin and value must evaluate
-    * to true.
-    * @alias BrowserExecutor.allowed_origins
-    * @member {object}
-    */
+     * Current list of allowed origins for modifications. Please note that
+     * it is an object, where field is actual origin and value must evaluate
+     * to true.
+     * @alias BrowserExecutor.allowed_origins
+     * @member {object}
+     */
 }
 
 module.exports = BrowserExecutor;

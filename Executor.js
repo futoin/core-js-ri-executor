@@ -113,7 +113,7 @@ class InternalChannelContext extends ChannelContext {
     onInvokerAbort( callable, user_data ) {
         this._invoker_executor.once(
             'close',
-            () => callable( user_data )
+            () => callable( user_data ),
         );
     }
 }
@@ -127,7 +127,7 @@ const ExecutorOptions =
     /**
      * Message sniffer callback( iface_info, msg, is_incomming ).
      * Useful for audit logging.
-     * @default dummy
+     * @default
      */
     messageSniffer : () => {},
 
@@ -168,7 +168,7 @@ Object.freeze( ExecutorOptions );
 /**
  * An abstract core implementing pure FTN6 Executor logic.
  * @param {AdvancedCCM} ccm - instance of AdvancedCCM
- * @param {objects} opts - see ExecutorOptions
+ * @param {ExecutorOptions} opts - see ExecutorOptions
  * @class
  */
 class Executor {
@@ -239,7 +239,7 @@ class Executor {
      * @param {string} ifacever - standard iface:version notation of interface
      *        to be implemented.
      * @param {object|Function} impl - either iface implementation or func( impl, executor )
-     * @param {object|array=} specdirs - NOT STANDARD. Useful for direct passing
+     * @param {object | Array=} specdirs - NOT STANDARD. Useful for direct passing
      * of hardcoded spec definition.
      * @alias Executor#register
      */
@@ -394,10 +394,11 @@ class Executor {
                 const { error_info, last_exception, async_stack } = as.state;
                 this.emit( 'notExpected', err, error_info, last_exception, async_stack );
                 reqinfo._cleanup();
-            }
+            },
         ).execute();
     }
 
+    // eslint-disable-next-line jsdoc/require-returns-check
     /**
      * Entry point for in-program originated requests. Process with maximum efficiency (not yet ;)
      * @param {AsyncSteps} as - steps interface
@@ -405,7 +406,7 @@ class Executor {
      * @param {object} ftnreq - FutoIn request object
      * @param {object=} upload_data - upload stream, if any
      * @param {object=} download_stream - download stream, if any
-     * @note AS result: ftnrsp, content-type
+     * @returns {AsyncStepsResult<object, string>} ftnrsp, content-type
      * @fires Executor#notExpected
      * @fires Executor#request
      * @fires Executor#response
@@ -475,7 +476,7 @@ class Executor {
                     const { error_info, last_exception, async_stack } = as.state;
                     this.emit( 'notExpected', err, error_info, last_exception, async_stack );
                     reqinfo._cleanup();
-                }
+                },
             ).execute();
 
             orig_as.setCancel( ( as ) => {
@@ -575,7 +576,7 @@ class Executor {
                         if ( typeof result === 'object' ) {
                             Object.assign(
                                 ri_info.RAW_RESPONSE.r,
-                                result
+                                result,
                             );
                         } else {
                             ri_info.RAW_RESPONSE.r = result;
@@ -613,7 +614,7 @@ class Executor {
 
                 // Even though request itself fails, send response
                 as.success( reqinfo );
-            }
+            },
         );
         as.add(
             ( as, reqinfo ) => this._signResponse( as, reqinfo ),
@@ -625,7 +626,7 @@ class Executor {
                     state.aserror_info,
                     state.last_exception,
                     state.async_stack );
-            }
+            },
         );
     }
 
@@ -908,7 +909,7 @@ class Executor {
 
     /**
      * Shutdown Executor and stop whole processing
-     * @param {callable} [close_cb=null] - callback to execute after Executor shutdown
+     * @param {Function} [close_cb] - callback to execute after Executor shutdown
      * @fires Executor#close
      */
     close( close_cb ) {
@@ -922,7 +923,6 @@ class Executor {
     /**
      * Not standard. Pack message object into JSON representation.
      * If safe limit of 64K is exceeded  then error is raised.
-     *
      * @param {MessageCoder} coder - message coder instance
      * @param {object} msg - message to encode into JSON
      * @returns {string} string representation of the message

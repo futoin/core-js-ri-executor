@@ -549,6 +549,9 @@ interface. Use of this approach is discouraged.</p>
 ## Members
 
 <dl>
+<dt><a href="#integer">integer</a> : <code>number</code></dt>
+<dd><p>Port field</p>
+</dd>
 <dt><a href="#FutoInExecutor">FutoInExecutor</a></dt>
 <dd><p><strong>window.FutoInExecutor</strong> - Browser-only reference to futoin-executor</p>
 </dd>
@@ -587,14 +590,14 @@ BasicAuth interface registration helper
 
 **Kind**: static method of [<code>BasicAuthFace</code>](#BasicAuthFace)  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  | step interface |
-| ccm | <code>AdvancedCCM</code> |  | CCM instance |
-| endpoint | <code>string</code> |  | endpoint URL |
-| [credentials] | <code>\*</code> | <code></code> | see CCM register() |
-| [options] | <code>object</code> | <code>{}</code> | registration options |
-| [options.version] | <code>string</code> | <code>&quot;1.0&quot;</code> | iface version |
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | step interface |
+| ccm | <code>AdvancedCCM</code> | CCM instance |
+| endpoint | <code>string</code> | endpoint URL |
+| [credentials] | <code>any</code> | see CCM register() |
+| [options] | <code>object</code> | registration options |
+| [options.version] | <code>string</code> | iface version |
 
 <a name="BasicAuthService"></a>
 
@@ -607,8 +610,8 @@ until FTN8 Security Concept is finalized
 * [BasicAuthService](#BasicAuthService)
     * _instance_
         * [.addUser(user, secret, details, [system_user])](#BasicAuthService+addUser)
-        * [._getUser(as, user)](#BasicAuthService+_getUser)
-        * [._getUserByID(as, local_id)](#BasicAuthService+_getUserByID)
+        * [._getUser(as, user)](#BasicAuthService+_getUser) ⇒ <code>AsyncStepsResult.&lt;object&gt;</code>
+        * [._getUserByID(as, local_id)](#BasicAuthService+_getUserByID) ⇒ <code>AsyncStepsResult.&lt;object&gt;</code>
         * [.addUser(user, secret, details, [system_user])](#BasicAuthService+addUser)
     * _static_
         * [.register(as, executor)](#BasicAuthService.register) ⇒ [<code>BasicAuthService</code>](#BasicAuthService)
@@ -629,11 +632,11 @@ Register users statically right after registration
 
 <a name="BasicAuthService+_getUser"></a>
 
-### basicAuthService.\_getUser(as, user)
+### basicAuthService.\_getUser(as, user) ⇒ <code>AsyncStepsResult.&lt;object&gt;</code>
 Get by name. Override, if needed.
 
 **Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
-**Note**: as result: {object} user object or null (through as)  
+**Returns**: <code>AsyncStepsResult.&lt;object&gt;</code> - user object or null (through $as)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -642,11 +645,11 @@ Get by name. Override, if needed.
 
 <a name="BasicAuthService+_getUserByID"></a>
 
-### basicAuthService.\_getUserByID(as, local_id)
+### basicAuthService.\_getUserByID(as, local_id) ⇒ <code>AsyncStepsResult.&lt;object&gt;</code>
 Get by ID. Override, if needed.
 
 **Kind**: instance method of [<code>BasicAuthService</code>](#BasicAuthService)  
-**Note**: as result: {object} user object or null (through as)  
+**Returns**: <code>AsyncStepsResult.&lt;object&gt;</code> - user object or null (through $as)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -710,8 +713,8 @@ List of allowed page origins for incoming connections.
 It is MANDATORY for security reasons.
 
 Example:
-* 'http://localhost:8000'
-* 'http://example.com'
+'http://localhost:8000'
+'http://example.com'
 
 **Kind**: static property of [<code>BrowserExecutorOptions</code>](#BrowserExecutorOptions)  
 **Default**: <code>[]</code>  
@@ -742,7 +745,7 @@ Channel Context normally accessible through RequestInfo object.
 * [ChannelContext](#ChannelContext)
     * [new ChannelContext(executor)](#new_ChannelContext_new)
     * *[.type()](#ChannelContext+type) ⇒ <code>string</code>*
-    * [.isStateful()](#ChannelContext+isStateful) ⇒ <code>Boolean</code>
+    * [.isStateful()](#ChannelContext+isStateful) ⇒ <code>boolean</code>
     * [.onInvokerAbort(callable, [user_data])](#ChannelContext+onInvokerAbort)
     * [.register(as, ifacever, options)](#ChannelContext+register)
     * [.iface(ifacever)](#ChannelContext+iface) ⇒ <code>NativeIface</code>
@@ -766,22 +769,23 @@ Standard values: HTTP, WS, BROWSER, TCP, UDP, UNIX
 **Returns**: <code>string</code> - arbitrary string, see FTN6  
 <a name="ChannelContext+isStateful"></a>
 
-### channelContext.isStateful() ⇒ <code>Boolean</code>
+### channelContext.isStateful() ⇒ <code>boolean</code>
 Check if transport is stateful (e.g. WebSockets)
 
 **Kind**: instance method of [<code>ChannelContext</code>](#ChannelContext)  
-**Returns**: <code>Boolean</code> - true, if context object is persistent across
+**Returns**: <code>boolean</code> - true, if context object is persistent across
 requests in the same session  
 <a name="ChannelContext+onInvokerAbort"></a>
 
 ### channelContext.onInvokerAbort(callable, [user_data])
 Set invoker abort handler.
 
+It should be possible to call multiple times setting
+      multiple callbacks.
+The callback is set for lifetime of the channel - do not use it on every
+      request!
+
 **Kind**: instance method of [<code>ChannelContext</code>](#ChannelContext)  
-**Note**: It should be possible to call multiple times setting
-      multiple callbacks.  
-**Note**: The callback is set for lifetime of the channel - do not use it on every
-      request!  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -831,8 +835,8 @@ A dummy so far.
 
 * [DerivedKey](#DerivedKey)
     * [new DerivedKey(ccm, base_id, sequence_id)](#new_DerivedKey_new)
-    * [.baseID()](#DerivedKey+baseID) ⇒ <code>integer</code>
-    * [.sequenceID()](#DerivedKey+sequenceID) ⇒ <code>integer</code>
+    * [.baseID()](#DerivedKey+baseID) ⇒ <code>number</code>
+    * [.sequenceID()](#DerivedKey+sequenceID) ⇒ <code>number</code>
     * [.encrypt(as, data)](#DerivedKey+encrypt) ⇒ <code>Buffer</code>
     * [.decrypt(as, data)](#DerivedKey+decrypt) ⇒ <code>Buffer</code>
 
@@ -843,23 +847,23 @@ A dummy so far.
 | Param | Type | Description |
 | --- | --- | --- |
 | ccm | <code>AdvancedCCM</code> | reference to CCM |
-| base_id | <code>integer</code> | master key ID |
-| sequence_id | <code>integer</code> | sequence number of the derived key |
+| base_id | <code>number</code> | master key ID, integer |
+| sequence_id | <code>number</code> | sequence number of the derived key, integer |
 
 <a name="DerivedKey+baseID"></a>
 
-### derivedKey.baseID() ⇒ <code>integer</code>
+### derivedKey.baseID() ⇒ <code>number</code>
 Get master key ID
 
 **Kind**: instance method of [<code>DerivedKey</code>](#DerivedKey)  
-**Returns**: <code>integer</code> - Base ID  
+**Returns**: <code>number</code> - Base ID, integer  
 <a name="DerivedKey+sequenceID"></a>
 
-### derivedKey.sequenceID() ⇒ <code>integer</code>
+### derivedKey.sequenceID() ⇒ <code>number</code>
 Get derived key sequence ID
 
 **Kind**: instance method of [<code>DerivedKey</code>](#DerivedKey)  
-**Returns**: <code>integer</code> - Sequence ID  
+**Returns**: <code>number</code> - Sequence ID, integer  
 <a name="DerivedKey+encrypt"></a>
 
 ### derivedKey.encrypt(as, data) ⇒ <code>Buffer</code>
@@ -950,7 +954,6 @@ Message sniffer callback( iface_info, msg, is_incomming ).
 Useful for audit logging.
 
 **Kind**: static method of [<code>ExecutorOptions</code>](#ExecutorOptions)  
-**Default**: <code>dummy</code>  
 <a name="Executor"></a>
 
 ## Executor
@@ -963,7 +966,7 @@ An abstract core implementing pure FTN6 Executor logic.
     * [.ccm()](#Executor+ccm) ⇒ <code>AdvancedCCM</code>
     * [.register(as, ifacever, impl, specdirs)](#Executor+register)
     * [.onEndpointRequest(info, ftnreq, send_executor_rsp)](#Executor+onEndpointRequest)
-    * [.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream])](#Executor+onInternalRequest)
+    * [.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream])](#Executor+onInternalRequest) ⇒ <code>AsyncStepsResult.&lt;object, string&gt;</code>
     * [.process(as)](#Executor+process)
     * [.checkAccess(as, acd)](#Executor+checkAccess)
     * [.initFromCache(as)](#Executor+initFromCache)
@@ -983,7 +986,7 @@ An abstract core implementing pure FTN6 Executor logic.
 | Param | Type | Description |
 | --- | --- | --- |
 | ccm | <code>AdvancedCCM</code> | instance of AdvancedCCM |
-| opts | <code>objects</code> | see ExecutorOptions |
+| opts | [<code>ExecutorOptions</code>](#ExecutorOptions) | see ExecutorOptions |
 
 <a name="Executor+ccm"></a>
 
@@ -1004,7 +1007,7 @@ Register implementation of specific interface
 | as | <code>AsyncSteps</code> | steps interface |
 | ifacever | <code>string</code> | standard iface:version notation of interface        to be implemented. |
 | impl | <code>object</code> \| <code>function</code> | either iface implementation or func( impl, executor ) |
-| specdirs | <code>object</code> \| <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
+| specdirs | <code>object</code> \| <code>Array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
 
 <a name="Executor+onEndpointRequest"></a>
 
@@ -1022,12 +1025,12 @@ Entry point for Server-originated requests when acting as ClientExecutor
 
 <a name="Executor+onInternalRequest"></a>
 
-### executor.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream])
+### executor.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream]) ⇒ <code>AsyncStepsResult.&lt;object, string&gt;</code>
 Entry point for in-program originated requests. Process with maximum efficiency (not yet ;)
 
 **Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Returns**: <code>AsyncStepsResult.&lt;object, string&gt;</code> - ftnrsp, content-type  
 **Emits**: [<code>notExpected</code>](#Executor+event_notExpected), [<code>request</code>](#Executor+event_request), [<code>response</code>](#Executor+event_response)  
-**Note**: AS result: ftnrsp, content-type  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1098,9 +1101,9 @@ Shutdown Executor and stop whole processing
 **Kind**: instance method of [<code>Executor</code>](#Executor)  
 **Emits**: [<code>close</code>](#Executor+event_close)  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [close_cb] | <code>callable</code> | <code></code> | callback to execute after Executor shutdown |
+| Param | Type | Description |
+| --- | --- | --- |
+| [close_cb] | <code>function</code> | callback to execute after Executor shutdown |
 
 <a name="Executor+packPayload"></a>
 
@@ -1317,7 +1320,7 @@ Executor implementation for Node.js/io.js with HTTP and WebSockets transport
 * [NodeExecutor](#NodeExecutor)
     * [new NodeExecutor(ccm, opts)](#new_NodeExecutor_new)
     * [.limitsIPSet](#NodeExecutor+limitsIPSet) ⇒ <code>IPSet</code>
-    * [.handleHTTPRequest(req, rsp)](#NodeExecutor+handleHTTPRequest) ⇒ <code>Boolean</code>
+    * [.handleHTTPRequest(req, rsp)](#NodeExecutor+handleHTTPRequest) ⇒ <code>boolean</code>
     * [.handleWSConnection(upgrade_req, ws)](#NodeExecutor+handleWSConnection)
     * [.limitConf(name, options)](#NodeExecutor+limitConf)
     * [.addressLimitMap(map)](#NodeExecutor+addressLimitMap)
@@ -1340,11 +1343,11 @@ Access address-limit name ipset for efficient dynamic manipulation
 **Returns**: <code>IPSet</code> - - ref to static address to limit mapping  
 <a name="NodeExecutor+handleHTTPRequest"></a>
 
-### nodeExecutor.handleHTTPRequest(req, rsp) ⇒ <code>Boolean</code>
+### nodeExecutor.handleHTTPRequest(req, rsp) ⇒ <code>boolean</code>
 Entry point to process HTTP request
 
 **Kind**: instance method of [<code>NodeExecutor</code>](#NodeExecutor)  
-**Returns**: <code>Boolean</code> - true on success  
+**Returns**: <code>boolean</code> - true on success  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -1651,7 +1654,7 @@ Get reference to output
 
 | Param | Type | Description |
 | --- | --- | --- |
-| replace | <code>\*</code> | replace result object |
+| replace | <code>any</code> | replace result object |
 
 <a name="RequestInfo+rawInput"></a>
 
@@ -1662,7 +1665,7 @@ Get reference to input stream
 **Returns**: <code>object</code> - raw input stream  
 **Throws**:
 
-- RawInputError
+- <code>Error</code> RawInputError
 
 <a name="RequestInfo+rawOutput"></a>
 
@@ -1673,7 +1676,7 @@ Get reference to output stream
 **Returns**: <code>object</code> - raw output stream  
 **Throws**:
 
-- RawOutputError
+- <code>Error</code> RawOutputError
 
 <a name="RequestInfo+executor"></a>
 
@@ -1707,7 +1710,7 @@ NOTE: repeat calls override previous value
 
 | Param | Type | Description |
 | --- | --- | --- |
-| time_ms | <code>float</code> | set automatic request timeout after specified        value of microseconds. 0 - disables timeout |
+| time_ms | <code>number</code> | set automatic request timeout after specified        value of microseconds. 0 - disables timeout |
 
 <a name="SecurityProvider"></a>
 
@@ -1736,7 +1739,7 @@ Check request authentication.
 | as | <code>AsyncSteps</code> | AsyncSteps interface |
 | reqinfo | [<code>RequestInfo</code>](#RequestInfo) | extended request info |
 | reqmsg | <code>object</code> | request message as is |
-| sec | <code>array</code> | reqmsg.sec field split by ':' |
+| sec | <code>Array</code> | reqmsg.sec field split by ':' |
 
 <a name="SecurityProvider+signAuto"></a>
 
@@ -1775,7 +1778,7 @@ Check access through Access Control concept
 | --- | --- | --- |
 | as | <code>AsyncSteps</code> | AsyncSteps interface |
 | reqinfo | [<code>RequestInfo</code>](#RequestInfo) | extended request info |
-| acd | <code>string</code> \| <code>array</code> | access control descriptor |
+| acd | <code>string</code> \| <code>Array</code> | access control descriptor |
 
 <a name="SecurityProvider+_setUser"></a>
 
@@ -1784,15 +1787,15 @@ A special helper to set authenticated user info
 
 **Kind**: instance method of [<code>SecurityProvider</code>](#SecurityProvider)  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| as | <code>AsyncSteps</code> |  | AsyncSteps interface |
-| reqinfo | [<code>RequestInfo</code>](#RequestInfo) |  | extended request info |
-| seclvl | <code>string</code> |  | security level |
-| auth_info | <code>object</code> |  | authentication info |
-| auth_info.local_id | <code>integer</code> \| <code>string</code> |  | Local User ID |
-| auth_info.global_id | <code>string</code> |  | Global User ID |
-| [auth_info.details] | <code>object</code> | <code></code> | user details |
+| Param | Type | Description |
+| --- | --- | --- |
+| as | <code>AsyncSteps</code> | AsyncSteps interface |
+| reqinfo | [<code>RequestInfo</code>](#RequestInfo) | extended request info |
+| seclvl | <code>string</code> | security level |
+| auth_info | <code>object</code> | authentication info |
+| auth_info.local_id | <code>number</code> \| <code>string</code> | Local User ID, integer or string |
+| auth_info.global_id | <code>string</code> | Global User ID |
+| [auth_info.details] | <code>object</code> | user details |
 
 <a name="SecurityProvider+_normalizeQueryParams"></a>
 
@@ -1826,7 +1829,7 @@ Source Address representation
 | --- | --- | --- |
 | type | <code>string</code> | Type of address |
 | [host] | <code>string</code> | machine address, if applicable |
-| port | <code>integer</code> \| <code>string</code> | port or path, if applicable |
+| port | <code>number</code> \| <code>string</code> | port or path, if applicable, integer or string |
 
 <a name="SourceAddress+asString"></a>
 
@@ -1844,7 +1847,7 @@ Class representing user information
 
 * [UserInfo](#UserInfo)
     * [new UserInfo(ccm, local_id, global_id, details)](#new_UserInfo_new)
-    * [.localID()](#UserInfo+localID) ⇒ <code>integer</code>
+    * [.localID()](#UserInfo+localID) ⇒ <code>number</code>
     * [.globalID()](#UserInfo+globalID) ⇒ <code>string</code>
     * [.details(as, [user_field_identifiers])](#UserInfo+details) ⇒ <code>AsyncSteps</code>
 
@@ -1855,17 +1858,17 @@ Class representing user information
 | Param | Type | Description |
 | --- | --- | --- |
 | ccm | <code>AdvancedCCM</code> | reference to CCM |
-| local_id | <code>integer</code> | local unique ID |
+| local_id | <code>number</code> | local unique ID, integer |
 | global_id | <code>string</code> | global unique ID |
 | details | <code>object</code> | user info fields, see UserInfoConst |
 
 <a name="UserInfo+localID"></a>
 
-### userInfo.localID() ⇒ <code>integer</code>
+### userInfo.localID() ⇒ <code>number</code>
 Get local unique ID
 
 **Kind**: instance method of [<code>UserInfo</code>](#UserInfo)  
-**Returns**: <code>integer</code> - Local ID  
+**Returns**: <code>number</code> - Local ID, integer  
 <a name="UserInfo+globalID"></a>
 
 ### userInfo.globalID() ⇒ <code>string</code>
@@ -1886,6 +1889,12 @@ Get user info details
 | as | <code>AsyncSteps</code> | steps interface |
 | [user_field_identifiers] | <code>object</code> | field list to get |
 
+<a name="integer"></a>
+
+## integer : <code>number</code>
+Port field
+
+**Kind**: global variable  
 <a name="FutoInExecutor"></a>
 
 ## FutoInExecutor
@@ -1904,7 +1913,7 @@ Get user info details
     * [.ccm()](#Executor+ccm) ⇒ <code>AdvancedCCM</code>
     * [.register(as, ifacever, impl, specdirs)](#Executor+register)
     * [.onEndpointRequest(info, ftnreq, send_executor_rsp)](#Executor+onEndpointRequest)
-    * [.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream])](#Executor+onInternalRequest)
+    * [.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream])](#Executor+onInternalRequest) ⇒ <code>AsyncStepsResult.&lt;object, string&gt;</code>
     * [.process(as)](#Executor+process)
     * [.checkAccess(as, acd)](#Executor+checkAccess)
     * [.initFromCache(as)](#Executor+initFromCache)
@@ -1924,7 +1933,7 @@ Get user info details
 | Param | Type | Description |
 | --- | --- | --- |
 | ccm | <code>AdvancedCCM</code> | instance of AdvancedCCM |
-| opts | <code>objects</code> | see ExecutorOptions |
+| opts | [<code>ExecutorOptions</code>](#ExecutorOptions) | see ExecutorOptions |
 
 <a name="Executor+ccm"></a>
 
@@ -1945,7 +1954,7 @@ Register implementation of specific interface
 | as | <code>AsyncSteps</code> | steps interface |
 | ifacever | <code>string</code> | standard iface:version notation of interface        to be implemented. |
 | impl | <code>object</code> \| <code>function</code> | either iface implementation or func( impl, executor ) |
-| specdirs | <code>object</code> \| <code>array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
+| specdirs | <code>object</code> \| <code>Array</code> | NOT STANDARD. Useful for direct passing of hardcoded spec definition. |
 
 <a name="Executor+onEndpointRequest"></a>
 
@@ -1963,12 +1972,12 @@ Entry point for Server-originated requests when acting as ClientExecutor
 
 <a name="Executor+onInternalRequest"></a>
 
-### executor.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream])
+### executor.onInternalRequest(as, info, ftnreq, [upload_data], [download_stream]) ⇒ <code>AsyncStepsResult.&lt;object, string&gt;</code>
 Entry point for in-program originated requests. Process with maximum efficiency (not yet ;)
 
 **Kind**: instance method of [<code>Executor</code>](#Executor)  
+**Returns**: <code>AsyncStepsResult.&lt;object, string&gt;</code> - ftnrsp, content-type  
 **Emits**: [<code>notExpected</code>](#Executor+event_notExpected), [<code>request</code>](#Executor+event_request), [<code>response</code>](#Executor+event_response)  
-**Note**: AS result: ftnrsp, content-type  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -2039,9 +2048,9 @@ Shutdown Executor and stop whole processing
 **Kind**: instance method of [<code>Executor</code>](#Executor)  
 **Emits**: [<code>close</code>](#Executor+event_close)  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [close_cb] | <code>callable</code> | <code></code> | callback to execute after Executor shutdown |
+| Param | Type | Description |
+| --- | --- | --- |
+| [close_cb] | <code>function</code> | callback to execute after Executor shutdown |
 
 <a name="Executor+packPayload"></a>
 

@@ -23,7 +23,7 @@
  * Source Address representation
  * @param {string} type - Type of address
  * @param {string=} host - machine address, if applicable
- * @param {integer|string=} port - port or path, if applicable
+ * @param {number|string=} port - port or path, if applicable, integer or string
  * @class
  */
 class SourceAddress {
@@ -52,7 +52,7 @@ class SourceAddress {
     /**
      * Port field
      * @alias SourceAddress#port
-     * @member {integer}
+     * @member {number} integer
      */
 
     /**
